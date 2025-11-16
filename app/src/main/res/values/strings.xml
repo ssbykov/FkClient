@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Фазеркрафт-учет</string>
+    <string name="zxing_status_prompt">Отсканируйте QR-код</string>
+    <string name="scan_result_placeholder">Результат сканирования</string>
+</resources>
