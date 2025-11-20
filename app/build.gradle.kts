@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.google.dagger.hilt.android)
+    alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.ksp)
 }
 
@@ -62,4 +64,6 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.mapstruct)
     annotationProcessor(libs.mapstruct.processor)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
 }
