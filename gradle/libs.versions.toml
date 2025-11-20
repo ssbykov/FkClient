@@ -16,6 +16,7 @@ room = "2.6.1"
 ksp = "1.9.23-1.0.19"
 navigationFragmentKtx = "2.9.6"
 fragmentKtx = "1.8.9"
+mapstruct = "1.6.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -38,6 +39,8 @@ ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = 
 androidx-navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigationFragmentKtx" }
 androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
+mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
+mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
