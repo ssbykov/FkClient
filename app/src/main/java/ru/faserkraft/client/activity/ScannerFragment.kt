@@ -13,9 +13,17 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import ru.faserkraft.client.databinding.FragmentScannerBinding
+import ru.faserkraft.client.viewmodel.ScannerViewModel
 
+@AndroidEntryPoint
 class ScannerFragment : Fragment() {
+
+    private val viewModel: ScannerViewModel by viewModels()
 
     private lateinit var binding: FragmentScannerBinding
 
@@ -58,12 +66,18 @@ class ScannerFragment : Fragment() {
         } else {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
+
+        viewModel.productState.observe(viewLifecycleOwner) {
+            binding.scanResult.text = "Найден модуль ${it.serialNumber} созданный ${it.createdAt}"
+        }
     }
 
     private fun startScanner() {
         binding.zxingBarcodeScanner.decodeContinuous { result ->
             result?.let {
-                binding.scanResult.text = it.text
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewModel.getProduct(result.text)
+                }
             }
         }
     }
