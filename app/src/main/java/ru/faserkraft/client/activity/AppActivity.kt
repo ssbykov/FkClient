@@ -4,10 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
+import dagger.hilt.android.AndroidEntryPoint
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.AppActivityBinding
 
-
+@AndroidEntryPoint
 class AppActivity : AppCompatActivity() {
 
 
