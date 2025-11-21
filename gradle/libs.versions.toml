@@ -17,7 +17,7 @@ ksp = "1.9.23-1.0.19"
 navigationFragmentKtx = "2.9.6"
 fragmentKtx = "1.8.9"
 mapstruct = "1.6.3"
-hiltAndroid = "2.57.2"
+hiltAndroid = "2.52"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
