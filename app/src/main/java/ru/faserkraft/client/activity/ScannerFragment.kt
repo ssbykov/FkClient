@@ -76,7 +76,7 @@ class ScannerFragment : Fragment() {
         binding.zxingBarcodeScanner.decodeContinuous { result ->
             result?.let {
                 viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.getProduct(result.text)
+                    viewModel.decodeQrCodeJson(it.text)
                 }
             }
         }
