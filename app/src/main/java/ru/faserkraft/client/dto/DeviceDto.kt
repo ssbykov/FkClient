@@ -10,8 +10,10 @@ import java.util.UUID
 data class DeviceRegisterDto(val id: Int, val token: String)
 
 data class DeviceResponseDto(
-    @SerializedName("user_id")
-    val userId: Int,
+    @SerializedName("employee_name")
+    val userName: String,
+    @SerializedName("user_email")
+    val userEmail: String,
     @SerializedName("device_id")
     val deviceId: String,
     val model: String,
