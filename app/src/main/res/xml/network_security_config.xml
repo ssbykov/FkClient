@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
-        <domain>194.226.9.27</domain>
+        <domain includeSubdomains="false">product.faserkraft.ru</domain>
     </domain-config>
 </network-security-config>
 
