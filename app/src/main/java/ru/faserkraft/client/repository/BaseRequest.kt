@@ -2,18 +2,16 @@ package ru.faserkraft.client.repository
 
 import retrofit2.Response
 import ru.faserkraft.client.dto.ItemDto
-import ru.faserkraft.client.entity.ItemEntity
 import ru.faserkraft.client.error.ApiError
 import ru.faserkraft.client.error.NetworkError
 import ru.faserkraft.client.error.UnknownError
-
 import java.io.IOException
 
 class BaseRequest {
-//    suspend fun <T : ItemDto, V : ItemEntity> getList(
+    //    suspend fun <T : ItemDto, V : ItemEntity> getList(
     suspend fun <T : ItemDto> get(
-    id: String,
-    responseApi: suspend (id: String) -> Response<T>,
+        id: String,
+        responseApi: suspend (id: String) -> Response<T>,
 //        mapper: (List<T>) -> List<V>,
 //        insert: suspend (List<V>) -> Unit
     ): T {
@@ -50,12 +48,10 @@ class BaseRequest {
 
         } catch (e: ApiError) {
             throw e
-
         } catch (e: Exception) {
             println(e)
             throw UnknownError
         }
-
     }
 
 //    suspend fun <T : ItemDto, V : ItemDto> put(

@@ -1,6 +1,7 @@
 package ru.faserkraft.client.activity
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,19 +14,24 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentScannerBinding
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
 @AndroidEntryPoint
 class ScannerFragment : Fragment() {
 
-    private val viewModel: ScannerViewModel by viewModels()
+    private val viewModel: ScannerViewModel by activityViewModels()
 
-    private lateinit var binding: FragmentScannerBinding
+    private var _binding: FragmentScannerBinding? = null
+    private val binding get() = _binding!!
 
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -46,7 +52,7 @@ class ScannerFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentScannerBinding.inflate(inflater, container, false)
+        _binding = FragmentScannerBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -67,17 +73,41 @@ class ScannerFragment : Fragment() {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
 
-        viewModel.productState.observe(viewLifecycleOwner) {
-            binding.scanResult.text = "Найден модуль ${it.serialNumber} созданный ${it.createdAt}"
+//        viewModel.productState.observe(viewLifecycleOwner) {
+//            binding.scanResult.text = "Найден модуль ${it.serialNumber} созданный ${it.createdAt}"
+//        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.errorState.collect { msg ->
+                    AlertDialog.Builder(requireContext())
+                        .setMessage(msg)
+                        .setPositiveButton("ОК") { dialog, _ ->
+                            viewModel.resetIsHandled()
+                            dialog.dismiss()
+                        }
+                        .show()
+                }
+            }
+        }
+
+
+        viewModel.registrationState.observe(viewLifecycleOwner) { state ->
+            if (state.isUpdated) {
+                findNavController().navigate(R.id.action_scannerFragment_to_registrationFragment)
+                viewModel.onNavigationDone()
+            }
         }
     }
 
     private fun startScanner() {
         binding.zxingBarcodeScanner.decodeContinuous { result ->
-            result?.let {
-                viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.decodeQrCodeJson(it.text)
-                }
+            val text = result?.text ?: return@decodeContinuous
+
+            // если view уже уничтожена – просто игнорируем результат
+            if (!isAdded || view == null) return@decodeContinuous
+
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.decodeQrCodeJson(text)
             }
         }
     }
@@ -92,5 +122,9 @@ class ScannerFragment : Fragment() {
         binding.zxingBarcodeScanner.pause()
     }
 
-
+    override fun onDestroyView() {
+        binding.zxingBarcodeScanner.pause() // остановить сканер, чтобы не шли новые колбэки
+        _binding = null
+        super.onDestroyView()
+    }
 }
