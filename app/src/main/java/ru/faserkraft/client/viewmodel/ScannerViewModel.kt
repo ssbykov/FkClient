@@ -59,6 +59,11 @@ class ScannerViewModel @Inject constructor(
         qrCodeDecode(jsonString)
             .onSuccess { data ->
                 if (data is DeviceRequestDto) {
+                    if (appAuth.checkRegistration() != null) {
+                        _errorState.emit("Устройство уже зарегистрировано")
+                        return
+                    }
+
                     try {
                         val result = repository.postDevice(data)
                         result?.let {
@@ -76,7 +81,7 @@ class ScannerViewModel @Inject constructor(
                     } catch (e: ApiError) {
                         _errorState.emit("Ошибка сервера: ${e.code}")
                     } catch (e: Exception) {
-                        _errorState.emit("Неизвестная ошибка")
+                        _errorState.emit("Неизвестная ошибка $e")
                     }
                 } else {
                     _errorState.emit("Некорректный QR‑код")

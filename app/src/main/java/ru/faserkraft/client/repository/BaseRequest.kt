@@ -44,7 +44,7 @@ class BaseRequest {
             if (!response.isSuccessful) throw ApiError(response.code(), response.message())
             return response.body()
         } catch (e: IOException) {
-            throw NetworkError
+            throw e
 
         } catch (e: ApiError) {
             throw e

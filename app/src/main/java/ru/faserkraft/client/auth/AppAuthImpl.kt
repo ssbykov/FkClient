@@ -10,7 +10,7 @@ import javax.inject.Singleton
 class AppAuthImpl @Inject constructor(
     @ApplicationContext
     private val context: Context,
-) : AppAuth{
+) : AppAuth {
 
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
 
@@ -34,4 +34,8 @@ class AppAuthImpl @Inject constructor(
     }
 
     override fun getToken() = prefs.getString(TOKEN, null)
+
+    override fun checkRegistration(): String? {
+        return prefs.getString(LOGIN, null)
+    }
 }
