@@ -6,9 +6,9 @@ data class ProductDto(
     val id: Long = 0,
     @SerializedName("serial_number")
     val serialNumber: String,
-    @SerializedName("process_id")
-    val processId: Int,
+    @SerializedName("process")
+    val process: ProcessDto,
     @SerializedName("created_at")
     val createdAt: String,
     val steps: List<StepDto>
-): ItemDto()
+) : ItemDto()
