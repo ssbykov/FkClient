@@ -22,3 +22,9 @@ fun qrCodeDecode(jsonString: String): Result<Any?> =
             else -> null
         }
     }
+
+
+fun isUfCode(str: String): Boolean {
+    val pattern = Regex("^uf-\\d{9}$")
+    return pattern.matches(str)
+}
