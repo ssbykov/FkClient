@@ -5,9 +5,9 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
 import ru.faserkraft.client.dto.ProductDto
-import ru.faserkraft.client.dto.DeviceRequestDto
 
 
 const val BASE_URL = "https://product.faserkraft.ru/api/v1/"
