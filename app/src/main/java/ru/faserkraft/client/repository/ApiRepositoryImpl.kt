@@ -1,12 +1,12 @@
 package ru.faserkraft.client.repository
 
 import ru.faserkraft.client.api.Api
+import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
 import ru.faserkraft.client.dto.ProductDto
-import ru.faserkraft.client.dto.DeviceRequestDto
 import javax.inject.Inject
 
-class ApiRepositoryImpl @Inject constructor (
+class ApiRepositoryImpl @Inject constructor(
     private val api: Api,
 ) : ApiRepository {
 
@@ -19,6 +19,4 @@ class ApiRepositoryImpl @Inject constructor (
     override suspend fun postDevice(device: DeviceRequestDto): DeviceResponseDto? {
         return baseRequest.post(api::postDevice, device)
     }
-
-
 }
