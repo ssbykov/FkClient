@@ -3,6 +3,7 @@ package ru.faserkraft.client.auth
 import android.content.Context
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
+import ru.faserkraft.client.dto.LoginData
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,6 +26,14 @@ class AppAuthImpl @Inject constructor(
             putString(LOGIN, email)
             putString(PASSWORD, password)
         }
+    }
+
+    override fun getLoginData(): LoginData? {
+        val login = prefs.getString(LOGIN, null)
+        val password = prefs.getString(PASSWORD, null)
+        return if (login != null && password != null) {
+            LoginData(username = login, password = password)
+        } else null
     }
 
     override fun saveToken(token: String) {
