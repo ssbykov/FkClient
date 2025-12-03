@@ -8,18 +8,14 @@ import ru.faserkraft.client.error.UnknownError
 import java.io.IOException
 
 class BaseRequest {
-    //    suspend fun <T : ItemDto, V : ItemEntity> getList(
     suspend fun <T : ItemDto> get(
         id: String,
         responseApi: suspend (id: String) -> Response<T>,
-//        mapper: (List<T>) -> List<V>,
-//        insert: suspend (List<V>) -> Unit
     ): T {
         try {
             val response = responseApi(id)
             if (!response.isSuccessful) throw ApiError(response.code(), response.message())
             val item = response.body() ?: throw UnknownError
-//            insert(mapper(items))
             return item
         } catch (e: IOException) {
             println(e)
