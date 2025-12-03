@@ -73,9 +73,7 @@ class ScannerFragment : Fragment() {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
 
-//        viewModel.productState.observe(viewLifecycleOwner) {
-//            binding.scanResult.text = "Найден модуль ${it.serialNumber} созданный ${it.createdAt}"
-//        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
@@ -90,6 +88,9 @@ class ScannerFragment : Fragment() {
             }
         }
 
+        viewModel.productState.observe(viewLifecycleOwner) {
+            binding.scanResult.text = "Найден модуль ${it.serialNumber} созданный ${it.createdAt}"
+        }
 
         viewModel.registrationState.observe(viewLifecycleOwner) { state ->
             if (state.isUpdated) {
@@ -107,7 +108,7 @@ class ScannerFragment : Fragment() {
             if (!isAdded || view == null) return@decodeContinuous
 
             viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.decodeQrCodeJson(text)
+                viewModel.decodeQrCode(text)
             }
         }
     }

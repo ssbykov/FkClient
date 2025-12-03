@@ -12,6 +12,7 @@ import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.error.ApiError
 import ru.faserkraft.client.model.RegistrationModel
 import ru.faserkraft.client.repository.ApiRepository
+import ru.faserkraft.client.utils.isUfCode
 import ru.faserkraft.client.utils.qrCodeDecode
 import java.io.IOException
 import javax.inject.Inject
@@ -48,14 +49,26 @@ class ScannerViewModel @Inject constructor(
     }
 
     private var isHandled = false
-    fun resetIsHandled(){
+    fun resetIsHandled() {
         isHandled = false
     }
 
 
-    suspend fun decodeQrCodeJson(jsonString: String) {
+    suspend fun decodeQrCode(jsonString: String) {
         if (isHandled) return
         isHandled = true
+
+        if (isUfCode(jsonString)) {
+            // ветка товара по серийному номеру
+            runCatching {
+                getProduct(jsonString)
+                isHandled = false
+            }.onFailure {
+                _errorState.emit("Ошибка получения товара")
+            }
+            return
+        }
+
         qrCodeDecode(jsonString)
             .onSuccess { data ->
                 if (data is DeviceRequestDto) {
