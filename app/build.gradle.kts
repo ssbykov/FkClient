@@ -55,6 +55,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
     implementation(libs.zxing)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
