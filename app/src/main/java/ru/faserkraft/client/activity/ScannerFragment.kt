@@ -88,14 +88,19 @@ class ScannerFragment : Fragment() {
             }
         }
 
-        viewModel.productState.observe(viewLifecycleOwner) {
-            binding.scanResult.text = "Найден модуль ${it.serialNumber} созданный ${it.createdAt}"
-        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        ScannerViewModel.UiEvent.NavigateToProduct ->
+                            findNavController()
+                                .navigate(R.id.action_scannerFragment_to_productFragment)
 
-        viewModel.registrationState.observe(viewLifecycleOwner) { state ->
-            if (state.isUpdated) {
-                findNavController().navigate(R.id.action_scannerFragment_to_registrationFragment)
-                viewModel.onNavigationDone()
+                        ScannerViewModel.UiEvent.NavigateToRegistration ->
+                            findNavController()
+                                .navigate(R.id.action_scannerFragment_to_registrationFragment)
+                    }
+                }
             }
         }
     }
@@ -116,6 +121,7 @@ class ScannerFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         binding.zxingBarcodeScanner.resume()
+        viewModel.resetIsHandled()
     }
 
     override fun onPause() {

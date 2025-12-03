@@ -25,34 +25,45 @@ class ScannerViewModel @Inject constructor(
 ) : ViewModel() {
 
 
-    private val _productState = MutableLiveData<ProductDto>()
-    val productState: LiveData<ProductDto>
-        get() = _productState
+    private val _productState = MutableLiveData<ProductDto?>()
+    val productState: LiveData<ProductDto?> = _productState
+
+    private val _registrationState = MutableLiveData<RegistrationModel?>()
+    val registrationState: LiveData<RegistrationModel?> = _registrationState
+
+
+    sealed class UiEvent {
+        object NavigateToRegistration : UiEvent()
+        object NavigateToProduct : UiEvent()
+    }
+
+    private val _events = MutableSharedFlow<UiEvent>(
+        extraBufferCapacity = 1
+    )
+    val events: SharedFlow<UiEvent> = _events
 
     private val _errorState = MutableSharedFlow<String>()
     val errorState: SharedFlow<String> = _errorState
-
-    private val _registrationState = MutableLiveData<RegistrationModel>()
-    val registrationState: LiveData<RegistrationModel>
-        get() = _registrationState
-
-    fun onNavigationDone() {
-        val currentModel = _registrationState.value
-        if (currentModel != null) {
-            _registrationState.value = currentModel.copy(isUpdated = false)
-        }
-    }
-
-    suspend fun getProduct(serialNumber: String) {
-        val product = repository.getProduct(serialNumber)
-        _productState.value = product
-    }
 
     private var isHandled = false
     fun resetIsHandled() {
         isHandled = false
     }
 
+    suspend fun getProduct(serialNumber: String) {
+        try {
+            val product = repository.getProduct(serialNumber)
+            _productState.postValue(product)
+            _events.emit(UiEvent.NavigateToProduct)
+        } catch (e: Exception) {
+            _errorState.emit("Ошибка загрузки товара")
+        }
+    }
+
+    fun onRegistrationReady(model: RegistrationModel) {
+        _registrationState.value = model
+        _events.tryEmit(UiEvent.NavigateToRegistration)
+    }
 
     suspend fun decodeQrCode(jsonString: String) {
         if (isHandled) return
@@ -62,7 +73,6 @@ class ScannerViewModel @Inject constructor(
             // ветка товара по серийному номеру
             runCatching {
                 getProduct(jsonString)
-                isHandled = false
             }.onFailure {
                 _errorState.emit("Ошибка получения товара")
             }
@@ -81,11 +91,11 @@ class ScannerViewModel @Inject constructor(
                         val result = repository.postDevice(data)
                         result?.let {
                             appAuth.setLoginData(result.userEmail, data.password)
-                            _registrationState.value = RegistrationModel(
+                            val registration = RegistrationModel(
                                 result.userName,
                                 result.userEmail,
-                                true
                             )
+                            onRegistrationReady(registration)
                         } ?: run {
                             _errorState.emit("Пустой ответ от сервера")
                         }
