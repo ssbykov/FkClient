@@ -1,20 +1,15 @@
 package ru.faserkraft.client.activity
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.observe
 import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
-import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentRegistrationBinding
-import ru.faserkraft.client.databinding.FragmentScannerBinding
 import ru.faserkraft.client.viewmodel.ScannerViewModel
-import kotlin.getValue
 
 @AndroidEntryPoint
 class RegistrationFragment : Fragment() {
@@ -36,9 +31,12 @@ class RegistrationFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.registrationState.observe(viewLifecycleOwner) { state ->
-                binding.tvEmployeeName.text = state.employeeName
-                binding.tvEmail.text = state.email
+            state ?: return@observe
+            with(binding) {
+                tvEmployeeName.text = state.employeeName
+                tvEmail.text = state.email
             }
+        }
 
         binding.btnDone.setOnClickListener {
             viewModel.resetIsHandled()
