@@ -26,5 +26,13 @@
         android:id="@+id/productFragment"
         android:name="ru.faserkraft.client.activity.ProductFragment"
         android:label="fragment_product"
-        tools:layout="@layout/fragment_product" />
+        tools:layout="@layout/fragment_product" >
+        <action
+            android:id="@+id/action_productFragment_to_productFullFragment"
+            app:destination="@id/productFullFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/productFullFragment"
+        android:name="ru.faserkraft.client.activity.ProductFullFragment"
+        android:label="ProductFullFragment" />
 </navigation>

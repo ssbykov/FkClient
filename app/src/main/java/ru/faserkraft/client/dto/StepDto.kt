@@ -10,11 +10,11 @@ data class StepDto(
     val stepDefinition: StepDefinitionDto,
     val status: String,
     @SerializedName("accepted_by_id")
-    val acceptedById: Int,
+    val acceptedById: Int?,
     @SerializedName("accepted_at")
-    val acceptedAt: String,
+    val acceptedAt: String?,
     @SerializedName("performed_by_id")
-    val performedById: Int,
+    val performedById: Int?,
     @SerializedName("performed_at")
-    val performedAt: String
+    val performedAt: String?
 )
