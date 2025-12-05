@@ -17,7 +17,13 @@ data class StepDto(
     val performedBy: EmployeeDto?,
     @SerializedName("performed_at")
     val performedAt: String?
-)
+): ItemDto()
+
+data class StepCloseDto(
+    val id: Int,
+    @SerializedName("performed_by")
+    val performedBy: String
+): ItemDto()
 
 enum class StepStatusUi(
     val title: String,
@@ -28,7 +34,7 @@ enum class StepStatusUi(
     DONE(
         title = "Статус: Выполнено",
         description = "Этап закрыт",
-        iconRes = R.drawable.status_accepted
+        iconRes = R.drawable.status_done
     ),
     WAITING(
         title = "Статус: Ожидает начала",
@@ -38,7 +44,7 @@ enum class StepStatusUi(
 }
 
 fun StepDto.toUiStatus(): StepStatusUi = when {
-    status == "accepted" -> StepStatusUi.DONE
+    status == "done" -> StepStatusUi.DONE
     else -> StepStatusUi.WAITING
 }
 
