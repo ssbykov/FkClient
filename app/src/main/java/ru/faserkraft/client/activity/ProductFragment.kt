@@ -9,6 +9,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductBinding
+import ru.faserkraft.client.dto.StepStatusUi
+import ru.faserkraft.client.dto.toUiStatus
 import ru.faserkraft.client.utils.formatIsoToUi
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
@@ -33,17 +35,25 @@ class ProductFragment : Fragment() {
         viewModel.productState.observe(viewLifecycleOwner) { product ->
             product ?: return@observe
             val lastStep = product.steps
-                .filter { it.status != "accepted" }.minByOrNull { it.stepDefinition.order }
+                .filter { it.status != "accepted" }
+                .minByOrNull { it.stepDefinition.order }
 
             with(binding) {
                 tvProcess.text = product.process.name
-                tvSerial.text = product.serialNumber
+                tvProductNumber.text = product.serialNumber
                 tvCreated.text = formatIsoToUi(product.createdAt)
-                tvStep.text = lastStep?.stepDefinition?.template?.name
+
+                tvStepName.text = lastStep?.stepDefinition?.template?.name
+
+                val uiStatus = lastStep?.toUiStatus() ?: StepStatusUi.WAITING
+                tvStatus.text = uiStatus.title
+                tvCompletedAt.text = uiStatus.description
+                imgStatus.setImageResource(uiStatus.iconRes)
             }
         }
 
-        binding.tvProcess.setOnClickListener {
+
+        binding.btnAllStages.setOnClickListener {
             findNavController().navigate(R.id.action_productFragment_to_productFullFragment)
         }
 

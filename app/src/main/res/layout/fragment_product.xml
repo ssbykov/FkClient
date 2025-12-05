@@ -1,71 +1,147 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingHorizontal="24dp"
+    android:paddingTop="24dp"
+    android:paddingBottom="16dp"
     tools:context=".activity.ProductFragment">
 
+    <!-- Заголовок -->
     <TextView
-        android:id="@+id/tvProcess"
-        android:layout_width="wrap_content"
+        android:id="@+id/tvTitle"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        tools:text="Process name"
+        android:text="@string/step_header"
+        android:textSize="22sp"
         android:textStyle="bold"
-        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/tvSerial"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"/>
+        android:gravity="center"/>
 
-    <TextView
-        android:id="@+id/tvSerial"
+    <!-- Информация о продукте -->
+    <LinearLayout
+        android:id="@+id/llProductInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/tvProcess"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="УФ-3-20-ПС" />
+
+        <TextView
+            android:id="@+id/tvProductNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            tools:text="uf-000000001" />
+
+        <TextView
+            android:id="@+id/tvCreated"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            tools:text="20-11-2025 08:31" />
+    </LinearLayout>
+
+    <!-- Карточка текущего этапа (кликабельная) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardStage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:cardUseCompatPadding="true"
+        app:cardElevation="2dp"
+        app:strokeWidth="1dp"
+        app:layout_constraintTop_toBottomOf="@id/llProductInfo"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvStepName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    tools:text="Подготовка пучков" />
+
+                <ImageView
+                    android:id="@+id/imgStatus"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    tools:src="@drawable/status_pending" />
+            </LinearLayout>
+
+            <!-- Статус этапа -->
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textSize="14sp"
+                tools:text="Статус: В работе" />
+
+            <TextView
+                android:id="@+id/tvCompletedAt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="14sp"
+                tools:text="Еще не выполнено" />
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Вторичное действие: показать все этапы -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAllStages"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:text="Serial"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/tvProcess"
-        app:layout_constraintBottom_toTopOf="@id/tvCreated"
+        android:layout_marginTop="12dp"
+        android:text="@string/show_steps_button"
+        app:layout_constraintTop_toBottomOf="@id/cardStage"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <TextView
-        android:id="@+id/tvCreated"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:text="Created"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/tvSerial"
-        app:layout_constraintBottom_toTopOf="@id/tvStep"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
-
-
-    <TextView
-        android:id="@+id/tvStep"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:text="Last step"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/tvCreated"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
-
-    <Button
+    <!-- Основная кнопка -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnDone"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="32dp"
-        android:text="ОК"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/close_step_button"
+        app:layout_constraintTop_toBottomOf="@id/btnAllStages"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

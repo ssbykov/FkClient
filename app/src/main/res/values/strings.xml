@@ -3,4 +3,7 @@
     <string name="zxing_status_prompt">Отсканируйте QR-код</string>
     <string name="scan_result_placeholder">Результат сканирования</string>
     <string name="steps_header">Выполненные этапы</string>
+    <string name="step_header">Этап производства</string>
+    <string name="show_steps_button">Показать все этапы</string>
+    <string name="close_step_button">Закрыть этап</string>
 </resources>

@@ -1,6 +1,8 @@
 package ru.faserkraft.client.dto
 
+import androidx.annotation.DrawableRes
 import com.google.gson.annotations.SerializedName
+import ru.faserkraft.client.R
 
 data class StepDto(
     val id: Int,
@@ -16,3 +18,27 @@ data class StepDto(
     @SerializedName("performed_at")
     val performedAt: String?
 )
+
+enum class StepStatusUi(
+    val title: String,
+    val description: String,
+    @param:DrawableRes
+    val iconRes: Int
+) {
+    DONE(
+        title = "Статус: Выполнено",
+        description = "Этап закрыт",
+        iconRes = R.drawable.status_accepted
+    ),
+    WAITING(
+        title = "Статус: Ожидает начала",
+        description = "Пока ничего не сделано",
+        iconRes = R.drawable.status_pending
+    )
+}
+
+fun StepDto.toUiStatus(): StepStatusUi = when {
+    status == "accepted" -> StepStatusUi.DONE
+    else -> StepStatusUi.WAITING
+}
+

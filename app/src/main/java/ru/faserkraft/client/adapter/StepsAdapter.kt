@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.databinding.ItemStepBinding
 import ru.faserkraft.client.dto.StepDto
-import ru.faserkraft.client.utils.formatIsoToUi
+import ru.faserkraft.client.dto.toUiStatus
 
 class StepsAdapter() : ListAdapter<StepDto, StepsAdapter.StepVH>(StepDiff()) {
 
@@ -29,7 +29,10 @@ class StepsAdapter() : ListAdapter<StepDto, StepsAdapter.StepVH>(StepDiff()) {
                 tvStepIndex.text = step.stepDefinition.order.toString()
                 tvStepName.text = step.stepDefinition.template.name
                 tvExecutor.text = step.performedBy.let { "Выполнил: ${it?.name ?: "-"}" }
-                tvCompletedAt.text = "Выполнено: " + (step.performedAt?.let(::formatIsoToUi) ?: "-")
+
+                val uiStatus = step.toUiStatus()
+                tvCompletedAt.text = uiStatus.description
+                imgStatus.setImageResource(uiStatus.iconRes)
 
             }
         }
