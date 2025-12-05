@@ -28,7 +28,7 @@ class StepsAdapter() : ListAdapter<StepDto, StepsAdapter.StepVH>(StepDiff()) {
             with(binding) {
                 tvStepIndex.text = step.stepDefinition.order.toString()
                 tvStepName.text = step.stepDefinition.template.name
-                tvExecutor.text = step.performedById.let { "Выполнил: ${it ?: "-"}" }
+                tvExecutor.text = step.performedBy.let { "Выполнил: ${it?.name ?: "-"}" }
                 tvCompletedAt.text = "Выполнено: " + (step.performedAt?.let(::formatIsoToUi) ?: "-")
 
             }
