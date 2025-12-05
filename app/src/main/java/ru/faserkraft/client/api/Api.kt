@@ -8,6 +8,7 @@ import retrofit2.http.Path
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
 import ru.faserkraft.client.dto.ProductDto
+import ru.faserkraft.client.dto.StepCloseDto
 
 
 const val BASE_URL = "https://product.faserkraft.ru/api/v1/"
@@ -16,6 +17,11 @@ interface Api {
     @GET(BASE_URL + "products/{serial_number}")
     suspend fun getProduct(
         @Path("serial_number") id: String,
+    ): Response<ProductDto>
+
+    @POST(BASE_URL + "products_steps/")
+    suspend fun postStep(
+        @Body step: StepCloseDto
     ): Response<ProductDto>
 
     @POST(BASE_URL + "users/new-device")
