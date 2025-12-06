@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.ProcessDto
+import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.StepCloseDto
 import ru.faserkraft.client.dto.StepDto
@@ -33,7 +34,10 @@ class ScannerViewModel @Inject constructor(
     private val _productState = MutableLiveData<ProductDto?>()
     val productState: LiveData<ProductDto?> = _productState
 
-    private val _processes = MutableLiveData< List<ProcessDto>?>()
+    private val _newProduct = MutableLiveData<ProductCreateDto>()
+    val newProduct: LiveData<ProductCreateDto> = _newProduct
+
+    private val _processes = MutableLiveData<List<ProcessDto>?>()
     val processes: LiveData<List<ProcessDto>?> = _processes
 
     private val _selectedStep = MutableLiveData<StepDto?>()
@@ -52,6 +56,7 @@ class ScannerViewModel @Inject constructor(
                 selected != null -> product.steps
                     .find { it.stepDefinition.order == selected.stepDefinition.order }
                     ?: emptyStep
+
                 else -> product.steps.minByOrNull { it.stepDefinition.order } ?: emptyStep
             }
         }
@@ -81,14 +86,17 @@ class ScannerViewModel @Inject constructor(
     }
 
     suspend fun getProduct(serialNumber: String) {
-        try {
-            val product = repository.getProduct(serialNumber)
-            _productState.postValue(product)
+        val product = repository.getProduct(serialNumber)
+        if (product == null) {
+            newProduct(serialNumber)
+        } else {
+            setProduct(product)
+        }
+    }
 
-            if (product == null) {
-                newProduct()
-                return
-            }
+    suspend fun setProduct(product: ProductDto) {
+        try {
+            _productState.postValue(product)
 
             val initialStep = product.steps
                 .filter { it.status != "done" }
@@ -101,10 +109,21 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
-    suspend fun newProduct() {
+    suspend fun newProduct(serialNumber: String) {
+        val newProductDto = ProductCreateDto(
+            serialNumber = serialNumber,
+        )
+        _newProduct.postValue(newProductDto)
+
         val processes = repository.getProcesses()
         _processes.postValue(processes)
         _events.emit(UiEvent.NavigateToNewProduct)
+    }
+
+    suspend fun createProduct(newProduct: ProductCreateDto) {
+        repository.postProduct(newProduct)?.let { product ->
+            setProduct(product)
+        }
     }
 
     fun onRegistrationReady(model: RegistrationModel) {

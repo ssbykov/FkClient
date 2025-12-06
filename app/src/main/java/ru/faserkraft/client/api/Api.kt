@@ -8,6 +8,7 @@ import retrofit2.http.Path
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
 import ru.faserkraft.client.dto.ProcessDto
+import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.StepCloseDto
 
@@ -22,6 +23,11 @@ interface Api {
 
     @GET(BASE_URL + "processes/")
     suspend fun getProcesses(): Response<List<ProcessDto>>
+
+    @POST(BASE_URL + "products/")
+    suspend fun postProduct(
+        @Body product: ProductCreateDto
+    ): Response<ProductDto>
 
     @POST(BASE_URL + "products_steps/")
     suspend fun postStep(
