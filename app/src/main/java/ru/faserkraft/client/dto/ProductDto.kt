@@ -2,6 +2,14 @@ package ru.faserkraft.client.dto
 
 import com.google.gson.annotations.SerializedName
 
+
+data class ProductCreate(
+    @SerializedName("serial_number")
+    val serialNumber: String,
+    @SerializedName("created_at")
+    val createdAt: String,
+) : ItemDto()
+
 data class ProductDto(
     val id: Long = 0,
     @SerializedName("serial_number")
