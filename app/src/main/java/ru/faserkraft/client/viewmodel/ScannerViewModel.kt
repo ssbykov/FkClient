@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.dto.DeviceRequestDto
+import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.StepCloseDto
 import ru.faserkraft.client.dto.StepDto
@@ -31,6 +32,9 @@ class ScannerViewModel @Inject constructor(
 
     private val _productState = MutableLiveData<ProductDto?>()
     val productState: LiveData<ProductDto?> = _productState
+
+    private val _processes = MutableLiveData< List<ProcessDto>?>()
+    val processes: LiveData<List<ProcessDto>?> = _processes
 
     private val _selectedStep = MutableLiveData<StepDto?>()
     val selectedStep: LiveData<StepDto?> = _selectedStep
@@ -60,6 +64,7 @@ class ScannerViewModel @Inject constructor(
     sealed class UiEvent {
         object NavigateToRegistration : UiEvent()
         object NavigateToProduct : UiEvent()
+        object NavigateToNewProduct : UiEvent()
     }
 
     private val _events = MutableSharedFlow<UiEvent>(
@@ -80,7 +85,11 @@ class ScannerViewModel @Inject constructor(
             val product = repository.getProduct(serialNumber)
             _productState.postValue(product)
 
-            // если при первом открытии нужно автоматически выбрать шаг
+            if (product == null) {
+                newProduct()
+                return
+            }
+
             val initialStep = product.steps
                 .filter { it.status != "done" }
                 .minByOrNull { it.stepDefinition.order } ?: emptyStep
@@ -88,8 +97,14 @@ class ScannerViewModel @Inject constructor(
 
             _events.emit(UiEvent.NavigateToProduct)
         } catch (e: Exception) {
-            _errorState.emit("Ошибка загрузки товара")
+            _errorState.emit("Ошибка загрузки товара $e")
         }
+    }
+
+    suspend fun newProduct() {
+        val processes = repository.getProcesses()
+        _processes.postValue(processes)
+        _events.emit(UiEvent.NavigateToNewProduct)
     }
 
     fun onRegistrationReady(model: RegistrationModel) {
