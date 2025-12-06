@@ -12,15 +12,15 @@ class ApiRepositoryImpl @Inject constructor(
     private val api: Api,
 ) : ApiRepository {
 
-    override suspend fun getProduct(serialNumber: String): ProductDto =
+    override suspend fun getProduct(serialNumber: String): ProductDto? =
         callApi { api.getProduct(serialNumber) }
 
-    override suspend fun getProcesses(): Sequence<ProcessDto> =
+    override suspend fun getProcesses(): List<ProcessDto>? =
         callApi { api.getProcesses() }
 
-    override suspend fun postDevice(device: DeviceRequestDto): DeviceResponseDto =
+    override suspend fun postDevice(device: DeviceRequestDto): DeviceResponseDto? =
         callApi { api.postDevice(device) }
 
-    override suspend fun postStep(step: StepCloseDto): ProductDto =
+    override suspend fun postStep(step: StepCloseDto): ProductDto? =
         callApi { api.postStep(step) }
 }
