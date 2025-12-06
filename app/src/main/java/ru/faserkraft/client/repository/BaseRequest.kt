@@ -9,9 +9,13 @@ import java.io.IOException
 
 suspend fun <R> callApi(
     block: suspend () -> Response<R>
-): R {
+): R? {
     return try {
         val response = block()
+
+        if (response.code() == 404) {
+            return null
+        }
 
         if (!response.isSuccessful) {
             throw ApiError(
