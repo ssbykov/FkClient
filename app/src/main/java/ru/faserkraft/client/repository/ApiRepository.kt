@@ -7,8 +7,8 @@ import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.StepCloseDto
 
 interface ApiRepository {
-    suspend fun getProduct(serialNumber: String): ProductDto
-    suspend fun getProcesses(): Sequence<ProcessDto>
+    suspend fun getProduct(serialNumber: String): ProductDto?
+    suspend fun getProcesses(): List<ProcessDto>?
     suspend fun postDevice(device: DeviceRequestDto): DeviceResponseDto?
     suspend fun postStep(step: StepCloseDto): ProductDto?
 }
