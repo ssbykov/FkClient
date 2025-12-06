@@ -1,72 +1,36 @@
 package ru.faserkraft.client.repository
 
 import retrofit2.Response
-import ru.faserkraft.client.dto.ItemDto
 import ru.faserkraft.client.error.ApiError
 import ru.faserkraft.client.error.NetworkError
 import ru.faserkraft.client.error.UnknownError
 import java.io.IOException
 
-class BaseRequest {
-    suspend fun <T : ItemDto> get(
-        id: String,
-        responseApi: suspend (id: String) -> Response<T>,
-    ): T {
-        try {
-            val response = responseApi(id)
-            if (!response.isSuccessful) throw ApiError(response.code(), response.message())
-            val item = response.body() ?: throw UnknownError
-            return item
-        } catch (e: IOException) {
-            println(e)
-            throw NetworkError
 
-        } catch (e: ApiError) {
-            throw e
+suspend fun <R> callApi(
+    block: suspend () -> Response<R>
+): R {
+    return try {
+        val response = block()
 
-        } catch (e: Exception) {
-            println(e)
-            throw UnknownError
+        if (!response.isSuccessful) {
+            throw ApiError(
+                status = response.code(),
+                code = response.message() // или свой uiCode
+            )
         }
 
+        response.body() ?: throw UnknownError
+    } catch (e: IOException) {
+        println(e)
+        throw NetworkError
+    } catch (e: ApiError) {
+        throw e          // не оборачиваем
+    } catch (e: Exception) {
+        println(e)
+        throw UnknownError
     }
-
-
-    suspend fun <T : ItemDto, V : ItemDto> post(
-        responseApi: suspend (T) -> Response<V>, item: T
-    ): V? {
-        try {
-            val response = responseApi(item)
-            if (!response.isSuccessful) throw ApiError(response.code(), response.message())
-            return response.body()
-        } catch (e: IOException) {
-            throw e
-
-        } catch (e: ApiError) {
-            throw e
-        } catch (e: Exception) {
-            println(e)
-            throw UnknownError
-        }
-    }
-
-//    suspend fun <T : ItemDto, V : ItemDto> put(
-//        responseApi: suspend (id: String, T) -> Response<V>, item: T
-//    ): Boolean {
-//        try {
-//            val id = item.id ?: throw UnknownError
-//            val response = responseApi(id, item)
-//            if (!response.isSuccessful) throw ApiError(response.code(), response.message())
-//            return true
-//
-//        } catch (e: IOException) {
-//            throw NetworkError
-//
-//        } catch (e: ApiError) {
-//            throw e
-//
-//        } catch (e: Exception) {
-//            throw UnknownError
-//        }
-//    }
 }
+
+
+
