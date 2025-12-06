@@ -21,7 +21,7 @@ interface Api {
     ): Response<ProductDto>
 
     @GET(BASE_URL + "processes/")
-    suspend fun getProcesses(): Response<Sequence<ProcessDto>>
+    suspend fun getProcesses(): Response<List<ProcessDto>>
 
     @POST(BASE_URL + "products_steps/")
     suspend fun postStep(
