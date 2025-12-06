@@ -36,15 +36,31 @@ enum class StepStatusUi(
         description = "Этап закрыт",
         iconRes = R.drawable.status_done
     ),
-    WAITING(
+    PENDING(
         title = "Статус: Ожидает начала",
         description = "Пока ничего не сделано",
         iconRes = R.drawable.status_pending
     )
 }
 
-fun StepDto.toUiStatus(): StepStatusUi = when {
-    status == "done" -> StepStatusUi.DONE
-    else -> StepStatusUi.WAITING
+enum class StepStatusBackend(val raw: String) {
+    DONE("done"),
+    PENDING("pending")
 }
 
+fun StepDto.toUiStatus(): StepStatusUi =
+    when (status.lowercase()) {
+        StepStatusBackend.DONE.raw -> StepStatusUi.DONE
+        StepStatusBackend.PENDING.raw -> StepStatusUi.PENDING
+        else -> StepStatusUi.PENDING
+    }
+
+val emptyStep = StepDto(
+    id = 0,
+    productId = 0,
+    stepDefinition = StepDefinitionDto(0, 0, TemplateDto("")),
+    status = "",
+    performedById = null,
+    performedBy = null,
+    performedAt = null
+)
