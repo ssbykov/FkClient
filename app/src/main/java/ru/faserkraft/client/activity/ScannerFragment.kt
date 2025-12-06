@@ -99,6 +99,9 @@ class ScannerFragment : Fragment() {
                         ScannerViewModel.UiEvent.NavigateToRegistration ->
                             findNavController()
                                 .navigate(R.id.action_scannerFragment_to_registrationFragment)
+                        ScannerViewModel.UiEvent.NavigateToNewProduct ->
+                            findNavController()
+                                .navigate(R.id.action_scannerFragment_to_newProductFragment)
                     }
                 }
             }
