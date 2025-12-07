@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import ru.faserkraft.client.adapter.StepsAdapter
 import ru.faserkraft.client.databinding.FragmentProductFullBinding
@@ -44,5 +45,8 @@ class ProductFullFragment : Fragment() {
 
             adapter.submitList(product.steps)
         }
+
+        binding.btnBack.setOnClickListener { findNavController().navigateUp() }
+
     }
 }

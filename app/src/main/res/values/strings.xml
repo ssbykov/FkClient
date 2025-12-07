@@ -11,4 +11,5 @@
     <string name="process">Процесс</string>
     <string name="serial_number">Серийный номер</string>
     <string name="create_product">Создать продукт</string>
+    <string name="back">Назад</string>
 </resources>
