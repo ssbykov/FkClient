@@ -1,10 +1,12 @@
 package ru.faserkraft.client.activity
 
 import android.app.AlertDialog
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -34,15 +36,22 @@ class ProductFragment : Fragment() {
         return binding.root
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.lastStep.observe(viewLifecycleOwner) { lastStep ->
             with(binding) {
-                tvStepName.text = lastStep.stepDefinition.template.name
+                val ctx = cardRoot.context
+
+                tvStepName.text = ctx.getString(
+                    R.string.step_last_title,
+                    lastStep.stepDefinition.template.name
+                )
+
                 val uiStatus = lastStep.toUiStatus()
-                tvStatus.text = uiStatus.title
-                tvCompletedAt.text = uiStatus.description
+                tvStatus.text = ctx.getString(uiStatus.statusTitleRes)
+                tvCompletedAt.text = ctx.getString(uiStatus.statusDescRes)
                 imgStatus.setImageResource(uiStatus.iconRes)
                 cardRoot.setBackgroundColor(
                     ContextCompat.getColor(cardRoot.context, uiStatus.bgColorRes)

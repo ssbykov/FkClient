@@ -17,7 +17,7 @@ private val uiFormatter: DateTimeFormatter =
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatIsoToUi(iso: String?): String {
-    if (iso.isNullOrBlank()) return ""
+    if (iso.isNullOrBlank()) return "-"
 
     return try {
         val instant = Instant.parse(iso)

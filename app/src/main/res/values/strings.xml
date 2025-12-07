@@ -12,4 +12,11 @@
     <string name="serial_number">Серийный номер</string>
     <string name="create_product">Создать продукт</string>
     <string name="back">Назад</string>
+    <string name="step_completed_at">Завершено: %1$s</string>
+    <string name="step_executor">Выполнил: %1$s</string>
+    <string name="step_last_title">Этап: %1$s</string>
+    <string name="step_last_status_done">Статус: Выполнено</string>
+    <string name="step_last_status_pending">Статус: Ожидает начала</string>
+    <string name="step_last_desc_done">Этап закрыт</string>
+    <string name="step_last_desc_pending">Этап не закрыт</string>
 </resources>
