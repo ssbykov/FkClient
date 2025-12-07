@@ -2,6 +2,7 @@ package ru.faserkraft.client.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -33,7 +34,9 @@ class StepsAdapter() : ListAdapter<StepDto, StepsAdapter.StepVH>(StepDiff()) {
                 val uiStatus = step.toUiStatus()
                 tvCompletedAt.text = uiStatus.description
                 imgStatus.setImageResource(uiStatus.iconRes)
-
+                root.setBackgroundColor(
+                    ContextCompat.getColor(root.context, uiStatus.bgColorRes)
+                )
             }
         }
     }

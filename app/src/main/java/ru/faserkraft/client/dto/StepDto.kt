@@ -1,5 +1,6 @@
 package ru.faserkraft.client.dto
 
+import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import com.google.gson.annotations.SerializedName
 import ru.faserkraft.client.R
@@ -29,17 +30,21 @@ enum class StepStatusUi(
     val title: String,
     val description: String,
     @param:DrawableRes
-    val iconRes: Int
+    val iconRes: Int,
+    @ColorRes
+    val bgColorRes: Int
 ) {
     DONE(
         title = "Статус: Выполнено",
         description = "Этап закрыт",
-        iconRes = R.drawable.status_done
+        iconRes = R.drawable.status_done,
+        bgColorRes = R.color.step_done_bg
     ),
     PENDING(
         title = "Статус: Ожидает начала",
-        description = "Пока ничего не сделано",
-        iconRes = R.drawable.status_pending
+        description = "Этап не закрыт",
+        iconRes = R.drawable.status_pending,
+        bgColorRes = R.color.step_pending_bg
     )
 }
 
