@@ -1,8 +1,16 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.FkClient" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Основной брендовый цвет -->
+        <item name="colorPrimary">@color/brand_blue</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+
+        <!-- Вторичный / акцентный при необходимости -->
+        <item name="colorSecondary">@color/brand_blue_dark</item>
+
+        <!-- Цвет фона приложения и карточек -->
+        <item name="android:windowBackground">@color/bg_app</item>
+        <item name="colorSurface">@color/bg_card</item>
     </style>
 
     <style name="Theme.FkClient" parent="Base.Theme.FkClient" />
