@@ -13,32 +13,34 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:title="@string/app_name"
         app:titleCentered="true"
-        app:titleTextColor="?attr/colorOnPrimary"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:titleTextColor="?attr/colorOnPrimary" />
 
     <com.journeyapps.barcodescanner.DecoratedBarcodeView
         android:id="@+id/zxing_barcode_scanner"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/scan_result"
+        app:layout_constraintBottom_toTopOf="@+id/scan_result_image"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:zxing_scanner_layout="@layout/custom_barcode_scanner" />
 
-    <TextView
-        android:id="@+id/scan_result"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/scan_result_placeholder"
+    <ImageView
+        android:id="@+id/scan_result_image"
+        android:layout_width="0dp"
+        android:layout_height="120dp"
         android:layout_marginBottom="24dp"
-        android:textSize="24sp"
-        android:textColor="@android:color/holo_blue_dark"
+        android:scaleType="fitCenter"
+        android:src="@drawable/kraft"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/zxing_barcode_scanner" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

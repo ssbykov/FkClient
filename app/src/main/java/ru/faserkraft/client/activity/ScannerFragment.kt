@@ -58,11 +58,6 @@ class ScannerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        ViewCompat.setOnApplyWindowInsetsListener(binding.scanResult) { scanView, insets ->
-            val bottomInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
-            scanView.updatePadding(bottom = bottomInset)
-            insets
-        }
 
         if (
             ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
