@@ -75,25 +75,26 @@ class ProductFragment : Fragment() {
 
         binding.btnDone.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                try {
-                    val lastStep = viewModel.lastStep.value ?: emptyStep
+                val lastStep = viewModel.lastStep.value ?: emptyStep
 
-                    if (lastStep.id == 0) {
-                        return@launch
-                    }
+                if (lastStep.id == 0) return@launch
 
-                    if (lastStep.status == StepStatusBackend.DONE.raw) {
-                        AlertDialog.Builder(requireContext())
-                            .setMessage("Этап уже выполнен")
-                            .setPositiveButton("ОК") { dialog, _ -> dialog.dismiss() }
-                            .show()
-                    } else {
-                        viewModel.closeStep(lastStep)
-                    }
-                } catch (e: Exception) {
+                if (lastStep.status == StepStatusBackend.DONE.raw) {
                     AlertDialog.Builder(requireContext())
-                        .setMessage(e.message ?: "Ошибка")
-                        .setPositiveButton("ОК") { dialog, _ ->
+                        .setMessage("Этап уже выполнен")
+                        .setPositiveButton("ОК") { dialog, _ -> dialog.dismiss() }
+                        .show()
+                } else {
+                    AlertDialog.Builder(requireContext())
+                        .setTitle("Закрыть этап")
+                        .setMessage("Вы уверены, что хотите закрыть этап?")
+                        .setPositiveButton("Закрыть") { dialog, _ ->
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                viewModel.closeStep(lastStep)
+                            }
+                            dialog.dismiss()
+                        }
+                        .setNegativeButton("Отмена") { dialog, _ ->
                             dialog.dismiss()
                         }
                         .show()
