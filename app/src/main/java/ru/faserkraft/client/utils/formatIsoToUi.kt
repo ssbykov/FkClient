@@ -1,27 +1,30 @@
 package ru.faserkraft.client.utils
 
-import java.text.ParseException
+import android.os.Build
+import androidx.annotation.RequiresApi
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-fun formatIsoToUi(iso: String): String {
-    val parserWithMillis = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX", Locale.US).apply {
-        timeZone = TimeZone.getTimeZone("UTC")
-    }
-    val parserNoMillis = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX", Locale.US).apply {
-        timeZone = TimeZone.getTimeZone("UTC")
-    }
+@RequiresApi(Build.VERSION_CODES.O)
+private val uiFormatter: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+        .withZone(ZoneId.systemDefault())
 
-    val date = try {
-        parserWithMillis.parse(iso)
-    } catch (_: ParseException) {
-        parserNoMillis.parse(iso)
-    } ?: return ""
+@RequiresApi(Build.VERSION_CODES.O)
+fun formatIsoToUi(iso: String?): String {
+    if (iso.isNullOrBlank()) return ""
 
-    val uiFormat = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
-    return uiFormat.format(date)
+    return try {
+        val instant = Instant.parse(iso)
+        uiFormatter.format(instant)
+    } catch (e: Exception) {
+        iso
+    }
 }
 
 
