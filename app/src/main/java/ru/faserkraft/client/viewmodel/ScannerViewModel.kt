@@ -100,7 +100,7 @@ class ScannerViewModel @Inject constructor(
 
             val initialStep = product.steps
                 .filter { it.status != "done" }
-                .minByOrNull { it.stepDefinition.order } ?: emptyStep
+                .minByOrNull { it.stepDefinition.order } ?: product.steps.last()
             _selectedStep.postValue(initialStep)
 
             _events.emit(UiEvent.NavigateToProduct)
