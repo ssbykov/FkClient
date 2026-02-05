@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/registrationFragment"
+        android:icon="@drawable/ic_registration"
+        android:title="@string/registration" />
+    <item
+        android:id="@+id/scannerFragment"
+        android:icon="@drawable/ic_scanner"
+        android:title="@string/scanner" />
+    <item
+        android:id="@+id/thirdFragment"
+        android:icon="@drawable/ic_day_plan"
+        android:title="@string/plan" />
+</menu>

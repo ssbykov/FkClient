@@ -19,4 +19,7 @@
     <string name="step_last_status_pending">Статус: Ожидает начала</string>
     <string name="step_last_desc_done">Этап закрыт</string>
     <string name="step_last_desc_pending">Этап не закрыт</string>
+    <string name="registration">Регистрация</string>
+    <string name="scanner">Сканер</string>
+    <string name="plan">План</string>
 </resources>
