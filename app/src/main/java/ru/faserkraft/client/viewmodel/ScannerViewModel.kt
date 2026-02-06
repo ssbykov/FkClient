@@ -85,6 +85,11 @@ class ScannerViewModel @Inject constructor(
         isHandled = false
     }
 
+    init {
+        loadRegistrationData()
+    }
+
+
     suspend fun getProduct(serialNumber: String) {
         val product = repository.getProduct(serialNumber)
         if (product == null) {
@@ -131,6 +136,15 @@ class ScannerViewModel @Inject constructor(
         _events.tryEmit(UiEvent.NavigateToRegistration)
     }
 
+    fun loadRegistrationData() {
+        _registrationState.value = appAuth.getRegistrationData()
+    }
+
+    fun resetRegistrationData() {
+        appAuth.resetRegistration()
+        loadRegistrationData()
+    }
+
     suspend fun closeStep(step: StepDto) {
         val stepId = step.id
         if (stepId == 0) return
@@ -173,7 +187,11 @@ class ScannerViewModel @Inject constructor(
                     try {
                         val result = repository.postDevice(data)
                         result?.let {
-                            appAuth.setLoginData(result.userEmail, data.password)
+                            appAuth.setLoginData(
+                                result.userEmail,
+                                data.password,
+                                result.userName
+                            )
                             val registration = RegistrationModel(
                                 result.userName,
                                 result.userEmail,
