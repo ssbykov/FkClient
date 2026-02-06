@@ -1,9 +1,7 @@
 package ru.faserkraft.client.repository
 
 import retrofit2.Response
-import ru.faserkraft.client.error.ApiError
-import ru.faserkraft.client.error.NetworkError
-import ru.faserkraft.client.error.UnknownError
+import ru.faserkraft.client.error.AppError
 import java.io.IOException
 
 
@@ -14,27 +12,26 @@ suspend fun <R> callApi(
         val response = block()
 
         if (response.code() == 404) {
-            return null
-        }
+            null
+        } else {
+            if (!response.isSuccessful) {
+                throw AppError.ApiError(
+                    status = response.code(),
+                    uiCode = "error_api_${response.code()}",
+                    message = response.message()
+                )
+            }
 
-        if (!response.isSuccessful) {
-            throw ApiError(
-                status = response.code(),
-                code = response.message() // или свой uiCode
-            )
+            response.body() ?: throw AppError.UnknownError
         }
-
-        response.body() ?: throw UnknownError
     } catch (e: IOException) {
         println(e)
-        throw NetworkError
-    } catch (e: ApiError) {
-        throw e          // не оборачиваем
+        throw AppError.NetworkError
+    } catch (e: AppError) {
+        // свои доменные ошибки не оборачиваем
+        throw e
     } catch (e: Exception) {
         println(e)
-        throw UnknownError
+        throw AppError.UnknownError
     }
 }
-
-
-
