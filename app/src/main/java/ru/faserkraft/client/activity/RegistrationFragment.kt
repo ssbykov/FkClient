@@ -39,6 +39,7 @@ class RegistrationFragment : Fragment() {
         }
 
         binding.btnDone.setOnClickListener {
+            viewModel.resetRegistrationData()
             viewModel.resetIsHandled()
             findNavController().navigateUp()
         }
