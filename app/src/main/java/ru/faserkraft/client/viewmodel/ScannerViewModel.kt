@@ -157,7 +157,7 @@ class ScannerViewModel @Inject constructor(
         val stepClose = StepCloseDto(stepId, loginData.username)
 
         try {
-            val product = repository.postStep(stepClose)   // может кинуть AppError
+            val product = repository.postStep(stepClose)
             if (product != null) {
                 _productState.postValue(product)
 
@@ -168,23 +168,12 @@ class ScannerViewModel @Inject constructor(
                 _selectedStep.postValue(lastStep)
             }
         } catch (e: AppError) {
-            val message = when (e) {
-                is AppError.NetworkError -> "Нет соединения с сервером"
-                is AppError.ApiError -> when (e.status) {
-                    401 -> "Не авторизован"
-                    403 -> "Доступ запрещён"
-                    404 -> "Шаг не найден"
-                    else -> "Ошибка сервера: ${e.status}"
-                }
-                is AppError.DaoError -> "Ошибка сохранения шага"
-                is AppError.UnknownError -> "Неизвестная ошибка"
-            }
-            _errorState.emit(message)
+            _errorState.emit(appErrorToMessage(e))
         } catch (e: Exception) {
-            // совсем неожиданные вещи (NPE и т.п.)
             _errorState.emit("Неизвестная ошибка")
         }
     }
+
 
 
     suspend fun decodeQrCode(jsonString: String) {
@@ -192,22 +181,10 @@ class ScannerViewModel @Inject constructor(
         isHandled = true
 
         if (isUfCode(jsonString)) {
-            // ветка товара по серийному номеру
             runCatching {
                 getProduct(jsonString)
-            }.onFailure { e->
-                val message = when (e) {
-                    is AppError.NetworkError -> "Нет соединения с сервером"
-                    is AppError.ApiError -> when (e.status) {
-                        401 -> "Не авторизован"
-                        403 -> "Доступ запрещён"
-                        404 -> "Шаг не найден"
-                        else -> "Ошибка сервера: ${e.status}"
-                    }
-                    is AppError.DaoError     -> "Ошибка локальной базы"
-                    is AppError.UnknownError -> "Неизвестная ошибка"
-                    else                     -> "Неизвестная ошибка"
-                }
+            }.onFailure { e ->
+                val message = throwableToMessage(e)
                 _errorState.emit("Ошибка получения товара: $message")
             }
             return
@@ -252,6 +229,26 @@ class ScannerViewModel @Inject constructor(
                 _errorState.emit("Ошибка разбора QR‑кода")
             }
     }
+
+    private fun appErrorToMessage(e: AppError): String =
+        when (e) {
+            is AppError.NetworkError -> "Нет соединения с сервером"
+            is AppError.ApiError -> when (e.status) {
+                401 -> "Не авторизован"
+                403 -> "Доступ запрещён"
+                404 -> "Шаг не найден"
+                else -> "Ошибка сервера: ${e.status}"
+            }
+            is AppError.DaoError     -> "Ошибка локальной базы"
+            is AppError.UnknownError -> "Неизвестная ошибка"
+        }
+
+    private fun throwableToMessage(e: Throwable): String =
+        when (e) {
+            is AppError -> appErrorToMessage(e)
+            else        -> "Неизвестная ошибка"
+        }
+
 
 
 }
