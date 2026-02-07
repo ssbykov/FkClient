@@ -15,7 +15,7 @@ import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.StepCloseDto
 import ru.faserkraft.client.dto.StepDto
 import ru.faserkraft.client.dto.emptyStep
-import ru.faserkraft.client.error.ApiError
+import ru.faserkraft.client.error.AppError
 import ru.faserkraft.client.model.RegistrationModel
 import ru.faserkraft.client.repository.ApiRepository
 import ru.faserkraft.client.utils.isUfCode
@@ -91,11 +91,15 @@ class ScannerViewModel @Inject constructor(
 
 
     suspend fun getProduct(serialNumber: String) {
-        val product = repository.getProduct(serialNumber)
-        if (product == null) {
-            newProduct(serialNumber)
-        } else {
-            setProduct(product)
+        try {
+            val product = repository.getProduct(serialNumber)
+            if (product == null) {
+                newProduct(serialNumber)
+            } else {
+                setProduct(product)
+            }
+        } catch (e: AppError) {
+            throw e
         }
     }
 
@@ -151,16 +155,37 @@ class ScannerViewModel @Inject constructor(
 
         val loginData = appAuth.getLoginData() ?: return
         val stepClose = StepCloseDto(stepId, loginData.username)
-        val product = repository.postStep(stepClose)
-        if (product != null) {
-            _productState.postValue(product)
-            val lastStep = product.steps
-                .find { it.stepDefinition.order == step.stepDefinition.order }
-                ?: emptyStep
 
-            _selectedStep.postValue(lastStep)
+        try {
+            val product = repository.postStep(stepClose)   // может кинуть AppError
+            if (product != null) {
+                _productState.postValue(product)
+
+                val lastStep = product.steps
+                    .find { it.stepDefinition.order == step.stepDefinition.order }
+                    ?: emptyStep
+
+                _selectedStep.postValue(lastStep)
+            }
+        } catch (e: AppError) {
+            val message = when (e) {
+                is AppError.NetworkError -> "Нет соединения с сервером"
+                is AppError.ApiError -> when (e.status) {
+                    401 -> "Не авторизован"
+                    403 -> "Доступ запрещён"
+                    404 -> "Шаг не найден"
+                    else -> "Ошибка сервера: ${e.status}"
+                }
+                is AppError.DaoError -> "Ошибка сохранения шага"
+                is AppError.UnknownError -> "Неизвестная ошибка"
+            }
+            _errorState.emit(message)
+        } catch (e: Exception) {
+            // совсем неожиданные вещи (NPE и т.п.)
+            _errorState.emit("Неизвестная ошибка")
         }
     }
+
 
     suspend fun decodeQrCode(jsonString: String) {
         if (isHandled) return
@@ -170,8 +195,20 @@ class ScannerViewModel @Inject constructor(
             // ветка товара по серийному номеру
             runCatching {
                 getProduct(jsonString)
-            }.onFailure {
-                _errorState.emit("Ошибка получения товара")
+            }.onFailure { e->
+                val message = when (e) {
+                    is AppError.NetworkError -> "Нет соединения с сервером"
+                    is AppError.ApiError -> when (e.status) {
+                        401 -> "Не авторизован"
+                        403 -> "Доступ запрещён"
+                        404 -> "Шаг не найден"
+                        else -> "Ошибка сервера: ${e.status}"
+                    }
+                    is AppError.DaoError     -> "Ошибка локальной базы"
+                    is AppError.UnknownError -> "Неизвестная ошибка"
+                    else                     -> "Неизвестная ошибка"
+                }
+                _errorState.emit("Ошибка получения товара: $message")
             }
             return
         }
@@ -202,8 +239,8 @@ class ScannerViewModel @Inject constructor(
                         }
                     } catch (e: IOException) {
                         _errorState.emit("Проблема с сетью, попробуйте ещё раз")
-                    } catch (e: ApiError) {
-                        _errorState.emit("Ошибка сервера: ${e.code}")
+                    } catch (e: AppError.ApiError) {
+                        _errorState.emit("Ошибка сервера: ${e.status}")
                     } catch (e: Exception) {
                         _errorState.emit("Неизвестная ошибка $e")
                     }
