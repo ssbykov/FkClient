@@ -104,19 +104,20 @@ class ScannerViewModel @Inject constructor(
     }
 
     suspend fun setProduct(product: ProductDto) {
-        try {
-            _productState.postValue(product)
+        _productState.postValue(product)
 
-            val initialStep = product.steps
-                .filter { it.status != "done" }
-                .minByOrNull { it.stepDefinition.order } ?: product.steps.last()
-            _selectedStep.postValue(initialStep)
+        val initialStep = product.steps
+            .firstOrNull { it.status != "done" }
+            ?: product.steps.lastOrNull()
+            ?: run {
+                _errorState.emit("У товара нет шагов")
+                return
+            }
 
-            _events.emit(UiEvent.NavigateToProduct)
-        } catch (e: Exception) {
-            _errorState.emit("Ошибка загрузки товара $e")
-        }
+        _selectedStep.postValue(initialStep)
+        _events.emit(UiEvent.NavigateToProduct)
     }
+
 
     suspend fun newProduct(serialNumber: String) {
         val newProductDto = ProductCreateDto(
