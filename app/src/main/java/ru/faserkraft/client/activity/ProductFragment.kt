@@ -10,7 +10,9 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
@@ -70,6 +72,20 @@ class ProductFragment : Fragment() {
 
         binding.btnAllStages.setOnClickListener {
             findNavController().navigate(R.id.action_productFragment_to_productFullFragment)
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.errorState.collect { msg ->
+                    AlertDialog.Builder(requireContext())
+                        .setMessage(msg)
+                        .setPositiveButton("ОК") { dialog, _ ->
+                            viewModel.resetIsHandled()
+                            dialog.dismiss()
+                        }
+                        .show()
+                }
+            }
         }
 
 
