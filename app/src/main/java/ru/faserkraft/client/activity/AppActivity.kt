@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.navOptions
 import androidx.navigation.ui.setupWithNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ru.faserkraft.client.R
@@ -27,22 +28,30 @@ class AppActivity : AppCompatActivity() {
         binding.bottomNav.setupWithNavController(navController)
 
         binding.bottomNav.setOnItemSelectedListener { item ->
+            val options = navOptions {
+                popUpTo(navController.graph.startDestinationId) {
+                    inclusive = true   // очищаем весь стек до стартового dest
+                }
+                launchSingleTop = true
+            }
+
             when (item.itemId) {
                 R.id.registrationFragment -> {
-                    navController.navigate(R.id.registrationFragment)
+                    navController.navigate(R.id.registrationFragment, null, options)
                     true
                 }
                 R.id.scannerFragment -> {
-                    navController.navigate(R.id.scannerFragment)
+                    navController.navigate(R.id.scannerFragment, null, options)
                     true
                 }
                 R.id.productFragment -> {
-                    navController.navigate(R.id.productFragment)
+                    navController.navigate(R.id.productFragment, null, options)
                     true
                 }
                 else -> false
             }
         }
+
     }
 
     override fun onNewIntent(intent: Intent) {
