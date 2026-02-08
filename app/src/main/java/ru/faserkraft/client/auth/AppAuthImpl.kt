@@ -20,27 +20,32 @@ class AppAuthImpl @Inject constructor(
         private const val LOGIN = "LOGIN"
         private const val PASSWORD = "PASSWORD"
         private const val USERNAME = "USERNAME"
+        private const val ROLE = "ROLE"
         private const val TOKEN = "TOKEN"
     }
 
-    override fun setLoginData(
+    override fun saveUserData(
         email: String,
         password: String,
-        userName: String
+        userName: String,
+        role: String
     ) {
         prefs.edit {
             putString(LOGIN, email)
             putString(PASSWORD, password)
             putString(USERNAME, userName)
+            putString(ROLE, role)
         }
     }
 
     override fun getRegistrationData(): RegistrationModel {
         val userName = prefs.getString(USERNAME, "") ?: "Не зарегистрирован"
         val email = prefs.getString(LOGIN, "") ?: ""
+        val role = prefs.getString(ROLE, "") ?: ""
         return RegistrationModel(
             employeeName = userName,
-            email = email
+            email = email,
+            role = role
         )
     }
 
@@ -49,6 +54,7 @@ class AppAuthImpl @Inject constructor(
             putString(LOGIN, null)
             putString(PASSWORD, null)
             putString(USERNAME, "Не зарегистрирован")
+            putString(ROLE, null)
         }
     }
 
