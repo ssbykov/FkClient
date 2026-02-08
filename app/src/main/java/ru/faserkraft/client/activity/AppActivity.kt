@@ -44,8 +44,11 @@ class AppActivity : AppCompatActivity() {
                     navController.navigate(R.id.scannerFragment, null, options)
                     true
                 }
-                R.id.productFragment -> {
-                    navController.navigate(R.id.productFragment, null, options)
+                R.id.dayPlanFragment -> {
+                    val currentId = navController.currentDestination?.id
+                    if (currentId != R.id.dayPlanFragment) {
+                        navController.navigate(R.id.dayPlanFragment, null, options)
+                    }
                     true
                 }
                 else -> false
