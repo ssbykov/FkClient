@@ -8,11 +8,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import ru.faserkraft.client.auth.AppAuth
+import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
-import ru.faserkraft.client.dto.StepCloseDto
 import ru.faserkraft.client.dto.StepDto
 import ru.faserkraft.client.dto.emptyStep
 import ru.faserkraft.client.error.AppError
@@ -39,6 +39,9 @@ class ScannerViewModel @Inject constructor(
 
     private val _processes = MutableLiveData<List<ProcessDto>?>()
     val processes: LiveData<List<ProcessDto>?> = _processes
+
+    private val _dayPlans = MutableLiveData<List<DayPlanDto>?>()
+    val dayPlans: LiveData<List<DayPlanDto>?> = _dayPlans
 
     private val _selectedStep = MutableLiveData<StepDto?>()
     val selectedStep: LiveData<StepDto?> = _selectedStep
@@ -88,6 +91,18 @@ class ScannerViewModel @Inject constructor(
     init {
         loadRegistrationData()
     }
+
+
+//    suspend fun getDayPlans(date: String) {
+//        try {
+//            val employee = appAuth.getRegistrationData() ?: return
+//            val employeeId = employee.
+//            val dayPlans = repository.getDayPlans(employeeId, date)
+//            _dayPlans.value = dayPlans
+//        } catch (e: AppError) {
+//            throw e
+//        }
+//    }
 
 
     suspend fun getProduct(serialNumber: String) {
@@ -154,11 +169,8 @@ class ScannerViewModel @Inject constructor(
         val stepId = step.id
         if (stepId == 0) return
 
-        val loginData = appAuth.getLoginData() ?: return
-        val stepClose = StepCloseDto(stepId, loginData.username)
-
         try {
-            val product = repository.postStep(stepClose)
+            val product = repository.postStep(stepId)
             if (product != null) {
                 _productState.postValue(product)
 
@@ -174,7 +186,6 @@ class ScannerViewModel @Inject constructor(
             _errorState.emit("Неизвестная ошибка")
         }
     }
-
 
 
     suspend fun decodeQrCode(jsonString: String) {
@@ -206,12 +217,10 @@ class ScannerViewModel @Inject constructor(
                                 email = result.userEmail,
                                 password = data.password,
                                 userName = result.userName,
-                                role = result.employeeRole
                             )
                             val registration = RegistrationModel(
                                 result.userName,
                                 result.userEmail,
-                                result.employeeRole
                             )
                             onRegistrationReady(registration)
                         } ?: run {
@@ -242,16 +251,16 @@ class ScannerViewModel @Inject constructor(
                 404 -> "Шаг не найден"
                 else -> "Ошибка сервера: ${e.status}"
             }
-            is AppError.DaoError     -> "Ошибка локальной базы"
+
+            is AppError.DaoError -> "Ошибка локальной базы"
             is AppError.UnknownError -> "Неизвестная ошибка"
         }
 
     private fun throwableToMessage(e: Throwable): String =
         when (e) {
             is AppError -> appErrorToMessage(e)
-            else        -> "Неизвестная ошибка"
+            else -> "Неизвестная ошибка"
         }
-
 
 
 }
