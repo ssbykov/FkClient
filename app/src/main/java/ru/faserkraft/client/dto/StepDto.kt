@@ -21,12 +21,6 @@ data class StepDto(
     val performedAt: String?
 ): ItemDto()
 
-data class StepCloseDto(
-    val id: Int,
-    @SerializedName("performed_by")
-    val performedBy: String
-): ItemDto()
-
 enum class StepStatusUi(
     @StringRes
     val statusTitleRes: Int,
