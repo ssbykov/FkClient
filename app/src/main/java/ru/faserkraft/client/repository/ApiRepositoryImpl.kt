@@ -29,8 +29,7 @@ class ApiRepositoryImpl @Inject constructor(
         callApi { api.postStep(stepId) }
 
     override suspend fun getDayPlans(
-        employeeId: String?,
         date: String
-    ): List<DayPlanDto>? = callApi { api.getDayPlans() }
+    ): List<DayPlanDto>? = callApi { api.getDayPlans(date) }
 
 }

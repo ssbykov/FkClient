@@ -13,5 +13,5 @@ interface ApiRepository {
     suspend fun getProcesses(): List<ProcessDto>?
     suspend fun postDevice(device: DeviceRequestDto): DeviceResponseDto?
     suspend fun postStep(stepId: Int): ProductDto?
-    suspend fun getDayPlans(employeeId: String?, date: String): List<DayPlanDto>?
+    suspend fun getDayPlans(date: String): List<DayPlanDto>?
 }

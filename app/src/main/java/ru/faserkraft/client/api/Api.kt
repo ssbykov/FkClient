@@ -25,8 +25,11 @@ interface Api {
     @GET(BASE_URL + "processes/")
     suspend fun getProcesses(): Response<List<ProcessDto>>
 
-    @GET(BASE_URL + "processes/")
-    suspend fun getDayPlans(): Response<List<DayPlanDto>>
+    @GET(BASE_URL + "daily-plans/")
+    suspend fun getDayPlans(
+        @Query("plan_date") date: String
+    ): Response<List<DayPlanDto>>
+
 
     @POST(BASE_URL + "products/")
     suspend fun postProduct(
