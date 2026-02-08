@@ -202,14 +202,16 @@ class ScannerViewModel @Inject constructor(
                     try {
                         val result = repository.postDevice(data)
                         result?.let {
-                            appAuth.setLoginData(
-                                result.userEmail,
-                                data.password,
-                                result.userName
+                            appAuth.saveUserData(
+                                email = result.userEmail,
+                                password = data.password,
+                                userName = result.userName,
+                                role = result.employeeRole
                             )
                             val registration = RegistrationModel(
                                 result.userName,
                                 result.userEmail,
+                                result.employeeRole
                             )
                             onRegistrationReady(registration)
                         } ?: run {
