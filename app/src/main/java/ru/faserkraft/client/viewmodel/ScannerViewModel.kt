@@ -4,9 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
 import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
@@ -93,16 +95,22 @@ class ScannerViewModel @Inject constructor(
     }
 
 
-//    suspend fun getDayPlans(date: String) {
-//        try {
-//            val employee = appAuth.getRegistrationData() ?: return
-//            val employeeId = employee.
-//            val dayPlans = repository.getDayPlans(employeeId, date)
-//            _dayPlans.value = dayPlans
-//        } catch (e: AppError) {
-//            throw e
-//        }
-//    }
+    fun getDayPlans(date: String) {
+        viewModelScope.launch {
+            try {
+                val dayPlans = repository.getDayPlans(date)
+                _dayPlans.value = dayPlans
+            } catch (e: AppError) {
+                // показываем человеко‑читабельное сообщение
+                _errorState.emit(appErrorToMessage(e))
+                // опционально можно очистить планы, если запрос упал
+                _dayPlans.value = emptyList()
+            } catch (e: Exception) {
+                _errorState.emit("Неизвестная ошибка")
+            }
+        }
+    }
+
 
 
     suspend fun getProduct(serialNumber: String) {
