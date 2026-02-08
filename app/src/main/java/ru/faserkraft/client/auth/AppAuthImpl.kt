@@ -49,6 +49,7 @@ class AppAuthImpl @Inject constructor(
             putString(LOGIN, null)
             putString(PASSWORD, null)
             putString(USERNAME, "Не зарегистрирован")
+            putString(TOKEN, null)
         }
     }
 
