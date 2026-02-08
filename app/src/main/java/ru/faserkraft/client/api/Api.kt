@@ -5,12 +5,13 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
+import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
-import ru.faserkraft.client.dto.StepCloseDto
 
 
 const val BASE_URL = "https://product.faserkraft.ru/api/v1/"
@@ -24,6 +25,9 @@ interface Api {
     @GET(BASE_URL + "processes/")
     suspend fun getProcesses(): Response<List<ProcessDto>>
 
+    @GET(BASE_URL + "processes/")
+    suspend fun getDayPlans(): Response<List<DayPlanDto>>
+
     @POST(BASE_URL + "products/")
     suspend fun postProduct(
         @Body product: ProductCreateDto
@@ -31,7 +35,7 @@ interface Api {
 
     @POST(BASE_URL + "products_steps/")
     suspend fun postStep(
-        @Body step: StepCloseDto
+        @Query("step_id") stepId: Int
     ): Response<ProductDto>
 
     @POST(BASE_URL + "users/new-device")

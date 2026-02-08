@@ -1,12 +1,12 @@
 package ru.faserkraft.client.repository
 
 import ru.faserkraft.client.api.Api
+import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
-import ru.faserkraft.client.dto.StepCloseDto
 import javax.inject.Inject
 
 class ApiRepositoryImpl @Inject constructor(
@@ -25,6 +25,12 @@ class ApiRepositoryImpl @Inject constructor(
     override suspend fun postDevice(device: DeviceRequestDto): DeviceResponseDto? =
         callApi { api.postDevice(device) }
 
-    override suspend fun postStep(step: StepCloseDto): ProductDto? =
-        callApi { api.postStep(step) }
+    override suspend fun postStep(stepId: Int): ProductDto? =
+        callApi { api.postStep(stepId) }
+
+    override suspend fun getDayPlans(
+        employeeId: String?,
+        date: String
+    ): List<DayPlanDto>? = callApi { api.getDayPlans() }
+
 }
