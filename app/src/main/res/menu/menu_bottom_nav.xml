@@ -8,7 +8,7 @@
         android:icon="@drawable/ic_scanner"
         android:title="@string/scanner" />
     <item
-        android:id="@+id/thirdFragment"
+        android:id="@+id/dayPlanFragment"
         android:icon="@drawable/ic_day_plan"
         android:title="@string/plan" />
 </menu>

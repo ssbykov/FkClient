@@ -47,4 +47,9 @@
             android:id="@+id/action_newProductFragment_to_productFragment"
             app:destination="@id/productFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/dayPlanFragment"
+        android:name="ru.faserkraft.client.activity.DayPlanFragment"
+        android:label="fragment_day_plan"
+        tools:layout="@layout/fragment_day_plan" />
 </navigation>
