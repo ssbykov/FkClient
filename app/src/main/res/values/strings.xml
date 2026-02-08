@@ -23,4 +23,8 @@
     <string name="scanner">Сканер</string>
     <string name="plan">План</string>
     <string name="exit">Выйти</string>
+    <string name="plan_day">План на день</string>
+    <string name="planed">Запланировано:</string>
+    <string name="done">Выполнено:</string>
+    <string name="refresh">Обновить</string>
 </resources>
