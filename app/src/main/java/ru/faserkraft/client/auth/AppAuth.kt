@@ -7,8 +7,7 @@ interface AppAuth {
     fun saveUserData(
         email: String,
         password: String,
-        userName: String,
-        role: String,
+        userName: String
         )
     fun getLoginData(): LoginData?
     fun getRegistrationData(): RegistrationModel?

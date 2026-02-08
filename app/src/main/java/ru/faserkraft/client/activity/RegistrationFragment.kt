@@ -36,7 +36,6 @@ class RegistrationFragment : Fragment() {
             with(binding) {
                 tvEmployeeName.text = state.employeeName
                 tvEmail.text = state.email
-                tvRole.text = state.role
             }
         }
 
