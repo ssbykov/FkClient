@@ -12,6 +12,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 
     defaultConfig {
@@ -32,6 +33,7 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {  }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
