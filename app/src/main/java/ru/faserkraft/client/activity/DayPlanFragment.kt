@@ -62,6 +62,7 @@ class DayPlanFragment : Fragment() {
                         id = step.id,
                         employee = plan.employee,
                         stepDefinition = step.stepDefinition,
+                        workProcess = step.workProcess,
                         plannedQuantity = step.plannedQuantity,
                         actualQuantity = step.actualQuantity
                     )

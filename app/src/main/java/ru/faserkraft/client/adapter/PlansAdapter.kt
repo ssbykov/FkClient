@@ -61,6 +61,7 @@ class PlansAdapter :
 
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(plan: EmployeePlanDto) = with(binding) {
+            tvWorkProcess.text = plan.workProcess
             tvStepName.text = plan.stepDefinition.template.name
             tvPlanValue.text = plan.plannedQuantity.toString()
             tvDoneValue.text = plan.actualQuantity.toString()
