@@ -3,7 +3,18 @@ package ru.faserkraft.client.repository
 import retrofit2.Response
 import ru.faserkraft.client.error.AppError
 import java.io.IOException
+import org.json.JSONObject
 
+private fun parseApiErrorBody(raw: String): Pair<String?, String?> {
+    return try {
+        val json = JSONObject(raw)
+        val detail = json.optString("detail")
+        val code = json.optString("code")
+        code to detail
+    } catch (e: Exception) {
+        null to null
+    }
+}
 
 suspend fun <R> callApi(
     block: suspend () -> Response<R>
@@ -12,7 +23,14 @@ suspend fun <R> callApi(
         val response = block()
 
         if (response.code() == 404) {
-            null
+            val raw = response.errorBody()?.string().orEmpty()
+            val (serverCode, serverDetail) = parseApiErrorBody(raw)
+
+            throw AppError.ApiError(
+                status = 404,
+                uiCode = serverCode ?: "error_api_404",
+                message = serverDetail ?: "Не найдено"
+            )
         } else {
             if (!response.isSuccessful) {
                 throw AppError.ApiError(
@@ -25,13 +43,12 @@ suspend fun <R> callApi(
             response.body() ?: throw AppError.UnknownError
         }
     } catch (e: IOException) {
-        println(e)
         throw AppError.NetworkError
     } catch (e: AppError) {
         // свои доменные ошибки не оборачиваем
         throw e
     } catch (e: Exception) {
-        println(e)
         throw AppError.UnknownError
     }
 }
+

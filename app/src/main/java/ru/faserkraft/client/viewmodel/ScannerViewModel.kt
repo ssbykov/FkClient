@@ -256,7 +256,7 @@ class ScannerViewModel @Inject constructor(
             is AppError.ApiError -> when (e.status) {
                 401 -> "Не авторизован"
                 403 -> "Доступ запрещён"
-                404 -> "Шаг не найден"
+                404 -> "${e.message}"
                 else -> "Ошибка сервера: ${e.status}"
             }
 
