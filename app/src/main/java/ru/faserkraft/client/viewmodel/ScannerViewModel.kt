@@ -122,7 +122,11 @@ class ScannerViewModel @Inject constructor(
                 setProduct(product)
             }
         } catch (e: AppError) {
-            throw e
+            if (e is AppError.ApiError && e.status == 404) {
+                newProduct(serialNumber)
+            } else {
+                throw e
+            }
         }
     }
 
@@ -153,11 +157,22 @@ class ScannerViewModel @Inject constructor(
         _events.emit(UiEvent.NavigateToNewProduct)
     }
 
-    suspend fun createProduct(newProduct: ProductCreateDto) {
-        repository.postProduct(newProduct)?.let { product ->
-            setProduct(product)
+    suspend fun createProduct(newProduct: ProductCreateDto): Result<Unit> {
+        return try {
+            repository.postProduct(newProduct)?.let { product ->
+                setProduct(product)
+            }
+            Result.success(Unit)
+        } catch (e: AppError) {
+            val msg = appErrorToMessage(e)
+            _errorState.emit(msg)
+            Result.failure(e)
+        } catch (e: Exception) {
+            _errorState.emit("Неизвестная ошибка")
+            Result.failure(e)
         }
     }
+
 
     fun onRegistrationReady(model: RegistrationModel) {
         _registrationState.value = model

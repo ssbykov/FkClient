@@ -7,7 +7,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
@@ -18,9 +20,6 @@ import ru.faserkraft.client.databinding.FragmentNewProductBinding
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.utils.nowIsoUtc
 import ru.faserkraft.client.viewmodel.ScannerViewModel
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 
 
 class NewProductFragment : Fragment() {
@@ -61,6 +60,20 @@ class NewProductFragment : Fragment() {
             selectedIndex = position          // индекс в адаптере
         }
 
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.errorState.collect { msg ->
+                    AlertDialog.Builder(requireContext())
+                        .setMessage(msg)
+                        .setPositiveButton("ОК") { dialog, _ ->
+                            viewModel.resetIsHandled()
+                            dialog.dismiss()
+                        }
+                        .show()
+                }
+            }
+        }
+
         binding.btnCreate.setOnClickListener {
 
             val index = selectedIndex
@@ -81,16 +94,21 @@ class NewProductFragment : Fragment() {
                 createdAt = nowIso
             )
             viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.createProduct(newProduct)
-                val navOptions = NavOptions.Builder()
-                    .setPopUpTo(R.id.scannerFragment, false)
-                    .build()
+                val result = viewModel.createProduct(newProduct)
 
-                findNavController().navigate(
-                    R.id.action_newProductFragment_to_productFragment,
-                    null,
-                    navOptions
-                )
+                result.onSuccess {
+                    val navOptions = NavOptions.Builder()
+                        .setPopUpTo(R.id.scannerFragment, false)
+                        .build()
+
+                    findNavController().navigate(
+                        R.id.action_newProductFragment_to_productFragment,
+                        null,
+                        navOptions
+                    )
+                }.onFailure {
+                    // тут просто ничего не делаем, диалог покажет подписка на errorState
+                }
             }
         }
     }
