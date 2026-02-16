@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -20,6 +21,7 @@ import ru.faserkraft.client.databinding.FragmentProductBinding
 import ru.faserkraft.client.dto.StepStatusBackend
 import ru.faserkraft.client.dto.emptyStep
 import ru.faserkraft.client.dto.toUiStatus
+import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.utils.formatIsoToUi
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
@@ -70,6 +72,16 @@ class ProductFragment : Fragment() {
             }
         }
 
+        viewModel.userData.observe(viewLifecycleOwner) { user ->
+            user ?: return@observe
+            binding.imgProductEdit.visibility =
+                if (user.role == UserRole.ADMIN || user.role == UserRole.MASTER) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
+        }
+
         binding.btnAllStages.setOnClickListener {
             findNavController().navigate(R.id.action_productFragment_to_productFullFragment)
         }
@@ -85,6 +97,28 @@ class ProductFragment : Fragment() {
                         }
                         .show()
                 }
+            }
+        }
+
+        binding.imgProductEdit.setOnClickListener { view ->
+            PopupMenu(requireContext(), view).apply {
+                menuInflater.inflate(R.menu.menu_step_actions, menu)
+                setOnMenuItemClickListener { item ->
+                    when (item.itemId) {
+                        R.id.action_edit -> {
+                            // открыть выбор процесса
+                            true
+                        }
+
+                        R.id.action_reject -> {
+                            // подтверждение и удаление
+                            true
+                        }
+
+                        else -> false
+                    }
+                }
+                show()
             }
         }
 
