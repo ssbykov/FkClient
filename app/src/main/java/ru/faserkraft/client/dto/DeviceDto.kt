@@ -14,11 +14,13 @@ data class DeviceResponseDto(
     val userName: String,
     @SerializedName("user_email")
     val userEmail: String,
+    @SerializedName("employee_role")
+    val userRole: String,
     @SerializedName("device_id")
     val deviceId: String,
     val model: String,
     val manufacturer: String,
-): ItemDto()
+) : ItemDto()
 
 
 data class DeviceRequestDto(
@@ -30,8 +32,7 @@ data class DeviceRequestDto(
     val password: String,
     @SerializedName("user_id")
     val userId: Int,
-): ItemDto()
-
+) : ItemDto()
 
 
 fun deviceRegisterBuilder(dataIn: DeviceRegisterDto): DeviceRequestDto {

@@ -31,11 +31,12 @@ class RegistrationFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.registrationState.observe(viewLifecycleOwner) { state ->
+        viewModel.userData.observe(viewLifecycleOwner) { state ->
             state ?: return@observe
             with(binding) {
-                tvEmployeeName.text = state.employeeName
+                tvEmployeeName.text = state.name
                 tvEmail.text = state.email
+                tvRole.text = state.role?.value.toString()
             }
         }
 
