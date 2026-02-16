@@ -4,7 +4,8 @@ import android.content.Context
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import ru.faserkraft.client.dto.LoginData
-import ru.faserkraft.client.model.RegistrationModel
+import ru.faserkraft.client.model.UserData
+import ru.faserkraft.client.model.UserRole
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,27 +21,35 @@ class AppAuthImpl @Inject constructor(
         private const val LOGIN = "LOGIN"
         private const val PASSWORD = "PASSWORD"
         private const val USERNAME = "USERNAME"
+        private const val ROLE = "ROLE"
         private const val TOKEN = "TOKEN"
     }
 
     override fun saveUserData(
-        email: String,
-        password: String,
-        userName: String,
+        userData: UserData
     ) {
         prefs.edit {
-            putString(LOGIN, email)
-            putString(PASSWORD, password)
-            putString(USERNAME, userName)
+            putString(LOGIN, userData.email)
+            putString(PASSWORD, userData.password)
+            putString(USERNAME, userData.name)
+            putString(ROLE, userData.role?.value.toString())
         }
     }
 
-    override fun getRegistrationData(): RegistrationModel {
-        val userName = prefs.getString(USERNAME, "") ?: "Не зарегистрирован"
+    override fun getRegistrationData(): UserData {
+        val name = prefs.getString(USERNAME, "") ?: "Не зарегистрирован"
         val email = prefs.getString(LOGIN, "") ?: ""
-        return RegistrationModel(
-            employeeName = userName,
+        val roleString = prefs.getString(ROLE, null)
+
+        val role = roleString?.let { value ->
+            UserRole.entries.firstOrNull { it.value == value }
+        }
+
+        return UserData(
             email = email,
+            password = "",
+            name = name,
+            role = role,
         )
     }
 
