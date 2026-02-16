@@ -18,7 +18,8 @@ import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.StepDto
 import ru.faserkraft.client.dto.emptyStep
 import ru.faserkraft.client.error.AppError
-import ru.faserkraft.client.model.RegistrationModel
+import ru.faserkraft.client.model.UserData
+import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.repository.ApiRepository
 import ru.faserkraft.client.utils.isUfCode
 import ru.faserkraft.client.utils.qrCodeDecode
@@ -48,8 +49,8 @@ class ScannerViewModel @Inject constructor(
     private val _selectedStep = MutableLiveData<StepDto?>()
     val selectedStep: LiveData<StepDto?> = _selectedStep
 
-    private val _registrationState = MutableLiveData<RegistrationModel?>()
-    val registrationState: LiveData<RegistrationModel?> = _registrationState
+    private val _userData = MutableLiveData<UserData?>()
+    val userData: LiveData<UserData?> = _userData
 
     val lastStep: LiveData<StepDto> = MediatorLiveData<StepDto>().apply {
 
@@ -110,7 +111,6 @@ class ScannerViewModel @Inject constructor(
             }
         }
     }
-
 
 
     suspend fun getProduct(serialNumber: String) {
@@ -174,13 +174,13 @@ class ScannerViewModel @Inject constructor(
     }
 
 
-    fun onRegistrationReady(model: RegistrationModel) {
-        _registrationState.value = model
+    fun onRegistrationReady(model: UserData) {
+        _userData.value = model
         _events.tryEmit(UiEvent.NavigateToRegistration)
     }
 
     fun loadRegistrationData() {
-        _registrationState.value = appAuth.getRegistrationData()
+        _userData.value = appAuth.getRegistrationData()
     }
 
     fun resetRegistrationData() {
@@ -235,17 +235,16 @@ class ScannerViewModel @Inject constructor(
 
                     try {
                         val result = repository.postDevice(data)
+
                         result?.let {
-                            appAuth.saveUserData(
+                            val userData = UserData(
                                 email = result.userEmail,
                                 password = data.password,
-                                userName = result.userName,
+                                name = result.userName,
+                                role = UserRole.fromValue(result.userRole) ?: UserRole.WORKER
                             )
-                            val registration = RegistrationModel(
-                                result.userName,
-                                result.userEmail,
-                            )
-                            onRegistrationReady(registration)
+                            appAuth.saveUserData(userData)
+                            onRegistrationReady(userData)
                         } ?: run {
                             _errorState.emit("Пустой ответ от сервера")
                         }
