@@ -1,16 +1,12 @@
 package ru.faserkraft.client.auth
 
 import ru.faserkraft.client.dto.LoginData
-import ru.faserkraft.client.model.RegistrationModel
+import ru.faserkraft.client.model.UserData
 
 interface AppAuth {
-    fun saveUserData(
-        email: String,
-        password: String,
-        userName: String
-        )
+    fun saveUserData(userData: UserData)
     fun getLoginData(): LoginData?
-    fun getRegistrationData(): RegistrationModel?
+    fun getRegistrationData(): UserData?
     fun saveToken(token: String)
     fun getToken(): String?
     fun checkRegistration(): String?
