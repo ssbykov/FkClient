@@ -40,6 +40,13 @@ interface Api {
         @Query("step_id") stepId: Int
     ): Response<ProductDto>
 
+    @POST(BASE_URL + "products/change_product_process")
+    suspend fun changeProductProcess(
+        @Query("product_id") productId: Long,
+        @Query("new_process_id") newProcessId: Int
+    ): Response<ProductDto>
+
+
     @POST(BASE_URL + "users/new-device")
     suspend fun postDevice(
         @Body device: DeviceRequestDto

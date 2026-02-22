@@ -106,7 +106,10 @@ class ProductFragment : Fragment() {
                 setOnMenuItemClickListener { item ->
                     when (item.itemId) {
                         R.id.action_edit -> {
-                            // открыть выбор процесса
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                viewModel.setProcesses()
+                                findNavController().navigate(R.id.action_productFragment_to_editProductFragment)
+                            }
                             true
                         }
 

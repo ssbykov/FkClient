@@ -28,6 +28,12 @@ class ApiRepositoryImpl @Inject constructor(
     override suspend fun postStep(stepId: Int): ProductDto? =
         callApi { api.postStep(stepId) }
 
+    override suspend fun changeProductProcess(
+        productId: Long,
+        newProcessId: Int
+    ): ProductDto? = callApi { api.changeProductProcess(productId, newProcessId) }
+
+
     override suspend fun getDayPlans(
         date: String
     ): List<DayPlanDto>? = callApi { api.getDayPlans(date) }

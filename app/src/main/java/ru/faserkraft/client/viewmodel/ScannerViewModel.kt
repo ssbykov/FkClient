@@ -145,6 +145,10 @@ class ScannerViewModel @Inject constructor(
         _events.emit(UiEvent.NavigateToProduct)
     }
 
+    suspend fun setProcesses() {
+        val processes = repository.getProcesses()
+        _processes.postValue(processes)
+    }
 
     suspend fun newProduct(serialNumber: String) {
         val newProductDto = ProductCreateDto(
@@ -152,8 +156,7 @@ class ScannerViewModel @Inject constructor(
         )
         _newProduct.postValue(newProductDto)
 
-        val processes = repository.getProcesses()
-        _processes.postValue(processes)
+        setProcesses()
         _events.emit(UiEvent.NavigateToNewProduct)
     }
 
@@ -173,6 +176,21 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
+    suspend fun changeProductProcess(productId: Long, newProcessId: Int): Result<Unit> {
+        return try {
+            repository.changeProductProcess(productId, newProcessId)?.let { product ->
+                setProduct(product)
+            }
+            Result.success(Unit)
+        } catch (e: AppError) {
+            val msg = appErrorToMessage(e)
+            _errorState.emit(msg)
+            Result.failure(e)
+        } catch (e: Exception) {
+            _errorState.emit("Неизвестная ошибка")
+            Result.failure(e)
+        }
+    }
 
     fun onRegistrationReady(model: UserData) {
         _userData.value = model

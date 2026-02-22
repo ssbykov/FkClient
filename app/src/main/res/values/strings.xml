@@ -30,4 +30,6 @@
     <string name="more_actions">Другие действия</string>
     <string name="edit_process">Изменить</string>
     <string name="reject">В брак</string>
+    <string name="process_edit">Изменение процесса</string>
+    <string name="edit">Изменить</string>
 </resources>
