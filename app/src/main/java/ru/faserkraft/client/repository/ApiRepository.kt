@@ -15,4 +15,7 @@ interface ApiRepository {
     suspend fun postStep(stepId: Int): ProductDto?
     suspend fun changeProductProcess(productId: Long, newProcessId: Int): ProductDto?
     suspend fun getDayPlans(date: String): List<DayPlanDto>?
+    suspend fun sendToScrap(productId: Long): ProductDto?
+    suspend fun sendToRework(productId: Long): ProductDto?
+    suspend fun restoreFromScrap(productId: Long): ProductDto?
 }

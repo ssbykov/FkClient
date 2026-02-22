@@ -114,7 +114,7 @@ class ProductFragment : Fragment() {
                         }
 
                         R.id.action_reject -> {
-                            // подтверждение и удаление
+                            findNavController().navigate(R.id.action_productFragment_to_editProductStatusFragment)
                             true
                         }
 

@@ -20,5 +20,26 @@ data class ProductDto(
     val process: ProcessDto,
     @SerializedName("created_at")
     val createdAt: String,
+    val status: ProductStatusDto,
     val steps: List<StepDto>
 ) : ItemDto()
+
+
+enum class ProductStatusDto {
+    @SerializedName("normal")
+    NORMAL,
+
+    @SerializedName("scrap")
+    SCRAP,
+
+    @SerializedName("rework")
+    REWORK;
+
+    val label: String
+        get() = when (this) {
+            NORMAL -> "Нормальны"
+            REWORK -> "Восстановление"
+            SCRAP  -> "Брак"
+        }
+
+}

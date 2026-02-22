@@ -192,6 +192,55 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
+    suspend fun setProductStatusScrap(productId: Long): Result<Unit> {
+        return try {
+            repository.sendToScrap(productId)?.let { product ->
+                setProduct(product)
+            }
+            Result.success(Unit)
+        } catch (e: AppError) {
+            val msg = appErrorToMessage(e)
+            _errorState.emit(msg)
+            Result.failure(e)
+        } catch (e: Exception) {
+            _errorState.emit("Неизвестная ошибка")
+            Result.failure(e)
+        }
+    }
+
+    suspend fun setProductStatusRework(productId: Long): Result<Unit> {
+        return try {
+            repository.sendToRework(productId)?.let { product ->
+                setProduct(product)
+            }
+            Result.success(Unit)
+        } catch (e: AppError) {
+            val msg = appErrorToMessage(e)
+            _errorState.emit(msg)
+            Result.failure(e)
+        } catch (e: Exception) {
+            _errorState.emit("Неизвестная ошибка")
+            Result.failure(e)
+        }
+    }
+
+    suspend fun setProductStatusNormal(productId: Long): Result<Unit> {
+        return try {
+            repository.restoreFromScrap(productId)?.let { product ->
+                setProduct(product)
+            }
+            Result.success(Unit)
+        } catch (e: AppError) {
+            val msg = appErrorToMessage(e)
+            _errorState.emit(msg)
+            Result.failure(e)
+        } catch (e: Exception) {
+            _errorState.emit("Неизвестная ошибка")
+            Result.failure(e)
+        }
+    }
+
+
     fun onRegistrationReady(model: UserData) {
         _userData.value = model
         _events.tryEmit(UiEvent.NavigateToRegistration)

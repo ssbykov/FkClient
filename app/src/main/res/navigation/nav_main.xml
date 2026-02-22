@@ -36,6 +36,9 @@
         <action
             android:id="@+id/action_productFragment_to_editProductFragment"
             app:destination="@id/editProductFragment" />
+        <action
+            android:id="@+id/action_productFragment_to_editProductStatusFragment"
+            app:destination="@id/editProductStatusFragment" />
     </fragment>
     <fragment
         android:id="@+id/productFullFragment"
@@ -60,4 +63,9 @@
         android:name="ru.faserkraft.client.activity.EditProductFragment"
         android:label="fragment_edit_product"
         tools:layout="@layout/fragment_edit_product" />
+    <fragment
+        android:id="@+id/editProductStatusFragment"
+        android:name="ru.faserkraft.client.activity.EditProductStatusFragment"
+        android:label="fragment_edit_status_product"
+        tools:layout="@layout/fragment_edit_status_product" />
 </navigation>

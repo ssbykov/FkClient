@@ -32,4 +32,11 @@
     <string name="reject">В брак</string>
     <string name="process_edit">Изменение процесса</string>
     <string name="edit">Изменить</string>
+    <string name="normal">Нормальный</string>
+    <string name="restore">Востановление</string>
+    <string name="scrap">Брак</string>
+    <string name="current_status">Текущий статус</string>
+    <string name="new_status">Новый статус</string>
+    <string name="status_edit">Редактирование статуса</string>
+    <string name="save">Сохранить</string>
 </resources>

@@ -38,4 +38,13 @@ class ApiRepositoryImpl @Inject constructor(
         date: String
     ): List<DayPlanDto>? = callApi { api.getDayPlans(date) }
 
+    override suspend fun sendToScrap(productId: Long): ProductDto? =
+        callApi { api.sendToScrap(productId) }
+
+    override suspend fun sendToRework(productId: Long): ProductDto? =
+        callApi { api.sendToRework(productId) }
+
+    override suspend fun restoreFromScrap(productId: Long): ProductDto? =
+        callApi { api.restoreFromScrap(productId) }
+
 }
