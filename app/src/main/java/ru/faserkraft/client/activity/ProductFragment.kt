@@ -192,6 +192,12 @@ class ProductFragment : Fragment() {
             }
         }
 
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            binding.btnDone.isEnabled = !state.isActionInProgress
+
+            binding.progressEdit.visibility =
+                if (state.isActionInProgress) View.VISIBLE else View.GONE
+        }
 
     }
 

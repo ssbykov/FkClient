@@ -47,16 +47,12 @@ class DayPlanFragment : Fragment() {
         binding.rvPlans.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPlans.adapter = adapter
 
+        // планы как раньше
         viewModel.dayPlans.observe(viewLifecycleOwner) { plans ->
             plans ?: return@observe
-
             val uiItems = mutableListOf<EmployeePlanUiItem>()
-
             plans.forEach { plan ->
-                // хедер сотрудника
                 uiItems += EmployeePlanUiItem.Header(plan.employee.name)
-
-                // конвертация шагов в EmployeePlanDto для карточки
                 plan.steps.forEach { step ->
                     val employeePlan = EmployeePlanDto(
                         id = step.id,
@@ -69,8 +65,15 @@ class DayPlanFragment : Fragment() {
                     uiItems += EmployeePlanUiItem.Step(employeePlan)
                 }
             }
-
             adapter.submitList(uiItems)
+        }
+
+        // Крутилка + блокировка кнопки
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            binding.progressBar.visibility =
+                if (state.isLoading) View.VISIBLE else View.GONE
+
+            binding.btnRefresh.isEnabled = !state.isLoading
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -87,12 +90,9 @@ class DayPlanFragment : Fragment() {
             }
         }
 
-
         binding.btnRefresh.setOnClickListener {
             getPlansToday()
         }
-
-
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

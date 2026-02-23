@@ -106,7 +106,16 @@ class EditProductFragment : Fragment() {
                 }
             }
         }
+
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            binding.btnEdit.isEnabled = !state.isActionInProgress
+
+            binding.progressEdit.visibility =
+                if (state.isActionInProgress) View.VISIBLE else View.GONE
+        }
+
     }
+
     private fun selectProductProcessIfPossible() {
         val id = product?.process?.id
         if (!isProcessesReady || id == null) return

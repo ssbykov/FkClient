@@ -26,6 +26,11 @@ import ru.faserkraft.client.utils.qrCodeDecode
 import java.io.IOException
 import javax.inject.Inject
 
+// UI‑состояние для крутилок/ошибок
+data class ScannerUiState(
+    val isLoading: Boolean = false,
+    val isActionInProgress: Boolean = false,
+)
 
 @HiltViewModel
 class ScannerViewModel @Inject constructor(
@@ -33,7 +38,15 @@ class ScannerViewModel @Inject constructor(
     private val appAuth: AppAuth
 ) : ViewModel() {
 
+    // ---- UI state ----
+    private val _uiState = MutableLiveData(ScannerUiState())
+    val uiState: LiveData<ScannerUiState> = _uiState
 
+    private fun updateUiState(reducer: (ScannerUiState) -> ScannerUiState) {
+        _uiState.value = reducer(_uiState.value ?: ScannerUiState())
+    }
+
+    // ---- Данные ----
     private val _productState = MutableLiveData<ProductDto?>()
     val productState: LiveData<ProductDto?> = _productState
 
@@ -53,7 +66,6 @@ class ScannerViewModel @Inject constructor(
     val userData: LiveData<UserData?> = _userData
 
     val lastStep: LiveData<StepDto> = MediatorLiveData<StepDto>().apply {
-
         fun recalc() {
             val product = productState.value
             val selected = selectedStep.value
@@ -62,7 +74,6 @@ class ScannerViewModel @Inject constructor(
                 selected != null -> product.steps
                     .find { it.stepDefinition.order == selected.stepDefinition.order }
                     ?: emptyStep
-
                 else -> product.steps.minByOrNull { it.stepDefinition.order } ?: emptyStep
             }
         }
@@ -71,18 +82,17 @@ class ScannerViewModel @Inject constructor(
         addSource(selectedStep) { recalc() }
     }
 
-
+    // ---- Навигационные события ----
     sealed class UiEvent {
         object NavigateToRegistration : UiEvent()
         object NavigateToProduct : UiEvent()
         object NavigateToNewProduct : UiEvent()
     }
 
-    private val _events = MutableSharedFlow<UiEvent>(
-        extraBufferCapacity = 1
-    )
+    private val _events = MutableSharedFlow<UiEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<UiEvent> = _events
 
+    // ---- Ошибки (для диалогов/snackbar) ----
     private val _errorState = MutableSharedFlow<String>()
     val errorState: SharedFlow<String> = _errorState
 
@@ -95,25 +105,29 @@ class ScannerViewModel @Inject constructor(
         loadRegistrationData()
     }
 
-
+    // ---- План на день ----
     fun getDayPlans(date: String) {
         viewModelScope.launch {
+            updateUiState { it.copy(isLoading = true) }
             try {
                 val dayPlans = repository.getDayPlans(date)
                 _dayPlans.value = dayPlans
             } catch (e: AppError) {
-                // показываем человеко‑читабельное сообщение
-                _errorState.emit(appErrorToMessage(e))
-                // опционально можно очистить планы, если запрос упал
+                val msg = appErrorToMessage(e)
+                _errorState.emit(msg)
                 _dayPlans.value = emptyList()
             } catch (e: Exception) {
-                _errorState.emit("Неизвестная ошибка")
+                val msg = "Неизвестная ошибка"
+                _errorState.emit(msg)
+            } finally {
+                updateUiState { it.copy(isLoading = false) }
             }
         }
     }
 
-
+    // ---- Продукт ----
     suspend fun getProduct(serialNumber: String) {
+        updateUiState { it.copy(isLoading = true) }
         try {
             val product = repository.getProduct(serialNumber)
             if (product == null) {
@@ -125,8 +139,14 @@ class ScannerViewModel @Inject constructor(
             if (e is AppError.ApiError && e.status == 404) {
                 newProduct(serialNumber)
             } else {
-                throw e
+                val msg = appErrorToMessage(e)
+                _errorState.emit(msg)
             }
+        } catch (e: Exception) {
+            val msg = "Неизвестная ошибка"
+            _errorState.emit(msg)
+        } finally {
+            updateUiState { it.copy(isLoading = false) }
         }
     }
 
@@ -137,7 +157,8 @@ class ScannerViewModel @Inject constructor(
             .firstOrNull { it.status != "done" }
             ?: product.steps.lastOrNull()
             ?: run {
-                _errorState.emit("У товара нет шагов")
+                val msg = "У товара нет шагов"
+                _errorState.emit(msg)
                 return
             }
 
@@ -146,14 +167,23 @@ class ScannerViewModel @Inject constructor(
     }
 
     suspend fun setProcesses() {
-        val processes = repository.getProcesses()
-        _processes.postValue(processes)
+        updateUiState { it.copy(isLoading = true) }
+        try {
+            val processes = repository.getProcesses()
+            _processes.postValue(processes)
+        } catch (e: AppError) {
+            val msg = appErrorToMessage(e)
+            _errorState.emit(msg)
+        } catch (e: Exception) {
+            val msg = "Неизвестная ошибка"
+            _errorState.emit(msg)
+        } finally {
+            updateUiState { it.copy(isLoading = false) }
+        }
     }
 
     suspend fun newProduct(serialNumber: String) {
-        val newProductDto = ProductCreateDto(
-            serialNumber = serialNumber,
-        )
+        val newProductDto = ProductCreateDto(serialNumber = serialNumber)
         _newProduct.postValue(newProductDto)
 
         setProcesses()
@@ -161,6 +191,7 @@ class ScannerViewModel @Inject constructor(
     }
 
     suspend fun createProduct(newProduct: ProductCreateDto): Result<Unit> {
+        updateUiState { it.copy(isActionInProgress = true) }
         return try {
             repository.postProduct(newProduct)?.let { product ->
                 setProduct(product)
@@ -171,12 +202,16 @@ class ScannerViewModel @Inject constructor(
             _errorState.emit(msg)
             Result.failure(e)
         } catch (e: Exception) {
-            _errorState.emit("Неизвестная ошибка")
+            val msg = "Неизвестная ошибка"
+            _errorState.emit(msg)
             Result.failure(e)
+        } finally {
+            updateUiState { it.copy(isActionInProgress = false) }
         }
     }
 
     suspend fun changeProductProcess(productId: Long, newProcessId: Int): Result<Unit> {
+        updateUiState { it.copy(isActionInProgress = true) }
         return try {
             repository.changeProductProcess(productId, newProcessId)?.let { product ->
                 setProduct(product)
@@ -187,12 +222,16 @@ class ScannerViewModel @Inject constructor(
             _errorState.emit(msg)
             Result.failure(e)
         } catch (e: Exception) {
-            _errorState.emit("Неизвестная ошибка")
+            val msg = "Неизвестная ошибка"
+            _errorState.emit(msg)
             Result.failure(e)
+        } finally {
+            updateUiState { it.copy(isActionInProgress = false) }
         }
     }
 
     suspend fun setProductStatusScrap(productId: Long): Result<Unit> {
+        updateUiState { it.copy(isActionInProgress = true) }
         return try {
             repository.sendToScrap(productId)?.let { product ->
                 setProduct(product)
@@ -203,12 +242,16 @@ class ScannerViewModel @Inject constructor(
             _errorState.emit(msg)
             Result.failure(e)
         } catch (e: Exception) {
-            _errorState.emit("Неизвестная ошибка")
+            val msg = "Неизвестная ошибка"
+            _errorState.emit(msg)
             Result.failure(e)
+        } finally {
+            updateUiState { it.copy(isActionInProgress = false) }
         }
     }
 
     suspend fun setProductStatusRework(productId: Long): Result<Unit> {
+        updateUiState { it.copy(isActionInProgress = true) }
         return try {
             repository.sendToRework(productId)?.let { product ->
                 setProduct(product)
@@ -219,12 +262,16 @@ class ScannerViewModel @Inject constructor(
             _errorState.emit(msg)
             Result.failure(e)
         } catch (e: Exception) {
-            _errorState.emit("Неизвестная ошибка")
+            val msg = "Неизвестная ошибка"
+            _errorState.emit(msg)
             Result.failure(e)
+        } finally {
+            updateUiState { it.copy(isActionInProgress = false) }
         }
     }
 
     suspend fun setProductStatusNormal(productId: Long): Result<Unit> {
+        updateUiState { it.copy(isActionInProgress = true) }
         return try {
             repository.restoreFromScrap(productId)?.let { product ->
                 setProduct(product)
@@ -235,12 +282,15 @@ class ScannerViewModel @Inject constructor(
             _errorState.emit(msg)
             Result.failure(e)
         } catch (e: Exception) {
-            _errorState.emit("Неизвестная ошибка")
+            val msg = "Неизвестная ошибка"
+            _errorState.emit(msg)
             Result.failure(e)
+        } finally {
+            updateUiState { it.copy(isActionInProgress = false) }
         }
     }
 
-
+    // ---- Регистрация / пользователь ----
     fun onRegistrationReady(model: UserData) {
         _userData.value = model
         _events.tryEmit(UiEvent.NavigateToRegistration)
@@ -255,10 +305,12 @@ class ScannerViewModel @Inject constructor(
         loadRegistrationData()
     }
 
+    // ---- Закрытие этапа ----
     suspend fun closeStep(step: StepDto) {
         val stepId = step.id
         if (stepId == 0) return
 
+        updateUiState { it.copy(isActionInProgress = true) }
         try {
             val product = repository.postStep(stepId)
             if (product != null) {
@@ -271,33 +323,44 @@ class ScannerViewModel @Inject constructor(
                 _selectedStep.postValue(lastStep)
             }
         } catch (e: AppError) {
-            _errorState.emit(appErrorToMessage(e))
+            val msg = appErrorToMessage(e)
+            _errorState.emit(msg)
         } catch (e: Exception) {
-            _errorState.emit("Неизвестная ошибка")
+            val msg = "Неизвестная ошибка"
+            _errorState.emit(msg)
+        } finally {
+            updateUiState { it.copy(isActionInProgress = false) }
         }
     }
 
-
+    // ---- Работа с QR ----
     suspend fun decodeQrCode(jsonString: String) {
         if (isHandled) return
         isHandled = true
 
         if (isUfCode(jsonString)) {
+            updateUiState { it.copy(isLoading = true) }
             runCatching {
                 getProduct(jsonString)
             }.onFailure { e ->
                 val message = throwableToMessage(e)
-                _errorState.emit("Ошибка получения товара: $message")
+                val msg = "Ошибка получения товара: $message"
+                _errorState.emit(msg)
+            }.also {
+                updateUiState { it.copy(isLoading = false) }
             }
             return
         }
 
+        // регистрация устройства
+        updateUiState { it.copy(isLoading = true) }
         qrCodeDecode(jsonString)
             .onSuccess { data ->
                 if (data is DeviceRequestDto) {
                     if (appAuth.checkRegistration() != null) {
-                        _errorState.emit("Устройство уже зарегистрировано")
-                        return
+                        val msg = "Устройство уже зарегистрировано"
+                        _errorState.emit(msg)
+                        return@onSuccess
                     }
 
                     try {
@@ -313,24 +376,32 @@ class ScannerViewModel @Inject constructor(
                             appAuth.saveUserData(userData)
                             onRegistrationReady(userData)
                         } ?: run {
-                            _errorState.emit("Пустой ответ от сервера")
+                            val msg = "Пустой ответ от сервера"
+                            _errorState.emit(msg)
                         }
                     } catch (e: IOException) {
-                        _errorState.emit("Проблема с сетью, попробуйте ещё раз")
+                        val msg = "Проблема с сетью, попробуйте ещё раз"
+                        _errorState.emit(msg)
                     } catch (e: AppError.ApiError) {
-                        _errorState.emit("Ошибка сервера: ${e.status}")
+                        val msg = "Ошибка сервера: ${e.status}"
+                        _errorState.emit(msg)
                     } catch (e: Exception) {
-                        _errorState.emit("Неизвестная ошибка $e")
+                        val msg = "Неизвестная ошибка $e"
+                        _errorState.emit(msg)
                     }
                 } else {
-                    _errorState.emit("Некорректный QR‑код")
+                    val msg = "Некорректный QR‑код"
+                    _errorState.emit(msg)
                 }
             }
             .onFailure {
-                _errorState.emit("Ошибка разбора QR‑кода")
+                val msg = "Ошибка разбора QR‑кода"
+                _errorState.emit(msg)
             }
+        updateUiState { it.copy(isLoading = false) }
     }
 
+    // ---- Маппинг ошибок ----
     private fun appErrorToMessage(e: AppError): String =
         when (e) {
             is AppError.NetworkError -> "Нет соединения с сервером"
@@ -340,7 +411,6 @@ class ScannerViewModel @Inject constructor(
                 404 -> "${e.message}"
                 else -> "Ошибка сервера: ${e.status}"
             }
-
             is AppError.DaoError -> "Ошибка локальной базы"
             is AppError.UnknownError -> "Неизвестная ошибка"
         }
@@ -350,6 +420,4 @@ class ScannerViewModel @Inject constructor(
             is AppError -> appErrorToMessage(e)
             else -> "Неизвестная ошибка"
         }
-
-
 }

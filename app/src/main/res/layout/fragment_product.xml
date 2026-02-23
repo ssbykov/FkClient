@@ -118,7 +118,7 @@
         app:layout_constraintTop_toBottomOf="@id/cardProductInfo"
         app:strokeWidth="1dp"
         tools:cardBackgroundColor="@color/status_normal_bg"
-        tools:strokeColor="@color/status_normal_border">
+        tools:strokeColor="@color/status_success_bg">
 
         <LinearLayout
             android:id="@+id/cardRoot"
@@ -189,5 +189,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btnAllStages" />
+
+    <ProgressBar
+        android:id="@+id/progressEdit"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

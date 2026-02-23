@@ -84,6 +84,13 @@ class EditProductStatusFragment : Fragment() {
                     // ошибка уже уйдет в errorState
                 }
             }
+
+            viewModel.uiState.observe(viewLifecycleOwner) { state ->
+                binding.btnChangeStatus.isEnabled = !state.isActionInProgress
+
+                binding.progressEdit.visibility =
+                    if (state.isActionInProgress) View.VISIBLE else View.GONE
+            }
         }
     }
 

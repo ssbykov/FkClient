@@ -10,9 +10,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -94,11 +91,23 @@ class ScannerFragment : Fragment() {
                         ScannerViewModel.UiEvent.NavigateToRegistration ->
                             findNavController()
                                 .navigate(R.id.action_scannerFragment_to_registrationFragment)
+
                         ScannerViewModel.UiEvent.NavigateToNewProduct ->
                             findNavController()
                                 .navigate(R.id.action_scannerFragment_to_newProductFragment)
                     }
                 }
+            }
+        }
+
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            binding.loadingOverlay.visibility =
+                if (state.isLoading) View.VISIBLE else View.GONE
+
+            if (state.isLoading) {
+                binding.zxingBarcodeScanner.pause()
+            } else {
+                binding.zxingBarcodeScanner.resume()
             }
         }
     }
