@@ -1,0 +1,24 @@
+<!-- res/values/styles.xml -->
+<resources>
+
+    <style name="Widget.FK.ProductStatusChip"
+        parent="Widget.MaterialComponents.Chip.Entry">
+
+        <item name="chipMinHeight">32dp</item>
+        <item name="chipCornerRadius">16dp</item>
+
+        <!-- Обводка -->
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipStrokeColor">@color/status_success_text</item>
+
+        <!-- Фон и текст -->
+        <item name="chipBackgroundColor">@color/status_success_bg</item>
+        <item name="android:textColor">@color/status_success_text</item>
+
+        <!-- Без иконок -->
+        <item name="chipIconVisible">false</item>
+        <item name="closeIconVisible">false</item>
+    </style>
+
+</resources>
+

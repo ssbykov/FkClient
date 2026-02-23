@@ -35,7 +35,9 @@ class EditProductStatusFragment : Fragment() {
         viewModel.productState.observe(viewLifecycleOwner) { state ->
             binding.tvSerial.text = state?.serialNumber
             binding.tvProcess.text = state?.process?.name
-            binding.tvCurrentStatus.text = state?.status?.label
+            state?.status?.let { status ->
+                binding.tvCurrentStatus.text = getString(status.titleRes)
+            }
         }
 
         // обработка ошибок как у тебя

@@ -140,7 +140,7 @@
                 android:id="@+id/rbRestore"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/restore" />
+                android:text="@string/repair" />
 
             <RadioButton
                 android:id="@+id/rbScrap"

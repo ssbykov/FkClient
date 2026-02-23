@@ -6,7 +6,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Фиксированная карточка продукта -->
+    <!-- Заголовок списка САМОМ ВЕРХУ -->
+    <TextView
+        android:id="@+id/tvStepsTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/steps_header"
+        android:layout_marginTop="24dp"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Карточка продукта под заголовком -->
     <LinearLayout
         android:id="@+id/cardProduct"
         android:orientation="vertical"
@@ -15,7 +29,7 @@
         android:background="@drawable/bg_card"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvStepsTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -42,22 +56,7 @@
             android:layout_height="wrap_content"/>
     </LinearLayout>
 
-    <!-- Заголовок списка -->
-    <TextView
-        android:id="@+id/tvStepsTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="24dp"
-        android:text="@string/steps_header"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/cardProduct"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <!-- Скроллируемые этапы между шапкой и кнопкой -->
+    <!-- Скроллируемые этапы между карточкой и кнопкой -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvSteps"
         android:layout_width="0dp"
@@ -67,12 +66,12 @@
         android:layout_marginTop="12dp"
         android:layout_marginBottom="12dp"
         tools:listitem="@layout/item_step"
-        app:layout_constraintTop_toBottomOf="@id/tvStepsTitle"
+        app:layout_constraintTop_toBottomOf="@id/cardProduct"
         app:layout_constraintBottom_toTopOf="@id/btnBack"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Фиксированная кнопка снизу с отступом -->
+    <!-- Фиксированная кнопка снизу -->
     <Button
         android:id="@+id/btnBack"
         android:layout_width="0dp"
@@ -84,4 +83,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
