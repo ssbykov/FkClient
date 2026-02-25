@@ -29,24 +29,30 @@ data class ProductDto(
 enum class ProductStatus(
     val titleRes: Int,
     val bgColorRes: Int,
+    val textColorRes: Int,
 ) {
     @SerializedName("normal")
     NORMAL(
         R.string.normal,
         R.color.status_success_bg,
+        R.color.status_success_text,
     ),
 
     @SerializedName("rework")
     REPAIR(
         R.string.repair,
-        R.color.status_warning_bg,
+        R.color.status_repair_bg,
+        R.color.status_repair_text,
     ),
+
     @SerializedName("scrap")
     SCRAP(
         R.string.scrap,
-        R.color.status_warning_icon,
+        R.color.status_scrap_bg,
+        R.color.status_scrap_text,
     );
 }
+
 
 fun ProductStatus.toUiProductStatus(): ProductStatus = when (name) {
     "NORMAL" -> ProductStatus.NORMAL

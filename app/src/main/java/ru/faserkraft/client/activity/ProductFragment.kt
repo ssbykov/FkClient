@@ -1,6 +1,7 @@
 package ru.faserkraft.client.activity
 
 import android.app.AlertDialog
+import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -69,8 +70,9 @@ class ProductFragment : Fragment() {
             }
         }
 
-        viewModel.productState.observe(viewLifecycleOwner) {
-            product = it ?: return@observe
+        viewModel.productState.observe(viewLifecycleOwner) { productState ->
+            product = productState ?: return@observe
+
             with(binding) {
                 tvProcess.text = product.process.name
                 tvProductNumber.text = product.serialNumber
@@ -79,20 +81,30 @@ class ProductFragment : Fragment() {
                 val uiStatus = product.status.toUiProductStatus()
                 val ctx = root.context
 
+                val bgColor = ContextCompat.getColor(ctx, uiStatus.bgColorRes)
+                val textColor = ContextCompat.getColor(ctx, uiStatus.textColorRes)
+
+                // chip: текст + фон + цвет текста
                 chipProductStatus.text = getString(uiStatus.titleRes)
                 chipProductStatus.chipBackgroundColor =
-                    android.content.res.ColorStateList.valueOf(
-                        ContextCompat.getColor(ctx, uiStatus.bgColorRes)
-                    )
+                    ColorStateList.valueOf(bgColor)
+                chipProductStatus.setTextColor(textColor)
 
-                // меняем цвет карточки с общей инфой о продукте
-                cardProductInfo.setCardBackgroundColor(
-                    ContextCompat.getColor(ctx, uiStatus.bgColorRes)
-                )
-                // или только обводку:
-                // cardProductInfo.strokeColor = ContextCompat.getColor(ctx, uiStatus.bgColorRes)
+                // карточка общей инфы: фон
+                cardProductInfo.setCardBackgroundColor(bgColor)
+                // если хочешь только рамку, а фон оставить белым:
+                // cardProductInfo.setCardBackgroundColor(
+                //     ContextCompat.getColor(ctx, R.color.bg_card)
+                // )
+                // cardProductInfo.strokeColor = bgColor
+
+                // по желанию можно покрасить текст внутри карточки под статус
+                // tvProcess.setTextColor(textColor)
+                // tvProductNumber.setTextColor(textColor)
+                // tvCreated.setTextColor(textColor)
             }
         }
+
 
 
         viewModel.userData.observe(viewLifecycleOwner) { user ->
@@ -159,7 +171,7 @@ class ProductFragment : Fragment() {
 
                 if (lastStep.id == 0) return@launch
 
-                if ( product.status == ProductStatus.REPAIR ||
+                if (product.status == ProductStatus.REPAIR ||
                     product.status == ProductStatus.SCRAP
                 ) {
                     AlertDialog.Builder(requireContext())
