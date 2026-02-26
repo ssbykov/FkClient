@@ -5,7 +5,9 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.google.gson.annotations.SerializedName
 import ru.faserkraft.client.R
+import java.io.Serializable
 
+@kotlinx.serialization.Serializable
 data class StepDto(
     val id: Int,
     @SerializedName("product_id")
@@ -19,7 +21,7 @@ data class StepDto(
     val performedBy: EmployeeDto?,
     @SerializedName("performed_at")
     val performedAt: String?
-): ItemDto()
+): ItemDto(), Serializable
 
 enum class StepStatusUi(
     @StringRes

@@ -1,3 +1,5 @@
 package ru.faserkraft.client.dto
 
-open class ItemDto()
+import java.io.Serializable
+
+open class ItemDto: Serializable
