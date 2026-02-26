@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
+import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
@@ -55,6 +56,9 @@ class ScannerViewModel @Inject constructor(
 
     private val _processes = MutableLiveData<List<ProcessDto>?>()
     val processes: LiveData<List<ProcessDto>?> = _processes
+
+    private val _employees = MutableLiveData<List<EmployeeDto>?>()
+    val employees: LiveData<List<EmployeeDto>?> = _employees
 
     private val _dayPlans = MutableLiveData<List<DayPlanDto>?>()
     val dayPlans: LiveData<List<DayPlanDto>?> = _dayPlans
@@ -171,6 +175,22 @@ class ScannerViewModel @Inject constructor(
         try {
             val processes = repository.getProcesses()
             _processes.postValue(processes)
+        } catch (e: AppError) {
+            val msg = appErrorToMessage(e)
+            _errorState.emit(msg)
+        } catch (e: Exception) {
+            val msg = "Неизвестная ошибка"
+            _errorState.emit(msg)
+        } finally {
+            updateUiState { it.copy(isLoading = false) }
+        }
+    }
+
+    suspend fun setEmployees() {
+        updateUiState { it.copy(isLoading = true) }
+        try {
+            val employees = repository.getEmployees()
+            _employees.postValue(employees)
         } catch (e: AppError) {
             val msg = appErrorToMessage(e)
             _errorState.emit(msg)
