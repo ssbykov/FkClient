@@ -39,10 +39,10 @@ enum class ProductStatus(
     ),
 
     @SerializedName("rework")
-    REPAIR(
-        R.string.repair,
-        R.color.status_repair_bg,
-        R.color.status_repair_text,
+    REWORK(
+        R.string.rework,
+        R.color.status_rework_bg,
+        R.color.status_rework_text,
     ),
 
     @SerializedName("scrap")
@@ -56,7 +56,13 @@ enum class ProductStatus(
 
 fun ProductStatus.toUiProductStatus(): ProductStatus = when (name) {
     "NORMAL" -> ProductStatus.NORMAL
-    "REPAIR" -> ProductStatus.REPAIR
+    "REWORK" -> ProductStatus.REWORK
     "SCRAP" -> ProductStatus.SCRAP
     else -> ProductStatus.NORMAL
+}
+
+fun ProductStatus.toBackendValue(): String = when (this) {
+    ProductStatus.NORMAL -> "normal"
+    ProductStatus.REWORK -> "rework"
+    ProductStatus.SCRAP -> "scrap"
 }

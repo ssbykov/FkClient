@@ -13,6 +13,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.databinding.FragmentEditStatusProductBinding
+import ru.faserkraft.client.dto.ProductStatus
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
 
@@ -72,9 +73,21 @@ class EditProductStatusFragment : Fragment() {
 
             viewLifecycleOwner.lifecycleScope.launch {
                 val result = when (checkedId) {
-                    binding.rbNormal.id -> viewModel.setProductStatusNormal(product.id)
-                    binding.rbRestore.id -> viewModel.setProductStatusRework(product.id)
-                    binding.rbScrap.id  -> viewModel.setProductStatusScrap(product.id)
+                    binding.rbNormal.id -> viewModel.setProductStatus(
+                        product.id,
+                        ProductStatus.NORMAL
+                    )
+
+                    binding.rbRestore.id -> viewModel.setProductStatus(
+                        product.id,
+                        ProductStatus.REWORK
+                    )
+
+                    binding.rbScrap.id -> viewModel.setProductStatus(
+                        product.id,
+                        ProductStatus.SCRAP
+                    )
+
                     else -> null
                 }
 
@@ -84,6 +97,7 @@ class EditProductStatusFragment : Fragment() {
                     // ошибка уже уйдет в errorState
                 }
             }
+
 
             viewModel.uiState.observe(viewLifecycleOwner) { state ->
                 binding.btnChangeStatus.isEnabled = !state.isActionInProgress

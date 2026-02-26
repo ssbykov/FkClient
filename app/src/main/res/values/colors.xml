@@ -22,8 +22,8 @@
     <color name="status_success_bg">#E3F7E8</color>   <!-- NORMAL -->
     <color name="status_success_text">#1B5E20</color>
 
-    <color name="status_repair_bg">#FFF3CD</color>    <!-- Восстановление (мягкий жёлтый) -->
-    <color name="status_repair_text">#7C4A03</color>  <!-- тёмно-оранжевый текст -->
+    <color name="status_rework_bg">#FFF3CD</color>    <!-- Восстановление (мягкий жёлтый) -->
+    <color name="status_rework_text">#7C4A03</color>  <!-- тёмно-оранжевый текст -->
 
     <color name="status_scrap_bg">#FFE0E0</color>     <!-- Брак (мягкий красный) -->
     <color name="status_scrap_text">#B71C1C</color>   <!-- тёмно-красный текст -->

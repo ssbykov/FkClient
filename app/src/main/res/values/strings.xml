@@ -32,10 +32,13 @@
     <string name="process_edit">Изменение процесса</string>
     <string name="edit">Изменить</string>
     <string name="normal">В работе</string>
-    <string name="repair">Восстановление</string>
+    <string name="rework">Восстановление</string>
     <string name="scrap">Брак</string>
     <string name="current_status">Текущий статус</string>
     <string name="new_status">Новый статус</string>
     <string name="status_edit">Редактирование статуса</string>
     <string name="save">Сохранить</string>
+    <string name="step_edit">Изменение этапа</string>
+    <string name="employee">Сотрудник</string>
+    <string name="step_name">Название этапа</string>
 </resources>

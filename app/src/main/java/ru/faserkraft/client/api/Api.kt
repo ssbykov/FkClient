@@ -50,19 +50,10 @@ interface Api {
         @Query("new_process_id") newProcessId: Int
     ): Response<ProductDto>
 
-    @POST(BASE_URL + "products/{product_id}/send_to_scrap")
-    suspend fun sendToScrap(
-        @Path("product_id") productId: Long
-    ): Response<ProductDto>
-
-    @POST(BASE_URL + "products/{product_id}/send_to_rework")
-    suspend fun sendToRework(
-        @Path("product_id") productId: Long
-    ): Response<ProductDto>
-
-    @POST(BASE_URL + "products/{product_id}/restore_from_scrap")
-    suspend fun restoreFromScrap(
-        @Path("product_id") productId: Long
+    @POST(BASE_URL + "products/{product_id}/change_status")
+    suspend fun changeProductStatus(
+        @Path("product_id") productId: Long,
+        @Query("status") status: String
     ): Response<ProductDto>
 
     @POST(BASE_URL + "users/new-device")

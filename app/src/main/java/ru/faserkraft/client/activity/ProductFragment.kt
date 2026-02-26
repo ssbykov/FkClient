@@ -171,7 +171,7 @@ class ProductFragment : Fragment() {
 
                 if (lastStep.id == 0) return@launch
 
-                if (product.status == ProductStatus.REPAIR ||
+                if (product.status == ProductStatus.REWORK ||
                     product.status == ProductStatus.SCRAP
                 ) {
                     AlertDialog.Builder(requireContext())

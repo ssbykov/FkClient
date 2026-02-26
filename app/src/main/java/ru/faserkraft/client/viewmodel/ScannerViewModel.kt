@@ -16,6 +16,7 @@ import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
+import ru.faserkraft.client.dto.ProductStatus
 import ru.faserkraft.client.dto.StepDto
 import ru.faserkraft.client.dto.emptyStep
 import ru.faserkraft.client.error.AppError
@@ -78,6 +79,7 @@ class ScannerViewModel @Inject constructor(
                 selected != null -> product.steps
                     .find { it.stepDefinition.order == selected.stepDefinition.order }
                     ?: emptyStep
+
                 else -> product.steps.minByOrNull { it.stepDefinition.order } ?: emptyStep
             }
         }
@@ -250,10 +252,13 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
-    suspend fun setProductStatusScrap(productId: Long): Result<Unit> {
+    suspend fun setProductStatus(
+        productId: Long,
+        status: ProductStatus,
+    ): Result<Unit> {
         updateUiState { it.copy(isActionInProgress = true) }
         return try {
-            repository.sendToScrap(productId)?.let { product ->
+            repository.changeProductStatus(productId, status)?.let { product ->
                 setProduct(product)
             }
             Result.success(Unit)
@@ -270,45 +275,6 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
-    suspend fun setProductStatusRework(productId: Long): Result<Unit> {
-        updateUiState { it.copy(isActionInProgress = true) }
-        return try {
-            repository.sendToRework(productId)?.let { product ->
-                setProduct(product)
-            }
-            Result.success(Unit)
-        } catch (e: AppError) {
-            val msg = appErrorToMessage(e)
-            _errorState.emit(msg)
-            Result.failure(e)
-        } catch (e: Exception) {
-            val msg = "Неизвестная ошибка"
-            _errorState.emit(msg)
-            Result.failure(e)
-        } finally {
-            updateUiState { it.copy(isActionInProgress = false) }
-        }
-    }
-
-    suspend fun setProductStatusNormal(productId: Long): Result<Unit> {
-        updateUiState { it.copy(isActionInProgress = true) }
-        return try {
-            repository.restoreFromScrap(productId)?.let { product ->
-                setProduct(product)
-            }
-            Result.success(Unit)
-        } catch (e: AppError) {
-            val msg = appErrorToMessage(e)
-            _errorState.emit(msg)
-            Result.failure(e)
-        } catch (e: Exception) {
-            val msg = "Неизвестная ошибка"
-            _errorState.emit(msg)
-            Result.failure(e)
-        } finally {
-            updateUiState { it.copy(isActionInProgress = false) }
-        }
-    }
 
     // ---- Регистрация / пользователь ----
     fun onRegistrationReady(model: UserData) {
@@ -431,6 +397,7 @@ class ScannerViewModel @Inject constructor(
                 404 -> "${e.message}"
                 else -> "Ошибка сервера: ${e.status}"
             }
+
             is AppError.DaoError -> "Ошибка локальной базы"
             is AppError.UnknownError -> "Неизвестная ошибка"
         }

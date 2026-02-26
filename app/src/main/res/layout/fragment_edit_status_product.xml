@@ -28,9 +28,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/tvTitle">
 
         <!-- Процесс (если нужно показывать) -->
         <LinearLayout
@@ -88,9 +88,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/llHeaderInfo"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/llHeaderInfo">
 
         <!-- Текущий статус (read-only) -->
         <LinearLayout
@@ -140,7 +140,7 @@
                 android:id="@+id/rbRestore"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/repair" />
+                android:text="@string/rework" />
 
             <RadioButton
                 android:id="@+id/rbScrap"
@@ -159,10 +159,10 @@
         android:layout_marginTop="16dp"
         android:layout_marginBottom="8dp"
         android:text="@string/save"
-        app:layout_constraintTop_toBottomOf="@id/formContainer"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/formContainer" />
 
     <ProgressBar
         android:id="@+id/progressEdit"
