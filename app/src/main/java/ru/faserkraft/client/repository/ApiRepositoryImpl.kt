@@ -4,6 +4,7 @@ import ru.faserkraft.client.api.Api
 import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
+import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
@@ -21,6 +22,9 @@ class ApiRepositoryImpl @Inject constructor(
 
     override suspend fun getProcesses(): List<ProcessDto>? =
         callApi { api.getProcesses() }
+
+    override suspend fun getEmployees(): List<EmployeeDto>? =
+        callApi { api.getEmployees() }
 
     override suspend fun postDevice(device: DeviceRequestDto): DeviceResponseDto? =
         callApi { api.postDevice(device) }

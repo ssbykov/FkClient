@@ -9,6 +9,7 @@ import retrofit2.http.Query
 import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
+import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
@@ -24,6 +25,9 @@ interface Api {
 
     @GET(BASE_URL + "processes/")
     suspend fun getProcesses(): Response<List<ProcessDto>>
+
+    @GET(BASE_URL + "employees/")
+    suspend fun getEmployees(): Response<List<EmployeeDto>>
 
     @GET(BASE_URL + "daily-plans")
     suspend fun getDayPlans(
