@@ -14,11 +14,13 @@ import ru.faserkraft.client.dto.StepDto
 import ru.faserkraft.client.dto.toUiStatus
 import ru.faserkraft.client.utils.formatIsoToUi
 
-class StepsAdapter() : ListAdapter<StepDto, StepsAdapter.StepVH>(StepDiff()) {
+class StepsAdapter(
+    private val onItemClick: (StepDto) -> Unit
+) : ListAdapter<StepDto, StepsAdapter.StepVH>(StepDiff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StepVH {
         val binding = ItemStepBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return StepVH(binding)
+        return StepVH(binding, onItemClick)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -27,7 +29,8 @@ class StepsAdapter() : ListAdapter<StepDto, StepsAdapter.StepVH>(StepDiff()) {
     }
 
     class StepVH(
-        private val binding: ItemStepBinding
+        private val binding: ItemStepBinding,
+        private val onItemClick: (StepDto) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         @RequiresApi(Build.VERSION_CODES.O)
@@ -51,6 +54,11 @@ class StepsAdapter() : ListAdapter<StepDto, StepsAdapter.StepVH>(StepDiff()) {
                     R.string.step_completed_at,
                     completedAtText
                 )
+
+                binding.root.setOnClickListener {
+                    if (step.status != "done") return@setOnClickListener
+                    onItemClick(step)
+                }
             }
         }
 

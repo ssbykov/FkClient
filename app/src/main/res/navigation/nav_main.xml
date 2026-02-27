@@ -9,7 +9,7 @@
         android:id="@+id/scannerFragment"
         android:name="ru.faserkraft.client.activity.ScannerFragment"
         android:label="fragment_scanner"
-        tools:layout="@layout/fragment_scanner" >
+        tools:layout="@layout/fragment_scanner">
         <action
             android:id="@+id/action_scannerFragment_to_registrationFragment"
             app:destination="@id/registrationFragment" />
@@ -29,7 +29,7 @@
         android:id="@+id/productFragment"
         android:name="ru.faserkraft.client.activity.ProductFragment"
         android:label="fragment_product"
-        tools:layout="@layout/fragment_product" >
+        tools:layout="@layout/fragment_product">
         <action
             android:id="@+id/action_productFragment_to_productFullFragment"
             app:destination="@id/productFullFragment" />
@@ -43,12 +43,16 @@
     <fragment
         android:id="@+id/productFullFragment"
         android:name="ru.faserkraft.client.activity.ProductFullFragment"
-        android:label="ProductFullFragment" />
+        android:label="ProductFullFragment">
+        <action
+            android:id="@+id/action_productFullFragment_to_editStepFragment"
+            app:destination="@id/editStepFragment" />
+    </fragment>
     <fragment
         android:id="@+id/newProductFragment"
         android:name="ru.faserkraft.client.activity.NewProductFragment"
         android:label="fragment_new_product"
-        tools:layout="@layout/fragment_new_product" >
+        tools:layout="@layout/fragment_new_product">
         <action
             android:id="@+id/action_newProductFragment_to_productFragment"
             app:destination="@id/productFragment" />
@@ -68,4 +72,13 @@
         android:name="ru.faserkraft.client.activity.EditProductStatusFragment"
         android:label="fragment_edit_status_product"
         tools:layout="@layout/fragment_edit_status_product" />
+    <fragment
+        android:id="@+id/editStepFragment"
+        android:name="ru.faserkraft.client.activity.EditStepFragment"
+        android:label="EditStepFragment">
+        <argument
+            android:name="step"
+            app:argType="ru.faserkraft.client.dto.StepDto" />
+    </fragment>
+
 </navigation>
