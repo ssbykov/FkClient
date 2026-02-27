@@ -39,7 +39,6 @@ class ApiRepositoryImpl @Inject constructor(
         newProcessId: Int
     ): ProductDto? = callApi { api.changeProductProcess(productId, newProcessId) }
 
-
     override suspend fun getDayPlans(
         date: String
     ): List<DayPlanDto>? = callApi { api.getDayPlans(date) }
@@ -49,5 +48,10 @@ class ApiRepositoryImpl @Inject constructor(
         status: ProductStatus,
     ): ProductDto? =
         callApi { api.changeProductStatus(productId, status.toBackendValue()) }
+
+    override suspend fun changeStepPerformer(
+        stepId: Int,
+        newEmployeeId: Int,
+    ): ProductDto? = callApi { api.changeStepPerformer(stepId, newEmployeeId) }
 
 }

@@ -22,4 +22,8 @@ interface ApiRepository {
         productId: Long,
         status: ProductStatus,
     ): ProductDto?
+    suspend fun changeStepPerformer(
+        stepId: Int,
+        newEmployeeId: Int,
+    ): ProductDto?
 }

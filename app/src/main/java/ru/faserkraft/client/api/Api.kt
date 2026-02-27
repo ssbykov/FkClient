@@ -44,6 +44,12 @@ interface Api {
         @Query("step_id") stepId: Int
     ): Response<ProductDto>
 
+    @POST(BASE_URL + "products_steps/change_performer")
+    suspend fun changeStepPerformer(
+        @Query("step_id") stepId: Int,
+        @Query("new_employee_id") newEmployeeId: Int,
+    ): Response<ProductDto>
+
     @POST(BASE_URL + "products/change_product_process")
     suspend fun changeProductProcess(
         @Query("product_id") productId: Long,

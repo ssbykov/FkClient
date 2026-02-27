@@ -319,6 +319,34 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
+    suspend fun changeStepPerformer(
+        step: StepDto,
+        newEmployeeId: Int,
+    ): Result<Unit> {
+        val stepId = step.id
+
+        updateUiState { it.copy(isActionInProgress = true) }
+        return try {
+            val product = repository.changeStepPerformer(stepId, newEmployeeId)
+            if (product != null) {
+                _productState.postValue(product)
+
+            }
+            Result.success(Unit)
+        } catch (e: AppError) {
+            val msg = appErrorToMessage(e)
+            _errorState.emit(msg)
+            Result.failure(e)
+        } catch (e: Exception) {
+            val msg = "Неизвестная ошибка"
+            _errorState.emit(msg)
+            Result.failure(e)
+        } finally {
+            updateUiState { it.copy(isActionInProgress = false) }
+        }
+    }
+
+
     // ---- Работа с QR ----
     suspend fun decodeQrCode(jsonString: String) {
         if (isHandled) return
