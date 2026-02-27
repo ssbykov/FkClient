@@ -24,14 +24,10 @@ data class StepDto(
 ): ItemDto(), Serializable
 
 enum class StepStatusUi(
-    @StringRes
-    val statusTitleRes: Int,
-    @StringRes
-    val statusDescRes: Int,
-    @param:DrawableRes
-    val iconRes: Int,
-    @ColorRes
-    val bgColorRes: Int
+    @field:StringRes val statusTitleRes: Int,
+    @field:StringRes val statusDescRes: Int,
+    @field:DrawableRes val iconRes: Int,
+    @field:ColorRes val bgColorRes: Int
 ) {
     DONE(
         statusTitleRes = R.string.step_last_status_done,
@@ -44,7 +40,7 @@ enum class StepStatusUi(
         statusDescRes = R.string.step_last_desc_pending,
         iconRes = R.drawable.status_pending,
         bgColorRes = R.color.step_pending_bg
-    )
+    );
 }
 
 enum class StepStatusBackend(val raw: String) {
