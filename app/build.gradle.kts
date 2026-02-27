@@ -1,10 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.dagger.hilt.android)
-    alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.navigation.safeargs)
+    alias(libs.plugins.androidx.navigation.safeargs)
 }
 
 android {
@@ -37,12 +35,14 @@ android {
         debug {  }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "11"
+    // kotlinOptions теперь встроен в android блок
+    //noinspection WrongGradleMethod
+    kotlin {
+        jvmToolchain(17)
     }
 }
 
@@ -56,19 +56,19 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.retrofit2)
-    implementation(libs.retrofit2.gson)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
     implementation(libs.zxing)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    ksp(libs.room.ksp)
+    ksp(libs.room.compiler)
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.mapstruct)
     annotationProcessor(libs.mapstruct.processor)
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
 }
