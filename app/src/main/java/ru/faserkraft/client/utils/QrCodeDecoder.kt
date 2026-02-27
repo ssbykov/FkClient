@@ -9,7 +9,7 @@ private val gson = Gson()
 
 fun qrCodeDecode(jsonString: String): Result<Any?> =
     runCatching {
-        val obj = JsonParser().parse(jsonString).asJsonObject
+        val obj = JsonParser.parseString(jsonString).getAsJsonObject()
         val action = obj.get("action")?.asString
 
         when (action) {
