@@ -41,4 +41,8 @@
     <string name="step_edit">Изменение этапа</string>
     <string name="employee">Сотрудник</string>
     <string name="step_name">Название этапа</string>
+    <string name="add_plan">Добавление плана</string>
+    <string name="date">Дата</string>
+    <string name="step">Этап</string>
+    <string name="quantity">Количество</string>
 </resources>
