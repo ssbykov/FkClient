@@ -20,6 +20,7 @@ import ru.faserkraft.client.adapter.EmployeePlanUiItem
 import ru.faserkraft.client.adapter.PlansAdapter
 import ru.faserkraft.client.databinding.FragmentDayPlanBinding
 import ru.faserkraft.client.dto.EmployeePlanDto
+import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -89,6 +90,11 @@ class DayPlanFragment : Fragment() {
 
         binding.swipeRefresh.setOnRefreshListener {
             getPlansToday()
+        }
+
+        viewModel.userData.observe(viewLifecycleOwner) { user ->
+            binding.fabAddPlan.visibility =
+                if (user?.role == UserRole.MASTER) View.VISIBLE else View.GONE
         }
 
         binding.fabAddPlan.setOnClickListener {
