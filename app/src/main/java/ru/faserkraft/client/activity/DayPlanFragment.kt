@@ -12,8 +12,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
+import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.EmployeePlanUiItem
 import ru.faserkraft.client.adapter.PlansAdapter
 import ru.faserkraft.client.databinding.FragmentDayPlanBinding
@@ -47,7 +49,6 @@ class DayPlanFragment : Fragment() {
         binding.rvPlans.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPlans.adapter = adapter
 
-        // планы как раньше
         viewModel.dayPlans.observe(viewLifecycleOwner) { plans ->
             plans ?: return@observe
             val uiItems = mutableListOf<EmployeePlanUiItem>()
@@ -68,12 +69,8 @@ class DayPlanFragment : Fragment() {
             adapter.submitList(uiItems)
         }
 
-        // Крутилка + блокировка кнопки
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            binding.progressBar.visibility =
-                if (state.isLoading) View.VISIBLE else View.GONE
-
-            binding.btnRefresh.isEnabled = !state.isLoading
+            binding.swipeRefresh.isRefreshing = state.isLoading
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -90,8 +87,16 @@ class DayPlanFragment : Fragment() {
             }
         }
 
-        binding.btnRefresh.setOnClickListener {
+        binding.swipeRefresh.setOnRefreshListener {
             getPlansToday()
+        }
+
+        binding.fabAddPlan.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.setEmployees()
+                viewModel.setProcesses()
+                findNavController().navigate(R.id.action_dayPlanFragment_to_addDayPlanFragment)
+            }
         }
     }
 
