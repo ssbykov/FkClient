@@ -1,6 +1,7 @@
 package ru.faserkraft.client.repository
 
 import ru.faserkraft.client.api.Api
+import ru.faserkraft.client.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
@@ -53,5 +54,9 @@ class ApiRepositoryImpl @Inject constructor(
         stepId: Int,
         newEmployeeId: Int,
     ): ProductDto? = callApi { api.changeStepPerformer(stepId, newEmployeeId) }
+
+    override suspend fun addStepToDailyPlan(
+        body: DailyPlanStepCreateDto
+    ): List<DayPlanDto>? = callApi { api.addStepToDailyPlan(body) }
 
 }
