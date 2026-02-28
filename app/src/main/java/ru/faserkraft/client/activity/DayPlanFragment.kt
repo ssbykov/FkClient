@@ -13,7 +13,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.EmployeePlanUiItem
@@ -49,6 +51,63 @@ class DayPlanFragment : Fragment() {
         val adapter = PlansAdapter()
         binding.rvPlans.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPlans.adapter = adapter
+
+        val swipeCallback = object : ItemTouchHelper.SimpleCallback(
+            0,
+            ItemTouchHelper.END   // свайп только вправо
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean = false
+
+            override fun getSwipeDirs(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder
+            ): Int {
+                val position = viewHolder.bindingAdapterPosition
+                val item = adapter.currentList.getOrNull(position)
+                // Запрещаем свайпать заголовки
+                return if (item is EmployeePlanUiItem.Header) 0 else super.getSwipeDirs(
+                    recyclerView,
+                    viewHolder
+                )
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.bindingAdapterPosition
+                val item = adapter.currentList.getOrNull(position)
+
+                // Сразу откатываем визуальный свайп
+                adapter.notifyItemChanged(position)
+
+                if (item !is EmployeePlanUiItem.Step) return
+
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Удалить план?")
+                    .setMessage("Вы уверены, что хотите удалить этот шаг плана?")
+                    .setPositiveButton("Да") { dialog, _ ->
+                        val planId = item.plan.id
+
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            viewModel.removeStepFromDailyPlan(planId)
+                        }
+
+                        val mutable = adapter.currentList.toMutableList()
+                        mutable.removeAt(position)
+                        adapter.submitList(mutable)
+                        dialog.dismiss()
+                    }
+                    .setNegativeButton("Отмена") { dialog, _ ->
+                        // Ничего не делаем, элемент уже восстановлен notifyItemChanged
+                        dialog.dismiss()
+                    }
+                    .show()
+            }
+        }
+
+        ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.rvPlans)
 
         viewModel.dayPlans.observe(viewLifecycleOwner) { plans ->
             plans ?: return@observe
