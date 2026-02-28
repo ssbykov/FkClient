@@ -35,6 +35,7 @@ class DayPlanFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
     private lateinit var binding: FragmentDayPlanBinding
+    private var currentUserRole: UserRole? = null
     private var canEdit: Boolean = false
 
     @SuppressLint("ConstantLocale")
@@ -56,6 +57,14 @@ class DayPlanFragment : Fragment() {
                 else -> dateStr
             }
         }
+
+        fun isPlanDateEditable(planDateApi: String): Boolean {
+            val planDate = apiFormat.parse(planDateApi) ?: return false
+            val today = apiFormat.parse(apiFormat.format(Date()))!!
+            // true, если дата плана сегодня или в будущем
+            return !planDate.before(today)
+        }
+
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -77,6 +86,7 @@ class DayPlanFragment : Fragment() {
         }
 
         val adapter = PlansAdapter(
+
             onStepClick = { employeePlan ->
                 if (!canEdit) return@PlansAdapter
 
@@ -151,11 +161,19 @@ class DayPlanFragment : Fragment() {
         ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.rvPlans)
 
         viewModel.dayPlans.observe(viewLifecycleOwner) { plans ->
-            plans ?: return@observe
-            val firstPlan = plans.firstOrNull() ?: return@observe
 
-            val planDate = convertDate(firstPlan.date)
-            binding.etDate.setText(planDate)
+            if (plans.isNullOrEmpty()) {
+                adapter.submitList(emptyList())
+                updateCanEditForCurrentState(planDateApi = null)
+                return@observe
+            }
+
+            val firstPlan = plans.first()
+
+            val planDateUi = convertDate(firstPlan.date)
+            binding.etDate.setText(planDateUi)
+
+            updateCanEditForCurrentState(firstPlan.date)
 
             val uiItems = mutableListOf<EmployeePlanUiItem>()
 
@@ -205,10 +223,8 @@ class DayPlanFragment : Fragment() {
         }
 
         viewModel.userData.observe(viewLifecycleOwner) { user ->
-            binding.fabAddPlan.visibility =
-                if (user?.role == UserRole.MASTER) View.VISIBLE else View.GONE
-
-            canEdit = (user?.role == UserRole.MASTER)
+            currentUserRole = user?.role
+            updateCanEditForCurrentState()
         }
 
         binding.fabAddPlan.setOnClickListener {
@@ -243,4 +259,20 @@ class DayPlanFragment : Fragment() {
         val uiDate = uiFormat.format(date)
         return apiDate to uiDate
     }
+
+    private fun updateCanEditForCurrentState(planDateApi: String? = null) {
+        val isMaster = currentUserRole == UserRole.MASTER
+
+        val effectiveDateApi = planDateApi ?: run {
+            val text = binding.etDate.text?.toString().orEmpty()
+            val api = convertDate(text)
+            api.takeIf { apiPattern.matches(it) }
+        }
+
+        val isDateEditable = effectiveDateApi?.let { isPlanDateEditable(it) } ?: false
+
+        canEdit = isMaster && isDateEditable
+        binding.fabAddPlan.visibility = if (canEdit) View.VISIBLE else View.GONE
+    }
+
 }
