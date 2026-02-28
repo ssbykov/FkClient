@@ -32,6 +32,8 @@ class EditStepFragment : Fragment() {
     private var employees: List<EmployeeUi> = emptyList()
     private var product: ProductDto? = null
     private var isEmployeesReady = false
+    private var initialEmployeeId: Int? = null
+    private var selectedIndex: Int? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,6 +46,8 @@ class EditStepFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         employeesAdapter = EmployeesAdapter(requireContext())
         binding.actvEmployee.setAdapter(employeesAdapter)
+
+        initialEmployeeId = args.step.performedBy?.id
 
         viewModel.employees.observe(viewLifecycleOwner) { list ->
             employees = list
@@ -61,10 +65,9 @@ class EditStepFragment : Fragment() {
             selectEmployeeIfPossible()
         }
 
-        var selectedIndex: Int? = null
 
         binding.actvEmployee.setOnItemClickListener { _, _, position, _ ->
-            selectedIndex = position          // индекс в адаптере
+            selectedIndex = position
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -82,9 +85,16 @@ class EditStepFragment : Fragment() {
         }
 
         binding.btnEdit.setOnClickListener {
-
             val index = selectedIndex
-            if (index == null || index < 0 || index >= employees.size) {
+
+            // 1) пользователь ничего не трогал → просто назад
+            if (index == null) {
+                findNavController().navigateUp()
+                return@setOnClickListener
+            }
+
+            // 2) обычная проверка индекса
+            if (index < 0 || index >= employees.size) {
                 AlertDialog.Builder(requireContext())
                     .setMessage("Сотрудник не выбран")
                     .setPositiveButton("ОК") { dialog, _ -> dialog.dismiss() }
@@ -92,10 +102,15 @@ class EditStepFragment : Fragment() {
                 return@setOnClickListener
             }
 
-
             viewLifecycleOwner.lifecycleScope.launch {
                 val step = args.step
                 val newEmployee = employees.getOrNull(index) ?: return@launch
+
+                // 3) если выбран тот же сотрудник, что был — тоже просто назад
+                if (newEmployee.id == initialEmployeeId) {
+                    findNavController().navigateUp()
+                    return@launch
+                }
 
                 val result = viewModel.changeStepPerformer(
                     step = step,
@@ -105,10 +120,9 @@ class EditStepFragment : Fragment() {
                 result.onSuccess {
                     findNavController().navigateUp()
                 }.onFailure {
-                    // ничего не делаем, ошибку покажет подписка на errorState
+                    // ошибку покажет подписка на errorState
                 }
             }
-
         }
 
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
