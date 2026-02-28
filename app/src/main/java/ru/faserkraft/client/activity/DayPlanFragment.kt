@@ -33,6 +33,7 @@ class DayPlanFragment : Fragment() {
 
     private lateinit var binding: FragmentDayPlanBinding
 
+    private var canSwipe: Boolean = false
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -66,6 +67,8 @@ class DayPlanFragment : Fragment() {
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder
             ): Int {
+                if (!canSwipe) return 0
+
                 val position = viewHolder.bindingAdapterPosition
                 val item = adapter.currentList.getOrNull(position)
                 // Запрещаем свайпать заголовки
@@ -163,6 +166,8 @@ class DayPlanFragment : Fragment() {
         viewModel.userData.observe(viewLifecycleOwner) { user ->
             binding.fabAddPlan.visibility =
                 if (user?.role == UserRole.MASTER) View.VISIBLE else View.GONE
+
+            canSwipe = (user?.role == UserRole.MASTER)
         }
 
         binding.fabAddPlan.setOnClickListener {
