@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.auth.AppAuth
+import ru.faserkraft.client.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.EmployeeDto
@@ -319,6 +320,7 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
+    //---- Изменение исполнителя этапа ----
     suspend fun changeStepPerformer(
         step: StepDto,
         newEmployeeId: Int,
@@ -346,6 +348,37 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
+    suspend fun addStepToDailyPlan(
+        planDate: String,
+        employeeId: Int,
+        stepId: Int,
+        plannedQuantity: Int,
+    ): Result<Unit> {
+        updateUiState { it.copy(isActionInProgress = true) }
+        return try {
+            val body = DailyPlanStepCreateDto(
+                planDate = planDate,
+                employeeId = employeeId,
+                stepId = stepId,
+                plannedQuantity = plannedQuantity,
+            )
+
+            val dayPlan = repository.addStepToDailyPlan(body)
+            _dayPlans.postValue(dayPlan)
+
+            Result.success(Unit)
+        } catch (e: AppError) {
+            val msg = appErrorToMessage(e)
+            _errorState.emit(msg)
+            Result.failure(e)
+        } catch (e: Exception) {
+            val msg = "Неизвестная ошибка"
+            _errorState.emit(msg)
+            Result.failure(e)
+        } finally {
+            updateUiState { it.copy(isActionInProgress = false) }
+        }
+    }
 
     // ---- Работа с QR ----
     suspend fun decodeQrCode(jsonString: String) {
