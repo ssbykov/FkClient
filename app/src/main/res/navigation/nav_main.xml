@@ -61,7 +61,11 @@
         android:id="@+id/dayPlanFragment"
         android:name="ru.faserkraft.client.activity.DayPlanFragment"
         android:label="fragment_day_plan"
-        tools:layout="@layout/fragment_day_plan" />
+        tools:layout="@layout/fragment_day_plan" >
+        <action
+            android:id="@+id/action_dayPlanFragment_to_addDayPlanFragment"
+            app:destination="@id/addDayPlanFragment" />
+    </fragment>
     <fragment
         android:id="@+id/editProductFragment"
         android:name="ru.faserkraft.client.activity.EditProductFragment"
@@ -80,5 +84,10 @@
             android:name="step"
             app:argType="ru.faserkraft.client.dto.StepDto" />
     </fragment>
+    <fragment
+        android:id="@+id/addDayPlanFragment"
+        android:name="ru.faserkraft.client.activity.AddDayPlanFragment"
+        android:label="fragment_add_day_plan"
+        tools:layout="@layout/fragment_add_day_plan" />
 
 </navigation>
