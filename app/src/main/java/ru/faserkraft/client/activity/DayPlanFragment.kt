@@ -111,10 +111,17 @@ class DayPlanFragment : Fragment() {
 
         viewModel.dayPlans.observe(viewLifecycleOwner) { plans ->
             plans ?: return@observe
+
             val uiItems = mutableListOf<EmployeePlanUiItem>()
+
             plans.forEach { plan ->
+
+                val steps = plan.steps
+                if (steps.isEmpty()) return@forEach
+
                 uiItems += EmployeePlanUiItem.Header(plan.employee.name)
-                plan.steps.forEach { step ->
+
+                steps.forEach { step ->
                     val employeePlan = EmployeePlanDto(
                         id = step.id,
                         employee = plan.employee,
@@ -126,8 +133,10 @@ class DayPlanFragment : Fragment() {
                     uiItems += EmployeePlanUiItem.Step(employeePlan)
                 }
             }
+
             adapter.submitList(uiItems)
         }
+
 
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             binding.swipeRefresh.isRefreshing = state.isLoading
