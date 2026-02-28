@@ -2,6 +2,7 @@ package ru.faserkraft.client.api
 
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -39,6 +40,12 @@ interface Api {
     suspend fun addStepToDailyPlan(
         @Body body: DailyPlanStepCreateDto
     ): Response<List<DayPlanDto>>
+
+    @DELETE(BASE_URL + "daily-plans/steps/{id}")
+    suspend fun removeStepFromDailyPlan(
+        @Path("id") dailyPlanStepId: Int
+    ): Response<List<DayPlanDto>>
+
 
     @POST(BASE_URL + "products/")
     suspend fun postProduct(

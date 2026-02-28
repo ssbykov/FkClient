@@ -59,4 +59,8 @@ class ApiRepositoryImpl @Inject constructor(
         body: DailyPlanStepCreateDto
     ): List<DayPlanDto>? = callApi { api.addStepToDailyPlan(body) }
 
+    override suspend fun removeStepFromDailyPlan(
+        dailyPlanStepId: Int
+    ): List<DayPlanDto>? = callApi { api.removeStepFromDailyPlan(dailyPlanStepId) }
+
 }

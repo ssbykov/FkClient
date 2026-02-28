@@ -23,11 +23,17 @@ interface ApiRepository {
         productId: Long,
         status: ProductStatus,
     ): ProductDto?
+
     suspend fun changeStepPerformer(
         stepId: Int,
         newEmployeeId: Int,
     ): ProductDto?
+
     suspend fun addStepToDailyPlan(
         body: DailyPlanStepCreateDto
+    ): List<DayPlanDto>?
+
+    suspend fun removeStepFromDailyPlan(
+        dailyPlanStepId: Int
     ): List<DayPlanDto>?
 }

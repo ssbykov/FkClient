@@ -348,6 +348,7 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
+    //---- Добавление этапа в план ----
     suspend fun addStepToDailyPlan(
         planDate: String,
         employeeId: Int,
@@ -379,6 +380,30 @@ class ScannerViewModel @Inject constructor(
             updateUiState { it.copy(isActionInProgress = false) }
         }
     }
+
+    //---- Удаление этапа из плана ----
+    suspend fun removeStepFromDailyPlan(
+        dailyPlanStepId: Int,
+    ): Result<Unit> {
+        updateUiState { it.copy(isActionInProgress = true) }
+        return try {
+            val dayPlan = repository.removeStepFromDailyPlan(dailyPlanStepId)
+            _dayPlans.postValue(dayPlan)
+
+            Result.success(Unit)
+        } catch (e: AppError) {
+            val msg = appErrorToMessage(e)
+            _errorState.emit(msg)
+            Result.failure(e)
+        } catch (e: Exception) {
+            val msg = "Неизвестная ошибка"
+            _errorState.emit(msg)
+            Result.failure(e)
+        } finally {
+            updateUiState { it.copy(isActionInProgress = false) }
+        }
+    }
+
 
     // ---- Работа с QR ----
     suspend fun decodeQrCode(jsonString: String) {
