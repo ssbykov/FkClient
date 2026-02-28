@@ -1,5 +1,6 @@
 package ru.faserkraft.client.activity
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.os.Build
 import android.os.Bundle
@@ -7,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -16,6 +18,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.datepicker.MaterialDatePicker
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.EmployeePlanUiItem
@@ -24,16 +27,36 @@ import ru.faserkraft.client.databinding.FragmentDayPlanBinding
 import ru.faserkraft.client.dto.EmployeePlanDto
 import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.viewmodel.ScannerViewModel
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class DayPlanFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
-
     private lateinit var binding: FragmentDayPlanBinding
+    private var canEdit: Boolean = false
 
-    private var canSwipe: Boolean = false
+    @SuppressLint("ConstantLocale")
+    companion object {
+        private val apiFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        private val uiFormat  = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+
+        private val apiPattern = Regex("""\d{4}-\d{2}-\d{2}""")   // yyyy-MM-dd
+        private val uiPattern  = Regex("""\d{2}\.\d{2}\.\d{4}""") // dd.MM.yyyy
+
+        fun convertDate(dateStr: String): String {
+            return when {
+                apiPattern.matches(dateStr) -> {
+                    uiFormat.format(apiFormat.parse(dateStr)!!)
+                }
+                uiPattern.matches(dateStr) -> {
+                    apiFormat.format(uiFormat.parse(dateStr)!!)
+                }
+                else -> dateStr
+            }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -41,7 +64,6 @@ class DayPlanFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentDayPlanBinding.inflate(inflater, container, false)
-        getPlansToday()
         return binding.root
     }
 
@@ -49,13 +71,34 @@ class DayPlanFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = PlansAdapter()
+        binding.etDate.setOnClickListener {
+            it.clearFocus()
+            showDatePicker()
+        }
+
+        val adapter = PlansAdapter(
+            onStepClick = { employeePlan ->
+                if (!canEdit) return@PlansAdapter
+
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewModel.setEmployees()
+                    viewModel.setProcesses()
+
+                    val bundle = bundleOf("plan" to employeePlan)
+                    findNavController().navigate(
+                        R.id.action_dayPlanFragment_to_addDayPlanFragment,
+                        bundle
+                    )
+                }
+            }
+        )
+
         binding.rvPlans.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPlans.adapter = adapter
 
         val swipeCallback = object : ItemTouchHelper.SimpleCallback(
             0,
-            ItemTouchHelper.END   // свайп только вправо
+            ItemTouchHelper.END
         ) {
             override fun onMove(
                 recyclerView: RecyclerView,
@@ -67,22 +110,18 @@ class DayPlanFragment : Fragment() {
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder
             ): Int {
-                if (!canSwipe) return 0
+                if (!canEdit) return 0
 
                 val position = viewHolder.bindingAdapterPosition
                 val item = adapter.currentList.getOrNull(position)
-                // Запрещаем свайпать заголовки
-                return if (item is EmployeePlanUiItem.Header) 0 else super.getSwipeDirs(
-                    recyclerView,
-                    viewHolder
-                )
+                return if (item is EmployeePlanUiItem.Header) 0
+                else super.getSwipeDirs(recyclerView, viewHolder)
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.bindingAdapterPosition
                 val item = adapter.currentList.getOrNull(position)
 
-                // Сразу откатываем визуальный свайп
                 adapter.notifyItemChanged(position)
 
                 if (item !is EmployeePlanUiItem.Step) return
@@ -103,7 +142,6 @@ class DayPlanFragment : Fragment() {
                         dialog.dismiss()
                     }
                     .setNegativeButton("Отмена") { dialog, _ ->
-                        // Ничего не делаем, элемент уже восстановлен notifyItemChanged
                         dialog.dismiss()
                     }
                     .show()
@@ -114,11 +152,14 @@ class DayPlanFragment : Fragment() {
 
         viewModel.dayPlans.observe(viewLifecycleOwner) { plans ->
             plans ?: return@observe
+            val firstPlan = plans.firstOrNull() ?: return@observe
+
+            val planDate = convertDate(firstPlan.date)
+            binding.etDate.setText(planDate)
 
             val uiItems = mutableListOf<EmployeePlanUiItem>()
 
             plans.forEach { plan ->
-
                 val steps = plan.steps
                 if (steps.isEmpty()) return@forEach
 
@@ -140,7 +181,6 @@ class DayPlanFragment : Fragment() {
             adapter.submitList(uiItems)
         }
 
-
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             binding.swipeRefresh.isRefreshing = state.isLoading
         }
@@ -160,30 +200,47 @@ class DayPlanFragment : Fragment() {
         }
 
         binding.swipeRefresh.setOnRefreshListener {
-            getPlansToday()
+            val planDate = convertDate(binding.etDate.text.toString())
+            viewModel.getDayPlans(planDate)
         }
 
         viewModel.userData.observe(viewLifecycleOwner) { user ->
             binding.fabAddPlan.visibility =
                 if (user?.role == UserRole.MASTER) View.VISIBLE else View.GONE
 
-            canSwipe = (user?.role == UserRole.MASTER)
+            canEdit = (user?.role == UserRole.MASTER)
         }
 
         binding.fabAddPlan.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.setEmployees()
                 viewModel.setProcesses()
-                findNavController().navigate(R.id.action_dayPlanFragment_to_addDayPlanFragment)
+                val action =
+                    DayPlanFragmentDirections
+                        .actionDayPlanFragmentToAddDayPlanFragment()
+                findNavController().navigate(action)
             }
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun getPlansToday() {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val today = LocalDate.now().format(formatter)
-        viewModel.getDayPlans(today)
+    private fun showDatePicker() {
+        val builder = MaterialDatePicker.Builder.datePicker()
+            .setTitleText("Выбор даты")
+
+        val picker = builder.build()
+        picker.addOnPositiveButtonClickListener { utcMillis ->
+            val (datePlan, etDatePlan) = formatPlanDate(utcMillis)
+            binding.etDate.setText(etDatePlan)
+            viewModel.getDayPlans(datePlan)
+        }
+
+        picker.show(parentFragmentManager, "day_plan_date_picker")
     }
 
+    private fun formatPlanDate(timeMillis: Long): Pair<String, String> {
+        val date = Date(timeMillis)
+        val apiDate = apiFormat.format(date)
+        val uiDate = uiFormat.format(date)
+        return apiDate to uiDate
+    }
 }
