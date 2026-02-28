@@ -26,6 +26,7 @@ retrofit = "3.0.0"
 okhttp = "5.3.2"
 zxing = "4.3.0"
 mapstruct = "1.6.3"
+swiperefreshlayout = "1.2.0"
 
 [libraries]
 # AndroidX Core
@@ -66,6 +67,9 @@ mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.re
 
 # QR Code
 zxing = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxing" }
+
+# swiper
+swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
