@@ -61,7 +61,7 @@
         android:id="@+id/dayPlanFragment"
         android:name="ru.faserkraft.client.activity.DayPlanFragment"
         android:label="fragment_day_plan"
-        tools:layout="@layout/fragment_day_plan" >
+        tools:layout="@layout/fragment_day_plan">
         <action
             android:id="@+id/action_dayPlanFragment_to_addDayPlanFragment"
             app:destination="@id/addDayPlanFragment" />
@@ -88,6 +88,13 @@
         android:id="@+id/addDayPlanFragment"
         android:name="ru.faserkraft.client.activity.AddDayPlanFragment"
         android:label="fragment_add_day_plan"
-        tools:layout="@layout/fragment_add_day_plan" />
+        tools:layout="@layout/fragment_add_day_plan">
+
+        <argument
+            android:name="plan"
+            android:defaultValue="@null"
+            app:argType="ru.faserkraft.client.dto.EmployeePlanDto"
+            app:nullable="true" />
+    </fragment>
 
 </navigation>
