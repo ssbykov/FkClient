@@ -1,5 +1,7 @@
 package ru.faserkraft.client.dto
 
+import java.io.Serializable
+
 
 data class EmployeePlanDto(
     val id: Int,
@@ -8,5 +10,5 @@ data class EmployeePlanDto(
     val workProcess: String,
     val plannedQuantity: Int,
     val actualQuantity: Int
-)
+): Serializable
 
