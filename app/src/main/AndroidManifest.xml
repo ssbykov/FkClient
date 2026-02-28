@@ -22,6 +22,7 @@
         android:theme="@style/Theme.FkClient">
         <activity
             android:name=".activity.AppActivity"
+            android:windowSoftInputMode="adjustPan"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
