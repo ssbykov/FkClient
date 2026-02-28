@@ -4,4 +4,5 @@ data class ProcessDto(
     val id: Int,
     val name: String,
     val description: String,
-): ItemDto()
+    val steps: List<StepDefinitionDto>,
+) : ItemDto()
