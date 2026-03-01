@@ -1,6 +1,5 @@
 package ru.faserkraft.client.activity
 
-import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.os.Build
 import android.os.Bundle
@@ -26,10 +25,11 @@ import ru.faserkraft.client.adapter.PlansAdapter
 import ru.faserkraft.client.databinding.FragmentDayPlanBinding
 import ru.faserkraft.client.dto.EmployeePlanDto
 import ru.faserkraft.client.model.UserRole
+import ru.faserkraft.client.utils.apiPattern
+import ru.faserkraft.client.utils.convertDate
+import ru.faserkraft.client.utils.formatPlanDate
+import ru.faserkraft.client.utils.isPlanDateEditable
 import ru.faserkraft.client.viewmodel.ScannerViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class DayPlanFragment : Fragment() {
 
@@ -37,35 +37,7 @@ class DayPlanFragment : Fragment() {
     private lateinit var binding: FragmentDayPlanBinding
     private var currentUserRole: UserRole? = null
     private var canEdit: Boolean = false
-
-    @SuppressLint("ConstantLocale")
-    companion object {
-        private val apiFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        private val uiFormat  = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-
-        private val apiPattern = Regex("""\d{4}-\d{2}-\d{2}""")   // yyyy-MM-dd
-        private val uiPattern  = Regex("""\d{2}\.\d{2}\.\d{4}""") // dd.MM.yyyy
-
-        fun convertDate(dateStr: String): String {
-            return when {
-                apiPattern.matches(dateStr) -> {
-                    uiFormat.format(apiFormat.parse(dateStr)!!)
-                }
-                uiPattern.matches(dateStr) -> {
-                    apiFormat.format(uiFormat.parse(dateStr)!!)
-                }
-                else -> dateStr
-            }
-        }
-
-        fun isPlanDateEditable(planDateApi: String): Boolean {
-            val planDate = apiFormat.parse(planDateApi) ?: return false
-            val today = apiFormat.parse(apiFormat.format(Date()))!!
-            // true, если дата плана сегодня или в будущем
-            return !planDate.before(today)
-        }
-
-    }
+    private var datePicker: MaterialDatePicker<Long>? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -168,12 +140,12 @@ class DayPlanFragment : Fragment() {
                 return@observe
             }
 
-            val firstPlan = plans.first()
+            val planDate = plans.first().date
 
-            val planDateUi = convertDate(firstPlan.date)
+            val planDateUi = convertDate(planDate)
             binding.etDate.setText(planDateUi)
 
-            updateCanEditForCurrentState(firstPlan.date)
+            updateCanEditForCurrentState(planDate)
 
             val uiItems = mutableListOf<EmployeePlanUiItem>()
 
@@ -186,6 +158,7 @@ class DayPlanFragment : Fragment() {
                 steps.forEach { step ->
                     val employeePlan = EmployeePlanDto(
                         id = step.id,
+                        date = planDate,
                         employee = plan.employee,
                         stepDefinition = step.stepDefinition,
                         workProcess = step.workProcess,
@@ -233,32 +206,40 @@ class DayPlanFragment : Fragment() {
                 viewModel.setProcesses()
                 val action =
                     DayPlanFragmentDirections
-                        .actionDayPlanFragmentToAddDayPlanFragment()
+                        .actionDayPlanFragmentToAddDayPlanFragment(
+                            plan = null,
+                            planDate = binding.etDate.text?.toString().orEmpty()
+                        )
                 findNavController().navigate(action)
             }
         }
     }
 
     private fun showDatePicker() {
+        // уже есть и показан – выходим
+        datePicker?.let { picker ->
+            if (picker.isAdded) return
+        }
+
         val builder = MaterialDatePicker.Builder.datePicker()
             .setTitleText("Выбор даты")
 
         val picker = builder.build()
+        datePicker = picker
+
         picker.addOnPositiveButtonClickListener { utcMillis ->
             val (datePlan, etDatePlan) = formatPlanDate(utcMillis)
             binding.etDate.setText(etDatePlan)
             viewModel.getDayPlans(datePlan)
         }
 
+        picker.addOnDismissListener {
+            datePicker = null
+        }
+
         picker.show(parentFragmentManager, "day_plan_date_picker")
     }
 
-    private fun formatPlanDate(timeMillis: Long): Pair<String, String> {
-        val date = Date(timeMillis)
-        val apiDate = apiFormat.format(date)
-        val uiDate = uiFormat.format(date)
-        return apiDate to uiDate
-    }
 
     private fun updateCanEditForCurrentState(planDateApi: String? = null) {
         val isMaster = currentUserRole == UserRole.MASTER
