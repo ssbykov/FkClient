@@ -30,7 +30,6 @@ import ru.faserkraft.client.utils.qrCodeDecode
 import java.io.IOException
 import javax.inject.Inject
 
-// UI‑состояние для крутилок/ошибок
 data class ScannerUiState(
     val isLoading: Boolean = false,
     val isActionInProgress: Boolean = false,
@@ -42,15 +41,15 @@ class ScannerViewModel @Inject constructor(
     private val appAuth: AppAuth
 ) : ViewModel() {
 
-    // ---- UI state ----
+    // ---------- UI state ----------
     private val _uiState = MutableLiveData(ScannerUiState())
     val uiState: LiveData<ScannerUiState> = _uiState
 
     private fun updateUiState(reducer: (ScannerUiState) -> ScannerUiState) {
-        _uiState.value = reducer(_uiState.value ?: ScannerUiState())
+        _uiState.postValue(reducer(_uiState.value ?: ScannerUiState()))
     }
 
-    // ---- Данные ----
+    // ---------- Data state ----------
     private val _productState = MutableLiveData<ProductDto?>()
     val productState: LiveData<ProductDto?> = _productState
 
@@ -85,12 +84,11 @@ class ScannerViewModel @Inject constructor(
                 else -> product.steps.minByOrNull { it.stepDefinition.order } ?: emptyStep
             }
         }
-
         addSource(productState) { recalc() }
         addSource(selectedStep) { recalc() }
     }
 
-    // ---- Навигационные события ----
+    // ---------- Navigation events ----------
     sealed class UiEvent {
         object NavigateToRegistration : UiEvent()
         object NavigateToProduct : UiEvent()
@@ -100,10 +98,11 @@ class ScannerViewModel @Inject constructor(
     private val _events = MutableSharedFlow<UiEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<UiEvent> = _events
 
-    // ---- Ошибки (для диалогов/snackbar) ----
+    // ---------- Error events (for dialogs/snackbar) ----------
     private val _errorState = MutableSharedFlow<String>()
     val errorState: SharedFlow<String> = _errorState
 
+    // ---------- QR handling ----------
     private var isHandled = false
     fun resetIsHandled() {
         isHandled = false
@@ -113,27 +112,47 @@ class ScannerViewModel @Inject constructor(
         loadRegistrationData()
     }
 
-    // ---- План на день ----
-    fun getDayPlans(date: String) {
-        viewModelScope.launch {
-            updateUiState { it.copy(isLoading = true) }
-            try {
-                val dayPlans = repository.getDayPlans(date)
-                _dayPlans.value = dayPlans
-            } catch (e: AppError) {
-                val msg = appErrorToMessage(e)
-                _errorState.emit(msg)
-                _dayPlans.value = emptyList()
-            } catch (e: Exception) {
-                val msg = "Неизвестная ошибка"
-                _errorState.emit(msg)
-            } finally {
-                updateUiState { it.copy(isLoading = false) }
-            }
+    // ---------- Generic wrappers for loading/action states ----------
+    private suspend fun <T> withLoading(block: suspend () -> T): T? {
+        updateUiState { it.copy(isLoading = true) }
+        return try {
+            block()
+        } catch (e: AppError) {
+            _errorState.emit(appErrorToMessage(e))
+            null
+        } catch (e: Exception) {
+            _errorState.emit(UNKNOWN_ERROR)
+            null
+        } finally {
+            updateUiState { it.copy(isLoading = false) }
         }
     }
 
-    // ---- Продукт ----
+    private suspend fun <T> withAction(block: suspend () -> T): T? {
+        updateUiState { it.copy(isActionInProgress = true) }
+        return try {
+            block()
+        } catch (e: AppError) {
+            _errorState.emit(appErrorToMessage(e))
+            null
+        } catch (e: Exception) {
+            _errorState.emit(UNKNOWN_ERROR)
+            null
+        } finally {
+            updateUiState { it.copy(isActionInProgress = false) }
+        }
+    }
+
+    // ---------- Day plans ----------
+    fun getDayPlans(date: String) {
+        viewModelScope.launch {
+            withLoading {
+                repository.getDayPlans(date)
+            }?.let { _dayPlans.postValue(it) }
+        }
+    }
+
+    // ---------- Product ----------
     suspend fun getProduct(serialNumber: String) {
         updateUiState { it.copy(isLoading = true) }
         try {
@@ -143,16 +162,14 @@ class ScannerViewModel @Inject constructor(
             } else {
                 setProduct(product)
             }
-        } catch (e: AppError) {
-            if (e is AppError.ApiError && e.status == 404) {
+        } catch (e: AppError.ApiError) {
+            if (e.status == 404) {
                 newProduct(serialNumber)
             } else {
-                val msg = appErrorToMessage(e)
-                _errorState.emit(msg)
+                _errorState.emit(appErrorToMessage(e))
             }
         } catch (e: Exception) {
-            val msg = "Неизвестная ошибка"
-            _errorState.emit(msg)
+            _errorState.emit(UNKNOWN_ERROR)
         } finally {
             updateUiState { it.copy(isLoading = false) }
         }
@@ -165,8 +182,7 @@ class ScannerViewModel @Inject constructor(
             .firstOrNull { it.status != "done" }
             ?: product.steps.lastOrNull()
             ?: run {
-                val msg = "У товара нет шагов"
-                _errorState.emit(msg)
+                _errorState.emit(PRODUCT_NO_STEPS)
                 return
             }
 
@@ -175,110 +191,39 @@ class ScannerViewModel @Inject constructor(
     }
 
     suspend fun setProcesses() {
-        updateUiState { it.copy(isLoading = true) }
-        try {
-            val processes = repository.getProcesses()
-            _processes.postValue(processes)
-        } catch (e: AppError) {
-            val msg = appErrorToMessage(e)
-            _errorState.emit(msg)
-        } catch (e: Exception) {
-            val msg = "Неизвестная ошибка"
-            _errorState.emit(msg)
-        } finally {
-            updateUiState { it.copy(isLoading = false) }
-        }
+        withLoading {
+            repository.getProcesses()
+        }?.let { _processes.postValue(it) }
     }
 
     suspend fun setEmployees() {
-        updateUiState { it.copy(isLoading = true) }
-        try {
-            val employees = repository.getEmployees()
-            _employees.postValue(employees)
-        } catch (e: AppError) {
-            val msg = appErrorToMessage(e)
-            _errorState.emit(msg)
-        } catch (e: Exception) {
-            val msg = "Неизвестная ошибка"
-            _errorState.emit(msg)
-        } finally {
-            updateUiState { it.copy(isLoading = false) }
-        }
+        withLoading {
+            repository.getEmployees()
+        }?.let { _employees.postValue(it) }
     }
 
     suspend fun newProduct(serialNumber: String) {
-        val newProductDto = ProductCreateDto(serialNumber = serialNumber)
-        _newProduct.postValue(newProductDto)
-
+        _newProduct.postValue(ProductCreateDto(serialNumber = serialNumber))
         setProcesses()
         _events.emit(UiEvent.NavigateToNewProduct)
     }
 
-    suspend fun createProduct(newProduct: ProductCreateDto): Result<Unit> {
-        updateUiState { it.copy(isActionInProgress = true) }
-        return try {
-            repository.postProduct(newProduct)?.let { product ->
-                setProduct(product)
-            }
-            Result.success(Unit)
-        } catch (e: AppError) {
-            val msg = appErrorToMessage(e)
-            _errorState.emit(msg)
-            Result.failure(e)
-        } catch (e: Exception) {
-            val msg = "Неизвестная ошибка"
-            _errorState.emit(msg)
-            Result.failure(e)
-        } finally {
-            updateUiState { it.copy(isActionInProgress = false) }
+    suspend fun createProduct(newProduct: ProductCreateDto): Result<Unit> =
+        withActionAndResult {
+            repository.postProduct(newProduct)?.let { setProduct(it) }
         }
-    }
 
-    suspend fun changeProductProcess(productId: Long, newProcessId: Int): Result<Unit> {
-        updateUiState { it.copy(isActionInProgress = true) }
-        return try {
-            repository.changeProductProcess(productId, newProcessId)?.let { product ->
-                setProduct(product)
-            }
-            Result.success(Unit)
-        } catch (e: AppError) {
-            val msg = appErrorToMessage(e)
-            _errorState.emit(msg)
-            Result.failure(e)
-        } catch (e: Exception) {
-            val msg = "Неизвестная ошибка"
-            _errorState.emit(msg)
-            Result.failure(e)
-        } finally {
-            updateUiState { it.copy(isActionInProgress = false) }
+    suspend fun changeProductProcess(productId: Long, newProcessId: Int): Result<Unit> =
+        withActionAndResult {
+            repository.changeProductProcess(productId, newProcessId)?.let { setProduct(it) }
         }
-    }
 
-    suspend fun setProductStatus(
-        productId: Long,
-        status: ProductStatus,
-    ): Result<Unit> {
-        updateUiState { it.copy(isActionInProgress = true) }
-        return try {
-            repository.changeProductStatus(productId, status)?.let { product ->
-                setProduct(product)
-            }
-            Result.success(Unit)
-        } catch (e: AppError) {
-            val msg = appErrorToMessage(e)
-            _errorState.emit(msg)
-            Result.failure(e)
-        } catch (e: Exception) {
-            val msg = "Неизвестная ошибка"
-            _errorState.emit(msg)
-            Result.failure(e)
-        } finally {
-            updateUiState { it.copy(isActionInProgress = false) }
+    suspend fun setProductStatus(productId: Long, status: ProductStatus): Result<Unit> =
+        withActionAndResult {
+            repository.changeProductStatus(productId, status)?.let { setProduct(it) }
         }
-    }
 
-
-    // ---- Регистрация / пользователь ----
+    // ---------- Registration / User ----------
     fun onRegistrationReady(model: UserData) {
         _userData.value = model
         _events.tryEmit(UiEvent.NavigateToRegistration)
@@ -293,105 +238,51 @@ class ScannerViewModel @Inject constructor(
         loadRegistrationData()
     }
 
-    // ---- Закрытие этапа ----
+    // ---------- Step operations ----------
     suspend fun closeStep(step: StepDto) {
-        val stepId = step.id
-        if (stepId == 0) return
-
-        updateUiState { it.copy(isActionInProgress = true) }
-        try {
-            val product = repository.postStep(stepId)
-            if (product != null) {
+        if (step.id == 0) return
+        withAction {
+            repository.postStep(step.id)?.let { product ->
                 _productState.postValue(product)
-
-                val lastStep = product.steps
+                val updatedStep = product.steps
                     .find { it.stepDefinition.order == step.stepDefinition.order }
                     ?: emptyStep
-
-                _selectedStep.postValue(lastStep)
+                _selectedStep.postValue(updatedStep)
             }
-        } catch (e: AppError) {
-            val msg = appErrorToMessage(e)
-            _errorState.emit(msg)
-        } catch (e: Exception) {
-            val msg = "Неизвестная ошибка"
-            _errorState.emit(msg)
-        } finally {
-            updateUiState { it.copy(isActionInProgress = false) }
         }
     }
 
-    //---- Изменение исполнителя этапа ----
-    suspend fun changeStepPerformer(
-        step: StepDto,
-        newEmployeeId: Int,
-    ): Result<Unit> {
-        val stepId = step.id
-
-        updateUiState { it.copy(isActionInProgress = true) }
-        return try {
-            val product = repository.changeStepPerformer(stepId, newEmployeeId)
-            if (product != null) {
-                _productState.postValue(product)
-
-            }
-            Result.success(Unit)
-        } catch (e: AppError) {
-            val msg = appErrorToMessage(e)
-            _errorState.emit(msg)
-            Result.failure(e)
-        } catch (e: Exception) {
-            val msg = "Неизвестная ошибка"
-            _errorState.emit(msg)
-            Result.failure(e)
-        } finally {
-            updateUiState { it.copy(isActionInProgress = false) }
+    suspend fun changeStepPerformer(step: StepDto, newEmployeeId: Int): Result<Unit> =
+        withActionAndResult {
+            repository.changeStepPerformer(step.id, newEmployeeId)
+                ?.let { _productState.postValue(it) }
         }
-    }
 
-    //---- Добавление этапа в план ----
+    // ---------- Daily plan steps ----------
     suspend fun addStepToDailyPlan(
         planDate: String,
         employeeId: Int,
         stepId: Int,
         plannedQuantity: Int,
-    ): Result<Unit> {
-        updateUiState { it.copy(isActionInProgress = true) }
-        return try {
+    ): Result<Unit> =
+        withActionAndResult {
             val body = DailyPlanStepCreateDto(
                 planDate = planDate,
                 employeeId = employeeId,
                 stepId = stepId,
                 plannedQuantity = plannedQuantity,
             )
-
-            val dayPlan = repository.addStepToDailyPlan(body)
-            _dayPlans.postValue(dayPlan)
-
-            Result.success(Unit)
-        } catch (e: AppError) {
-            val msg = appErrorToMessage(e)
-            _errorState.emit(msg)
-            Result.failure(e)
-        } catch (e: Exception) {
-            val msg = "Неизвестная ошибка"
-            _errorState.emit(msg)
-            Result.failure(e)
-        } finally {
-            updateUiState { it.copy(isActionInProgress = false) }
+            repository.addStepToDailyPlan(body)?.let { _dayPlans.postValue(it) }
         }
-    }
 
-    //---- Изменение этапа в плане ----
     suspend fun updateStepInDailyPlan(
         planDate: String,
         employeeId: Int,
         stepId: Int,
         stepDefinitionId: Int,
         plannedQuantity: Int,
-    ): Result<Unit> {
-        updateUiState { it.copy(isActionInProgress = true) }
-        return try {
+    ): Result<Unit> =
+        withActionAndResult {
             val body = DailyPlanStepUpdateDto(
                 stepId = stepId,
                 planDate = planDate,
@@ -399,135 +290,107 @@ class ScannerViewModel @Inject constructor(
                 employeeId = employeeId,
                 plannedQuantity = plannedQuantity,
             )
-
-            val dayPlan = repository.updateStepInDailyPlan(body)
-            _dayPlans.postValue(dayPlan)
-
-            Result.success(Unit)
-        } catch (e: AppError) {
-            val msg = appErrorToMessage(e)
-            _errorState.emit(msg)
-            Result.failure(e)
-        } catch (e: Exception) {
-            val msg = "Неизвестная ошибка"
-            _errorState.emit(msg)
-            Result.failure(e)
-        } finally {
-            updateUiState { it.copy(isActionInProgress = false) }
+            repository.updateStepInDailyPlan(body)?.let { _dayPlans.postValue(it) }
         }
-    }
 
-
-    //---- Удаление этапа из плана ----
-    suspend fun removeStepFromDailyPlan(
-        dailyPlanStepId: Int,
-    ): Result<Unit> {
-        updateUiState { it.copy(isActionInProgress = true) }
-        return try {
-            val dayPlan = repository.removeStepFromDailyPlan(dailyPlanStepId)
-            _dayPlans.postValue(dayPlan)
-
-            Result.success(Unit)
-        } catch (e: AppError) {
-            val msg = appErrorToMessage(e)
-            _errorState.emit(msg)
-            Result.failure(e)
-        } catch (e: Exception) {
-            val msg = "Неизвестная ошибка"
-            _errorState.emit(msg)
-            Result.failure(e)
-        } finally {
-            updateUiState { it.copy(isActionInProgress = false) }
+    suspend fun removeStepFromDailyPlan(dailyPlanStepId: Int): Result<Unit> =
+        withActionAndResult {
+            repository.removeStepFromDailyPlan(dailyPlanStepId)?.let { _dayPlans.postValue(it) }
         }
-    }
 
-
-    // ---- Работа с QR ----
+    // ---------- QR decoding ----------
     suspend fun decodeQrCode(jsonString: String) {
         if (isHandled) return
         isHandled = true
 
-        if (isUfCode(jsonString)) {
-            updateUiState { it.copy(isLoading = true) }
-            runCatching {
-                getProduct(jsonString)
-            }.onFailure { e ->
-                val message = throwableToMessage(e)
-                val msg = "Ошибка получения товара: $message"
-                _errorState.emit(msg)
-            }.also {
-                updateUiState { it.copy(isLoading = false) }
-            }
-            return
+        when {
+            isUfCode(jsonString) -> handleProductQr(jsonString)
+            else -> handleDeviceRegistrationQr(jsonString)
         }
-
-        // регистрация устройства
-        updateUiState { it.copy(isLoading = true) }
-        qrCodeDecode(jsonString)
-            .onSuccess { data ->
-                if (data is DeviceRequestDto) {
-                    if (appAuth.checkRegistration() != null) {
-                        val msg = "Устройство уже зарегистрировано"
-                        _errorState.emit(msg)
-                        return@onSuccess
-                    }
-
-                    try {
-                        val result = repository.postDevice(data)
-
-                        result?.let {
-                            val userData = UserData(
-                                email = result.userEmail,
-                                password = data.password,
-                                name = result.userName,
-                                role = UserRole.fromValue(result.userRole) ?: UserRole.WORKER
-                            )
-                            appAuth.saveUserData(userData)
-                            onRegistrationReady(userData)
-                        } ?: run {
-                            val msg = "Пустой ответ от сервера"
-                            _errorState.emit(msg)
-                        }
-                    } catch (e: IOException) {
-                        val msg = "Проблема с сетью, попробуйте ещё раз"
-                        _errorState.emit(msg)
-                    } catch (e: AppError.ApiError) {
-                        val msg = "Ошибка сервера: ${e.status}"
-                        _errorState.emit(msg)
-                    } catch (e: Exception) {
-                        val msg = "Неизвестная ошибка $e"
-                        _errorState.emit(msg)
-                    }
-                } else {
-                    val msg = "Некорректный QR‑код"
-                    _errorState.emit(msg)
-                }
-            }
-            .onFailure {
-                val msg = "Ошибка разбора QR‑кода"
-                _errorState.emit(msg)
-            }
-        updateUiState { it.copy(isLoading = false) }
     }
 
-    // ---- Маппинг ошибок ----
-    private fun appErrorToMessage(e: AppError): String =
-        when (e) {
-            is AppError.NetworkError -> "Нет соединения с сервером"
-            is AppError.ApiError -> when (e.status) {
-                401 -> "Не авторизован"
-                403 -> "Доступ запрещён"
-                404 -> "${e.message}"
-                else -> "Ошибка сервера: ${e.status}"
+    private suspend fun handleProductQr(serialNumber: String) {
+        withLoading {
+            getProduct(serialNumber)
+        }
+    }
+
+    private suspend fun handleDeviceRegistrationQr(jsonString: String) {
+        withLoading {
+            val decodedResult = qrCodeDecode(jsonString)
+            val decoded = decodedResult.getOrNull() as? DeviceRequestDto ?: run {
+                _errorState.emit(QR_PARSE_ERROR)
+                return@withLoading
             }
 
-            is AppError.DaoError -> "Ошибка локальной базы"
-            is AppError.UnknownError -> "Неизвестная ошибка"
+            if (appAuth.checkRegistration() != null) {
+                _errorState.emit(DEVICE_ALREADY_REGISTERED)
+                return@withLoading
+            }
+
+            val deviceResponse = try {
+                repository.postDevice(decoded)
+            } catch (e: IOException) {
+                _errorState.emit(NETWORK_ERROR)
+                return@withLoading
+            } catch (e: AppError.ApiError) {
+                _errorState.emit("Ошибка сервера: ${e.status}")
+                return@withLoading
+            }
+
+            if (deviceResponse == null) {
+                _errorState.emit(EMPTY_SERVER_RESPONSE)
+                return@withLoading
+            }
+
+            val userData = UserData(
+                email = deviceResponse.userEmail,
+                password = decoded.password,
+                name = deviceResponse.userName,
+                role = UserRole.fromValue(deviceResponse.userRole) ?: UserRole.WORKER
+            )
+            appAuth.saveUserData(userData)
+            onRegistrationReady(userData)
+        }
+    }
+
+    // ---------- Result wrapper for actions that need to return Result<Unit> ----------
+    private suspend fun withActionAndResult(block: suspend () -> Unit): Result<Unit> {
+        updateUiState { it.copy(isActionInProgress = true) }
+        return try {
+            block()
+            Result.success(Unit)
+        } catch (e: AppError) {
+            _errorState.emit(appErrorToMessage(e))
+            Result.failure(e)
+        } catch (e: Exception) {
+            _errorState.emit(UNKNOWN_ERROR)
+            Result.failure(e)
+        } finally {
+            updateUiState { it.copy(isActionInProgress = false) }
+        }
+    }
+
+    // ---------- Error mapping ----------
+    private fun appErrorToMessage(e: AppError): String = when (e) {
+        is AppError.NetworkError -> NETWORK_ERROR
+        is AppError.ApiError -> when (e.status) {
+            401 -> "Не авторизован"
+            403 -> "Доступ запрещён"
+            404 -> e.message ?: "Ресурс не найден"
+            else -> "Ошибка сервера: ${e.status}"
         }
 
-    private fun throwableToMessage(e: Throwable): String =
-        when (e) {
-            is AppError -> appErrorToMessage(e)
-            else -> "Неизвестная ошибка"
-        }
+        is AppError.DaoError -> "Ошибка локальной базы"
+        is AppError.UnknownError -> UNKNOWN_ERROR
+    }
+
+    companion object {
+        private const val UNKNOWN_ERROR = "Неизвестная ошибка"
+        private const val NETWORK_ERROR = "Нет соединения с сервером"
+        private const val QR_PARSE_ERROR = "Ошибка разбора QR‑кода"
+        private const val DEVICE_ALREADY_REGISTERED = "Устройство уже зарегистрировано"
+        private const val EMPTY_SERVER_RESPONSE = "Пустой ответ от сервера"
+        private const val PRODUCT_NO_STEPS = "У товара нет шагов"
+    }
 }
