@@ -11,7 +11,7 @@ import ru.faserkraft.client.databinding.ItemEmployeeHeaderBinding
 import ru.faserkraft.client.databinding.ItemPlanBinding
 import ru.faserkraft.client.dto.EmployeePlanDto
 
-class PlansAdapter :
+class PlansAdapter(private val onStepClick: (EmployeePlanDto) -> Unit) :
     ListAdapter<EmployeePlanUiItem, RecyclerView.ViewHolder>(Diff()) {
 
     companion object {
@@ -25,16 +25,20 @@ class PlansAdapter :
             is EmployeePlanUiItem.Step -> TYPE_STEP
         }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             TYPE_HEADER -> {
                 val binding = ItemEmployeeHeaderBinding.inflate(inflater, parent, false)
                 HeaderVH(binding)
             }
+
             else -> {
                 val binding = ItemPlanBinding.inflate(inflater, parent, false)
-                StepVH(binding)
+                StepVH(onStepClick, binding)
             }
         }
     }
@@ -56,6 +60,7 @@ class PlansAdapter :
     }
 
     class StepVH(
+        private val onStepClick: (EmployeePlanDto) -> Unit,
         private val binding: ItemPlanBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -65,20 +70,32 @@ class PlansAdapter :
             tvStepName.text = plan.stepDefinition.template.name
             tvPlanValue.text = plan.plannedQuantity.toString()
             tvDoneValue.text = plan.actualQuantity.toString()
+
+            binding.root.setOnClickListener {
+                onStepClick(plan)
+            }
         }
     }
 
     class Diff : DiffUtil.ItemCallback<EmployeePlanUiItem>() {
-        override fun areItemsTheSame(oldItem: EmployeePlanUiItem, newItem: EmployeePlanUiItem): Boolean =
+        override fun areItemsTheSame(
+            oldItem: EmployeePlanUiItem,
+            newItem: EmployeePlanUiItem
+        ): Boolean =
             when {
                 oldItem is EmployeePlanUiItem.Header && newItem is EmployeePlanUiItem.Header ->
                     oldItem.employeeName == newItem.employeeName
+
                 oldItem is EmployeePlanUiItem.Step && newItem is EmployeePlanUiItem.Step ->
                     oldItem.plan.id == newItem.plan.id
+
                 else -> false
             }
 
-        override fun areContentsTheSame(oldItem: EmployeePlanUiItem, newItem: EmployeePlanUiItem): Boolean =
+        override fun areContentsTheSame(
+            oldItem: EmployeePlanUiItem,
+            newItem: EmployeePlanUiItem
+        ): Boolean =
             oldItem == newItem
     }
 }
