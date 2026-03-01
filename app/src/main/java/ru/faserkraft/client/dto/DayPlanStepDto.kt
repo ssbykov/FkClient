@@ -29,3 +29,17 @@ data class DailyPlanStepCreateDto(
     @SerializedName("planned_quantity")
     val plannedQuantity: Int,
 )
+
+data class DailyPlanStepUpdateDto(
+    @SerializedName("step_id")
+    val stepId: Int,
+    @SerializedName("plan_date")
+    val planDate: String,
+    @SerializedName("step_definition_id")
+    val stepDefinitionId: Int,
+    @SerializedName("employee_id")
+    val employeeId: Int,
+    @SerializedName("planned_quantity")
+    val plannedQuantity: Int,
+)
+
