@@ -95,6 +95,11 @@
             android:defaultValue="@null"
             app:argType="ru.faserkraft.client.dto.EmployeePlanDto"
             app:nullable="true" />
+        <argument
+            android:name="planDate"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
     </fragment>
 
 </navigation>
