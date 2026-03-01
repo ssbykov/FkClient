@@ -1,6 +1,7 @@
 package ru.faserkraft.client.repository
 
 import ru.faserkraft.client.dto.DailyPlanStepCreateDto
+import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
 import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
@@ -35,5 +36,9 @@ interface ApiRepository {
 
     suspend fun removeStepFromDailyPlan(
         dailyPlanStepId: Int
+    ): List<DayPlanDto>?
+
+    suspend fun updateStepInDailyPlan(
+        body: DailyPlanStepUpdateDto
     ): List<DayPlanDto>?
 }

@@ -8,6 +8,7 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 import ru.faserkraft.client.dto.DailyPlanStepCreateDto
+import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
 import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
@@ -40,6 +41,12 @@ interface Api {
     suspend fun addStepToDailyPlan(
         @Body body: DailyPlanStepCreateDto
     ): Response<List<DayPlanDto>>
+
+    @POST(BASE_URL + "daily-plans/update_step")
+    suspend fun updateStepInDailyPlan(
+        @Body body: DailyPlanStepUpdateDto
+    ): Response<List<DayPlanDto>>
+
 
     @DELETE(BASE_URL + "daily-plans/steps/{id}")
     suspend fun removeStepFromDailyPlan(
