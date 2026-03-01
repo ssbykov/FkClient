@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.dto.DailyPlanStepCreateDto
+import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
 import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.EmployeeDto
@@ -380,6 +381,42 @@ class ScannerViewModel @Inject constructor(
             updateUiState { it.copy(isActionInProgress = false) }
         }
     }
+
+    //---- Изменение этапа в плане ----
+    suspend fun updateStepInDailyPlan(
+        planDate: String,
+        employeeId: Int,
+        stepId: Int,
+        stepDefinitionId: Int,
+        plannedQuantity: Int,
+    ): Result<Unit> {
+        updateUiState { it.copy(isActionInProgress = true) }
+        return try {
+            val body = DailyPlanStepUpdateDto(
+                stepId = stepId,
+                planDate = planDate,
+                stepDefinitionId = stepDefinitionId,
+                employeeId = employeeId,
+                plannedQuantity = plannedQuantity,
+            )
+
+            val dayPlan = repository.updateStepInDailyPlan(body)
+            _dayPlans.postValue(dayPlan)
+
+            Result.success(Unit)
+        } catch (e: AppError) {
+            val msg = appErrorToMessage(e)
+            _errorState.emit(msg)
+            Result.failure(e)
+        } catch (e: Exception) {
+            val msg = "Неизвестная ошибка"
+            _errorState.emit(msg)
+            Result.failure(e)
+        } finally {
+            updateUiState { it.copy(isActionInProgress = false) }
+        }
+    }
+
 
     //---- Удаление этапа из плана ----
     suspend fun removeStepFromDailyPlan(
