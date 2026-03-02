@@ -11,6 +11,8 @@ import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ru.faserkraft.client.databinding.FragmentRegistrationBinding
 import ru.faserkraft.client.viewmodel.ScannerViewModel
+import ru.faserkraft.client.R
+import ru.faserkraft.client.model.UserRole
 
 @AndroidEntryPoint
 class RegistrationFragment : Fragment() {
@@ -55,6 +57,21 @@ class RegistrationFragment : Fragment() {
                 .show()
         }
 
+        viewModel.userData.observe(viewLifecycleOwner) { user ->
+            val userRole = user?.role ?: return@observe
+            if (userRole == UserRole.ADMIN || userRole == UserRole.MASTER) {
+                binding.fabShowQr.visibility = View.VISIBLE
+            } else {
+                binding.fabShowQr.visibility = View.GONE
+            }
+
+        }
+
+        binding.fabShowQr.setOnClickListener {
+            findNavController().navigate(
+                R.id.action_registrationFragment_to_qrGenerationFragment
+            )
+        }
 
     }
 

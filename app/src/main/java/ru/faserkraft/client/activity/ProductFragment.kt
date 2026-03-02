@@ -84,24 +84,13 @@ class ProductFragment : Fragment() {
                 val bgColor = ContextCompat.getColor(ctx, uiStatus.bgColorRes)
                 val textColor = ContextCompat.getColor(ctx, uiStatus.textColorRes)
 
-                // chip: текст + фон + цвет текста
                 chipProductStatus.text = getString(uiStatus.titleRes)
                 chipProductStatus.chipBackgroundColor =
                     ColorStateList.valueOf(bgColor)
                 chipProductStatus.setTextColor(textColor)
 
-                // карточка общей инфы: фон
                 cardProductInfo.setCardBackgroundColor(bgColor)
-                // если хочешь только рамку, а фон оставить белым:
-                // cardProductInfo.setCardBackgroundColor(
-                //     ContextCompat.getColor(ctx, R.color.bg_card)
-                // )
-                // cardProductInfo.strokeColor = bgColor
 
-                // по желанию можно покрасить текст внутри карточки под статус
-                // tvProcess.setTextColor(textColor)
-                // tvProductNumber.setTextColor(textColor)
-                // tvCreated.setTextColor(textColor)
             }
         }
 
