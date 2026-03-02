@@ -27,6 +27,7 @@ okhttp = "5.3.2"
 zxing = "4.3.0"
 mapstruct = "1.6.3"
 swiperefreshlayout = "1.2.0"
+serializationJson = "1.10.0"
 
 [libraries]
 # AndroidX Core
@@ -68,6 +69,10 @@ mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.re
 # QR Code
 zxing = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxing" }
 
+# JSON serialization
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serializationJson" }
+
+
 # swiper
 swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 
@@ -81,4 +86,5 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 google-dagger-hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroid" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidx-navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigation" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 

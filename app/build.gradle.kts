@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.google.dagger.hilt.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.navigation.safeargs)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -69,6 +70,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
     implementation(libs.zxing)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.swiperefreshlayout)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
