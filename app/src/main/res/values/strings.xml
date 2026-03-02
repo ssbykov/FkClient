@@ -45,4 +45,7 @@
     <string name="date">Дата</string>
     <string name="step">Этап</string>
     <string name="quantity">Количество</string>
+    <string name="generate_qr">Сгенерировать QR‑код</string>
+    <string name="qr_code">QR-код</string>
+    <string name="employee_selection">Выбор сотрудника</string>
 </resources>

@@ -24,7 +24,11 @@
         android:id="@+id/registrationFragment"
         android:name="ru.faserkraft.client.activity.RegistrationFragment"
         android:label="fragment_registration"
-        tools:layout="@layout/fragment_registration" />
+        tools:layout="@layout/fragment_registration" >
+        <action
+            android:id="@+id/action_registrationFragment_to_qrGenerationFragment"
+            app:destination="@id/qrGenerationFragment" />
+    </fragment>
     <fragment
         android:id="@+id/productFragment"
         android:name="ru.faserkraft.client.activity.ProductFragment"
@@ -101,5 +105,10 @@
             app:nullable="true"
             android:defaultValue="@null" />
     </fragment>
+    <fragment
+        android:id="@+id/qrGenerationFragment"
+        android:name="ru.faserkraft.client.activity.QrGenerationFragment"
+        android:label="fragment_qr_generation"
+        tools:layout="@layout/fragment_qr_generation" />
 
 </navigation>
