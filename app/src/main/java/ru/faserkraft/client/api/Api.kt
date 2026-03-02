@@ -16,6 +16,7 @@ import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
+import ru.faserkraft.client.dto.QrDataResponseDto
 
 
 const val BASE_URL = "https://product.faserkraft.ru/api/v1/"
@@ -86,4 +87,9 @@ interface Api {
     suspend fun postDevice(
         @Body device: DeviceRequestDto
     ): Response<DeviceResponseDto>
+
+    @POST("users/get-qr-code")
+    suspend fun getQrCode(
+        @Query("employee_id") employeeId: Int
+    ): Response<QrDataResponseDto>
 }

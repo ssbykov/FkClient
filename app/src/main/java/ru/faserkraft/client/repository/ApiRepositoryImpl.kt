@@ -11,6 +11,7 @@ import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.ProductStatus
+import ru.faserkraft.client.dto.QrDataResponseDto
 import ru.faserkraft.client.dto.toBackendValue
 import javax.inject.Inject
 
@@ -32,6 +33,9 @@ class ApiRepositoryImpl @Inject constructor(
 
     override suspend fun postDevice(device: DeviceRequestDto): DeviceResponseDto? =
         callApi { api.postDevice(device) }
+
+    override suspend fun getQrCode(employeeId: Int): QrDataResponseDto? =
+        callApi { api.getQrCode(employeeId) }
 
     override suspend fun postStep(stepId: Int): ProductDto? =
         callApi { api.postStep(stepId) }

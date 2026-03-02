@@ -10,6 +10,7 @@ import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.ProductStatus
+import ru.faserkraft.client.dto.QrDataResponseDto
 
 interface ApiRepository {
     suspend fun getProduct(serialNumber: String): ProductDto?
@@ -17,6 +18,7 @@ interface ApiRepository {
     suspend fun getProcesses(): List<ProcessDto>?
     suspend fun getEmployees(): List<EmployeeDto>?
     suspend fun postDevice(device: DeviceRequestDto): DeviceResponseDto?
+    suspend fun getQrCode(employeeId: Int): QrDataResponseDto?
     suspend fun postStep(stepId: Int): ProductDto?
     suspend fun changeProductProcess(productId: Long, newProcessId: Int): ProductDto?
     suspend fun getDayPlans(date: String): List<DayPlanDto>?

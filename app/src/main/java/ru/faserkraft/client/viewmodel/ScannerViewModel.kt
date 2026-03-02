@@ -1,5 +1,6 @@
 package ru.faserkraft.client.viewmodel
 
+import android.graphics.Bitmap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
@@ -19,12 +20,15 @@ import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.ProductStatus
+import ru.faserkraft.client.dto.QrDataResponseDto
 import ru.faserkraft.client.dto.StepDto
 import ru.faserkraft.client.dto.emptyStep
+import ru.faserkraft.client.dto.toQrContent
 import ru.faserkraft.client.error.AppError
 import ru.faserkraft.client.model.UserData
 import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.repository.ApiRepository
+import ru.faserkraft.client.utils.QrCodeGenerator
 import ru.faserkraft.client.utils.isUfCode
 import ru.faserkraft.client.utils.qrCodeDecode
 import java.io.IOException
@@ -70,6 +74,10 @@ class ScannerViewModel @Inject constructor(
 
     private val _userData = MutableLiveData<UserData?>()
     val userData: LiveData<UserData?> = _userData
+
+    private val _qrBitmap = MutableLiveData<Bitmap?>()
+    val qrBitmap: LiveData<Bitmap?> = _qrBitmap
+
 
     val lastStep: LiveData<StepDto> = MediatorLiveData<StepDto>().apply {
         fun recalc() {
@@ -353,6 +361,25 @@ class ScannerViewModel @Inject constructor(
             onRegistrationReady(userData)
         }
     }
+
+    // ---------- QR generation (server-driven) ----------
+    suspend fun loadAndGenerateQr(employeeId: Int): Result<Unit> =
+        withActionAndResult {
+            // 1. Получаем данные с сервера
+            val response = repository.getQrCode(employeeId)
+            if (response == null) {
+                _errorState.emit(EMPTY_SERVER_RESPONSE)
+                return@withActionAndResult
+            }
+
+            // 2. Сериализуем в JSON, как на сервере
+            val content = response.toQrContent()
+
+            // 3. Генерируем Bitmap QR-кода
+            val bitmap = QrCodeGenerator.generate(content)
+            _qrBitmap.postValue(bitmap)
+        }
+
 
     // ---------- Result wrapper for actions that need to return Result<Unit> ----------
     private suspend fun withActionAndResult(block: suspend () -> Unit): Result<Unit> {
