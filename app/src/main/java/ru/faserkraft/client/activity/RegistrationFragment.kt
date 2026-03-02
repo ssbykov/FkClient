@@ -48,6 +48,7 @@ class RegistrationFragment : Fragment() {
                 .setMessage("Данные будут очищены, продолжить?")
                 .setPositiveButton("Да") { _, _ ->
                     viewModel.resetRegistrationData()
+                    viewModel.clearUiData()
                     viewModel.resetIsHandled()
                     findNavController().navigateUp()
                 }
@@ -58,13 +59,13 @@ class RegistrationFragment : Fragment() {
         }
 
         viewModel.userData.observe(viewLifecycleOwner) { user ->
-            val userRole = user?.role ?: return@observe
-            if (userRole == UserRole.ADMIN || userRole == UserRole.MASTER) {
-                binding.fabShowQr.visibility = View.VISIBLE
-            } else {
-                binding.fabShowQr.visibility = View.GONE
-            }
-
+            val role = user?.role
+            binding.fabShowQr.visibility =
+                if (role == UserRole.ADMIN || role == UserRole.MASTER) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
         }
 
         binding.fabShowQr.setOnClickListener {

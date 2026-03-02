@@ -20,7 +20,6 @@ import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.ProductStatus
-import ru.faserkraft.client.dto.QrDataResponseDto
 import ru.faserkraft.client.dto.StepDto
 import ru.faserkraft.client.dto.emptyStep
 import ru.faserkraft.client.dto.toQrContent
@@ -95,6 +94,18 @@ class ScannerViewModel @Inject constructor(
         addSource(productState) { recalc() }
         addSource(selectedStep) { recalc() }
     }
+
+    fun clearUiData() {
+        _productState.value = null
+        _newProduct.value = ProductCreateDto(serialNumber = "")
+        _processes.value = null
+        _employees.value = null
+        _dayPlans.value = null
+        _selectedStep.value = null
+        _userData.value = null
+        _qrBitmap.value = null
+    }
+
 
     // ---------- Navigation events ----------
     sealed class UiEvent {
