@@ -11,10 +11,8 @@ import androidx.navigation.ui.setupWithNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.AppActivityBinding
+import ru.faserkraft.client.utils.getToday
 import ru.faserkraft.client.viewmodel.ScannerViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @AndroidEntryPoint
 class AppActivity : AppCompatActivity() {
@@ -54,9 +52,7 @@ class AppActivity : AppCompatActivity() {
                 }
 
                 R.id.dayPlanFragment -> {
-                    val apiFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                    val datePlan = apiFormat.format(Date())
-                    viewModel.getDayPlans(datePlan)
+                    viewModel.getDayPlans(getToday())
                     val currentId = navController.currentDestination?.id
                     if (currentId != R.id.dayPlanFragment) {
                         navController.navigate(R.id.dayPlanFragment, null, options)

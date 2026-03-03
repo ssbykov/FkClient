@@ -10,3 +10,8 @@ data class DayPlanDto(
     val employee: EmployeeDto,
     val steps: List<DayPlanStepDto>
 )
+
+data class DayPlansDto(
+    val date: String,
+    val plans: List<DayPlanDto>?,
+)

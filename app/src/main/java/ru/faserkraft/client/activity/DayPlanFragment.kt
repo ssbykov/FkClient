@@ -132,24 +132,24 @@ class DayPlanFragment : Fragment() {
 
         ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.rvPlans)
 
-        viewModel.dayPlans.observe(viewLifecycleOwner) { plans ->
+        viewModel.dayPlans.observe(viewLifecycleOwner) { dayPlans ->
 
-            if (plans.isNullOrEmpty()) {
+            val planDate = dayPlans.date
+            val planDateUi = convertDate(dayPlans.date)
+
+            binding.etDate.setText(planDateUi)
+
+            if (dayPlans.plans.isNullOrEmpty()) {
                 adapter.submitList(emptyList())
                 updateCanEditForCurrentState(planDateApi = null)
                 return@observe
             }
 
-            val planDate = plans.first().date
-
-            val planDateUi = convertDate(planDate)
-            binding.etDate.setText(planDateUi)
-
             updateCanEditForCurrentState(planDate)
 
             val uiItems = mutableListOf<EmployeePlanUiItem>()
 
-            plans.forEach { plan ->
+            dayPlans.plans.forEach { plan ->
                 val steps = plan.steps
                 if (steps.isEmpty()) return@forEach
 
@@ -173,7 +173,13 @@ class DayPlanFragment : Fragment() {
         }
 
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            binding.swipeRefresh.isRefreshing = state.isLoading
+            val isLoading = state.isLoading
+
+            binding.swipeRefresh.isRefreshing = isLoading
+
+            binding.swipeRefresh.isEnabled = !isLoading
+            binding.etDate.isEnabled = !isLoading
+            binding.fabAddPlan.isEnabled = !isLoading
         }
 
         viewLifecycleOwner.lifecycleScope.launch {

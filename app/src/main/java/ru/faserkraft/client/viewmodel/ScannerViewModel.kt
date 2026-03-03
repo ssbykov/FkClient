@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
-import ru.faserkraft.client.dto.DayPlanDto
+import ru.faserkraft.client.dto.DayPlansDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.ProcessDto
@@ -28,6 +28,7 @@ import ru.faserkraft.client.model.UserData
 import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.repository.ApiRepository
 import ru.faserkraft.client.utils.QrCodeGenerator
+import ru.faserkraft.client.utils.getToday
 import ru.faserkraft.client.utils.isUfCode
 import ru.faserkraft.client.utils.qrCodeDecode
 import java.io.IOException
@@ -65,8 +66,13 @@ class ScannerViewModel @Inject constructor(
     private val _employees = MutableLiveData<List<EmployeeDto>?>()
     val employees: LiveData<List<EmployeeDto>?> = _employees
 
-    private val _dayPlans = MutableLiveData<List<DayPlanDto>?>()
-    val dayPlans: LiveData<List<DayPlanDto>?> = _dayPlans
+    private val _dayPlans = MutableLiveData(
+        DayPlansDto(
+            date = getToday(),
+            plans = emptyList()
+        )
+    )
+    val dayPlans: LiveData<DayPlansDto> = _dayPlans
 
     private val _selectedStep = MutableLiveData<StepDto?>()
     val selectedStep: LiveData<StepDto?> = _selectedStep
@@ -100,7 +106,7 @@ class ScannerViewModel @Inject constructor(
         _newProduct.value = ProductCreateDto(serialNumber = "")
         _processes.value = null
         _employees.value = null
-        _dayPlans.value = null
+        _dayPlans.value = DayPlansDto(date = getToday(), plans = null)
         _selectedStep.value = null
         _userData.value = null
         _qrBitmap.value = null
@@ -167,7 +173,9 @@ class ScannerViewModel @Inject constructor(
         viewModelScope.launch {
             withLoading {
                 repository.getDayPlans(date)
-            }?.let { _dayPlans.postValue(it) }
+            }?.let { plans ->
+                _dayPlans.value = DayPlansDto(date = date, plans = plans)
+            }
         }
     }
 
@@ -291,7 +299,9 @@ class ScannerViewModel @Inject constructor(
                 stepId = stepId,
                 plannedQuantity = plannedQuantity,
             )
-            repository.addStepToDailyPlan(body)?.let { _dayPlans.postValue(it) }
+            repository.addStepToDailyPlan(body)?.let { plans ->
+                _dayPlans.value = _dayPlans.value?.copy(plans = plans)
+            }
         }
 
     suspend fun updateStepInDailyPlan(
@@ -309,12 +319,16 @@ class ScannerViewModel @Inject constructor(
                 employeeId = employeeId,
                 plannedQuantity = plannedQuantity,
             )
-            repository.updateStepInDailyPlan(body)?.let { _dayPlans.postValue(it) }
+            repository.updateStepInDailyPlan(body)?.let { plans ->
+                _dayPlans.value = _dayPlans.value?.copy(plans = plans)
+            }
         }
 
     suspend fun removeStepFromDailyPlan(dailyPlanStepId: Int): Result<Unit> =
         withActionAndResult {
-            repository.removeStepFromDailyPlan(dailyPlanStepId)?.let { _dayPlans.postValue(it) }
+            repository.removeStepFromDailyPlan(dailyPlanStepId)?.let { plans ->
+                _dayPlans.value = _dayPlans.value?.copy(plans = plans)
+            }
         }
 
     // ---------- QR decoding ----------

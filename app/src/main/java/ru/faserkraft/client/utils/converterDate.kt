@@ -42,9 +42,7 @@ fun formatPlanDate(timeMillis: Long): Pair<String, String> {
     return apiDate to uiDate
 }
 
-fun converterFromMillis(dateMillis: Long, pattern: String): String{
-    val dateFormat = SimpleDateFormat(pattern, Locale.US).apply {
-        timeZone = TimeZone.getTimeZone("Europe/Moscow")
-    }
-    return dateFormat.format(dateMillis)
+fun getToday(): String{
+    val apiFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    return apiFormat.format(Date())
 }
