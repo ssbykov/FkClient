@@ -120,12 +120,12 @@ class QrGenerationFragment : Fragment() {
 
     private fun observeUiState() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            val inProgress = state.isActionInProgress
+            val inProgress = state.isActionInProgress || state.isLoading
 
             binding.btnGenerateQr.isEnabled = !inProgress
             binding.btnGenerateQr.alpha = if (inProgress) 0.5f else 1f
 
-            binding.progressQr.visibility =
+            binding.progressQrContainer.visibility =
                 if (inProgress) View.VISIBLE else View.GONE
         }
     }

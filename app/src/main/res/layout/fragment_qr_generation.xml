@@ -63,17 +63,6 @@
         app:layout_constraintDimensionRatio="1:1"
         tools:src="@drawable/ic_launcher_foreground" />
 
-    <ProgressBar
-        android:id="@+id/progressQr"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="@id/ivQrCode"
-        app:layout_constraintBottom_toBottomOf="@id/ivQrCode"
-        app:layout_constraintStart_toStartOf="@id/ivQrCode"
-        app:layout_constraintEnd_toEndOf="@id/ivQrCode" />
-
     <Button
         android:id="@+id/btnGenerateQr"
         android:layout_width="0dp"
@@ -84,5 +73,29 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/progressQrContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#80000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ProgressBar
+            android:id="@+id/progressQr"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+
+    </FrameLayout>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
