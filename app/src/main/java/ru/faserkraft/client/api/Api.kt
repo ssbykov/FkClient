@@ -16,6 +16,7 @@ import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
+import ru.faserkraft.client.dto.ProductsInventoryDto
 import ru.faserkraft.client.dto.QrDataResponseDto
 
 
@@ -92,4 +93,8 @@ interface Api {
     suspend fun getQrCode(
         @Query("employee_id") employeeId: Int
     ): Response<QrDataResponseDto>
+
+    @GET("products/stats/by-last-done-step")
+    suspend fun getProductsInventory(
+    ): Response<List<ProductsInventoryDto>>
 }

@@ -20,6 +20,7 @@ import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.ProductStatus
+import ru.faserkraft.client.dto.ProductsInventoryDto
 import ru.faserkraft.client.dto.StepDto
 import ru.faserkraft.client.dto.emptyStep
 import ru.faserkraft.client.dto.toQrContent
@@ -56,6 +57,11 @@ class ScannerViewModel @Inject constructor(
     // ---------- Data state ----------
     private val _productState = MutableLiveData<ProductDto?>()
     val productState: LiveData<ProductDto?> = _productState
+
+    private val _productsInventory =
+        MutableLiveData<List<ProductsInventoryDto>?>()
+    val productsInventory: LiveData<List<ProductsInventoryDto>?> =
+        _productsInventory
 
     private val _newProduct = MutableLiveData<ProductCreateDto>()
     val newProduct: LiveData<ProductCreateDto> = _newProduct
@@ -103,6 +109,7 @@ class ScannerViewModel @Inject constructor(
 
     fun clearUiData() {
         _productState.value = null
+        _productsInventory.value = null
         _newProduct.value = ProductCreateDto(serialNumber = "")
         _processes.value = null
         _employees.value = null
@@ -215,6 +222,12 @@ class ScannerViewModel @Inject constructor(
 
         _selectedStep.postValue(initialStep)
         _events.emit(UiEvent.NavigateToProduct)
+    }
+
+    suspend fun getProductsInventory() {
+        withLoading {
+            repository.getProductsInventory()
+        }?.let { _productsInventory.postValue(it) }
     }
 
     suspend fun setProcesses() {

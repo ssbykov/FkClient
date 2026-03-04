@@ -48,4 +48,7 @@
     <string name="generate_qr">Сгенерировать QR‑код</string>
     <string name="qr_code">QR-код</string>
     <string name="employee_selection">Выбор сотрудника</string>
+    <string name="inventory">Остатки</string>
+    <string name="packaging_count">Количество: %1$d</string>
+    <string name="inventory_by_stages">Остатки по этапам</string>
 </resources>

@@ -66,3 +66,17 @@ fun ProductStatus.toBackendValue(): String = when (this) {
     ProductStatus.REWORK -> "rework"
     ProductStatus.SCRAP -> "scrap"
 }
+
+data class ProductsInventoryDto(
+    @SerializedName("process_id")
+    val processId: Int,
+    @SerializedName("process_name")
+    val processName: String,
+    @SerializedName("step_definition_id")
+    val stepDefinitionId: Int,
+    @SerializedName("step_name")
+    val stepName: String,
+    @SerializedName("count")
+    val count: Int,
+)
+

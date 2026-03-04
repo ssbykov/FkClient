@@ -11,6 +11,7 @@ import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.ProductStatus
+import ru.faserkraft.client.dto.ProductsInventoryDto
 import ru.faserkraft.client.dto.QrDataResponseDto
 import ru.faserkraft.client.dto.toBackendValue
 import javax.inject.Inject
@@ -44,6 +45,9 @@ class ApiRepositoryImpl @Inject constructor(
         productId: Long,
         newProcessId: Int
     ): ProductDto? = callApi { api.changeProductProcess(productId, newProcessId) }
+
+    override suspend fun getProductsInventory(
+    ): List<ProductsInventoryDto>? = callApi { api.getProductsInventory() }
 
     override suspend fun getDayPlans(
         date: String

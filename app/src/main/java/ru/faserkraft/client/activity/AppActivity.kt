@@ -35,7 +35,7 @@ class AppActivity : AppCompatActivity() {
         binding.bottomNav.setOnItemSelectedListener { item ->
             val options = navOptions {
                 popUpTo(navController.graph.startDestinationId) {
-                    inclusive = true   // очищаем весь стек до стартового dest
+                    inclusive = true
                 }
                 launchSingleTop = true
             }
@@ -56,6 +56,14 @@ class AppActivity : AppCompatActivity() {
                     val currentId = navController.currentDestination?.id
                     if (currentId != R.id.dayPlanFragment) {
                         navController.navigate(R.id.dayPlanFragment, null, options)
+                    }
+                    true
+                }
+
+                R.id.inventoryFragment -> {
+                    val currentId = navController.currentDestination?.id
+                    if (currentId != R.id.productsInventoryFragment) {
+                        navController.navigate(R.id.productsInventoryFragment, null, options)
                     }
                     true
                 }

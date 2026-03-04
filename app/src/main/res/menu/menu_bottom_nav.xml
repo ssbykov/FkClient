@@ -11,4 +11,9 @@
         android:id="@+id/dayPlanFragment"
         android:icon="@drawable/ic_day_plan"
         android:title="@string/plan" />
+
+    <item
+        android:id="@+id/inventoryFragment"
+        android:icon="@drawable/ic_leaderboard"
+        android:title="@string/inventory" />
 </menu>
