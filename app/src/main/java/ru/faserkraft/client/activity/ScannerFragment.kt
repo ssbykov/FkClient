@@ -95,6 +95,10 @@ class ScannerFragment : Fragment() {
                         ScannerViewModel.UiEvent.NavigateToNewProduct ->
                             findNavController()
                                 .navigate(R.id.action_scannerFragment_to_newProductFragment)
+
+                        ScannerViewModel.UiEvent.NavigateToPackaging ->
+                            findNavController()
+                                .navigate(R.id.action_scannerFragment_to_newPackagingFragment)
                     }
                 }
             }
