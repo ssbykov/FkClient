@@ -7,6 +7,9 @@ import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
 import ru.faserkraft.client.dto.EmployeeDto
+import ru.faserkraft.client.dto.FinishedProductDto
+import ru.faserkraft.client.dto.PackagingCreateDto
+import ru.faserkraft.client.dto.PackagingDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
@@ -23,8 +26,14 @@ class ApiRepositoryImpl @Inject constructor(
     override suspend fun getProduct(serialNumber: String): ProductDto? =
         callApi { api.getProduct(serialNumber) }
 
+    override suspend fun getPackaging(serialNumber: String): PackagingDto? =
+        callApi { api.getPackaging(serialNumber) }
+
     override suspend fun postProduct(product: ProductCreateDto): ProductDto? =
         callApi { api.postProduct(product) }
+
+    override suspend fun createPackaging(packaging: PackagingCreateDto): PackagingDto? =
+        callApi { api.createPackaging(packaging) }
 
     override suspend fun getProcesses(): List<ProcessDto>? =
         callApi { api.getProcesses() }
@@ -48,6 +57,9 @@ class ApiRepositoryImpl @Inject constructor(
 
     override suspend fun getProductsInventory(
     ): List<ProductsInventoryDto>? = callApi { api.getProductsInventory() }
+
+    override suspend fun getFinishedProduct(
+    ): List<FinishedProductDto>? = callApi { api.getFinishedProduct() }
 
     override suspend fun getDayPlans(
         date: String

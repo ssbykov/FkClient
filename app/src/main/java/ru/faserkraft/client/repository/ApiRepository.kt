@@ -6,6 +6,9 @@ import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
 import ru.faserkraft.client.dto.EmployeeDto
+import ru.faserkraft.client.dto.FinishedProductDto
+import ru.faserkraft.client.dto.PackagingCreateDto
+import ru.faserkraft.client.dto.PackagingDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
@@ -15,7 +18,13 @@ import ru.faserkraft.client.dto.QrDataResponseDto
 
 interface ApiRepository {
     suspend fun getProduct(serialNumber: String): ProductDto?
+    suspend fun getPackaging(serialNumber: String): PackagingDto?
     suspend fun postProduct(product: ProductCreateDto): ProductDto?
+
+    suspend fun createPackaging(
+        packaging: PackagingCreateDto
+    ): PackagingDto?
+
     suspend fun getProcesses(): List<ProcessDto>?
     suspend fun getEmployees(): List<EmployeeDto>?
     suspend fun postDevice(device: DeviceRequestDto): DeviceResponseDto?
@@ -27,6 +36,8 @@ interface ApiRepository {
     ): ProductDto?
 
     suspend fun getProductsInventory(): List<ProductsInventoryDto>?
+
+    suspend fun getFinishedProduct(): List<FinishedProductDto>?
 
     suspend fun getDayPlans(date: String): List<DayPlanDto>?
     suspend fun changeProductStatus(

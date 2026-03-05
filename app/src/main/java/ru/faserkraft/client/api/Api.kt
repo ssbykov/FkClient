@@ -13,6 +13,9 @@ import ru.faserkraft.client.dto.DayPlanDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
 import ru.faserkraft.client.dto.EmployeeDto
+import ru.faserkraft.client.dto.FinishedProductDto
+import ru.faserkraft.client.dto.PackagingCreateDto
+import ru.faserkraft.client.dto.PackagingDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
@@ -23,10 +26,20 @@ import ru.faserkraft.client.dto.QrDataResponseDto
 const val BASE_URL = "https://product.faserkraft.ru/api/v1/"
 
 interface Api {
-    @GET(BASE_URL + "products/{serial_number}")
+    @GET(BASE_URL + "products/by-serial/{serial_number}")
     suspend fun getProduct(
         @Path("serial_number") id: String,
     ): Response<ProductDto>
+
+    @GET(BASE_URL + "packaging/{serial_number}")
+    suspend fun getPackaging(
+        @Path("serial_number") serialNumber: String
+    ): Response<PackagingDto>
+
+
+    @GET(BASE_URL + "products/finished")
+    suspend fun getFinishedProduct(
+    ): Response<List<FinishedProductDto>>
 
     @GET(BASE_URL + "processes/")
     suspend fun getProcesses(): Response<List<ProcessDto>>
@@ -56,10 +69,15 @@ interface Api {
     ): Response<List<DayPlanDto>>
 
 
-    @POST(BASE_URL + "products/")
+    @POST(BASE_URL + "products")
     suspend fun postProduct(
         @Body product: ProductCreateDto
     ): Response<ProductDto>
+
+    @POST(BASE_URL + "packaging")
+    suspend fun createPackaging(
+        @Body packaging: PackagingCreateDto
+    ): Response<PackagingDto>
 
     @POST(BASE_URL + "products_steps/")
     suspend fun postStep(
