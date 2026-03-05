@@ -16,6 +16,9 @@ import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
 import ru.faserkraft.client.dto.DayPlansDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.EmployeeDto
+import ru.faserkraft.client.dto.FinishedProductDto
+import ru.faserkraft.client.dto.PackagingCreateDto
+import ru.faserkraft.client.dto.PackagingDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
@@ -31,6 +34,7 @@ import ru.faserkraft.client.repository.ApiRepository
 import ru.faserkraft.client.utils.QrCodeGenerator
 import ru.faserkraft.client.utils.getToday
 import ru.faserkraft.client.utils.isUfCode
+import ru.faserkraft.client.utils.isUfPkgCode
 import ru.faserkraft.client.utils.qrCodeDecode
 import java.io.IOException
 import javax.inject.Inject
@@ -65,6 +69,15 @@ class ScannerViewModel @Inject constructor(
 
     private val _newProduct = MutableLiveData<ProductCreateDto>()
     val newProduct: LiveData<ProductCreateDto> = _newProduct
+
+    private val _availableProductsForPackaging =
+        MutableLiveData<List<FinishedProductDto>>()
+    val availableProductsForPackaging: LiveData<List<FinishedProductDto>> =
+        _availableProductsForPackaging
+
+    private val _packagingState = MutableLiveData<PackagingDto?>()
+    val packagingState: LiveData<PackagingDto?> = _packagingState
+
 
     private val _processes = MutableLiveData<List<ProcessDto>?>()
     val processes: LiveData<List<ProcessDto>?> = _processes
@@ -125,6 +138,7 @@ class ScannerViewModel @Inject constructor(
         object NavigateToRegistration : UiEvent()
         object NavigateToProduct : UiEvent()
         object NavigateToNewProduct : UiEvent()
+        object NavigateToPackaging : UiEvent()
     }
 
     private val _events = MutableSharedFlow<UiEvent>(extraBufferCapacity = 1)
@@ -209,6 +223,28 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
+    suspend fun getPackaging(serialNumber: String) {
+        updateUiState { it.copy(isLoading = true) }
+        try {
+            val packaging = repository.getPackaging(serialNumber)
+            if (packaging == null) {
+                newPackaging(serialNumber)
+            } else {
+                setPackaging(packaging)
+            }
+        } catch (e: AppError.ApiError) {
+            if (e.status == 404) {
+                newPackaging(serialNumber)
+            } else {
+                _errorState.emit(appErrorToMessage(e))
+            }
+        } catch (e: Exception) {
+            _errorState.emit(UNKNOWN_ERROR)
+        } finally {
+            updateUiState { it.copy(isLoading = false) }
+        }
+    }
+
     suspend fun setProduct(product: ProductDto) {
         _productState.postValue(product)
 
@@ -224,10 +260,22 @@ class ScannerViewModel @Inject constructor(
         _events.emit(UiEvent.NavigateToProduct)
     }
 
+    suspend fun setPackaging(packaging: PackagingDto) {
+        _packagingState.postValue(packaging)
+        _events.emit(UiEvent.NavigateToPackaging)
+    }
+
+
     suspend fun getProductsInventory() {
         withLoading {
             repository.getProductsInventory()
         }?.let { _productsInventory.postValue(it) }
+    }
+
+    suspend fun loadAvailableProductsForPackaging() {
+        withLoading {
+            repository.getFinishedProduct()
+        }?.let { _availableProductsForPackaging.postValue(it) }
     }
 
     suspend fun setProcesses() {
@@ -247,6 +295,24 @@ class ScannerViewModel @Inject constructor(
         setProcesses()
         _events.emit(UiEvent.NavigateToNewProduct)
     }
+
+    suspend fun newPackaging(serialNumber: String) {
+        _packagingState.postValue(
+            PackagingDto(
+                id = 0,
+                serialNumber = serialNumber,
+                products = listOf()
+            )
+        )
+        loadAvailableProductsForPackaging()
+        _events.emit(UiEvent.NavigateToPackaging)
+    }
+
+    suspend fun createPackaging(newPackaging: PackagingCreateDto): Result<Unit> =
+        withActionAndResult {
+            repository.createPackaging(newPackaging)?.let { setPackaging(it) }
+        }
+
 
     suspend fun createProduct(newProduct: ProductCreateDto): Result<Unit> =
         withActionAndResult {
@@ -351,6 +417,7 @@ class ScannerViewModel @Inject constructor(
 
         when {
             isUfCode(jsonString) -> handleProductQr(jsonString)
+            isUfPkgCode(jsonString) -> handlePackagingSerialQr(jsonString)
             else -> handleDeviceRegistrationQr(jsonString)
         }
     }
@@ -359,6 +426,10 @@ class ScannerViewModel @Inject constructor(
         withLoading {
             getProduct(serialNumber)
         }
+    }
+
+    suspend fun handlePackagingSerialQr(jsonString: String) {
+        getPackaging(jsonString)
     }
 
     private suspend fun handleDeviceRegistrationQr(jsonString: String) {
