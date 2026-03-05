@@ -25,6 +25,14 @@ data class ProductDto(
     val steps: List<StepDto>
 ) : ItemDto()
 
+data class FinishedProductDto(
+    val id: Int = 0,
+    @SerializedName("serial_number")
+    val serialNumber: String,
+    @SerializedName("work_process")
+    val process: FinishedProcessDto,
+) : ItemDto()
+
 
 enum class ProductStatus(
     val titleRes: Int,
