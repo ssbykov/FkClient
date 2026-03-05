@@ -22,6 +22,9 @@
         <action
             android:id="@+id/action_scannerFragment_to_productsInventoryFragment"
             app:destination="@id/productsInventoryFragment" />
+        <action
+            android:id="@+id/action_scannerFragment_to_newPackagingFragment"
+            app:destination="@id/newPackagingFragment" />
     </fragment>
     <fragment
         android:id="@+id/registrationFragment"
@@ -118,5 +121,10 @@
         android:name="ru.faserkraft.client.activity.ProductsInventoryFragment"
         android:label="fragment_products_inventory"
         tools:layout="@layout/fragment_products_inventory" />
+    <fragment
+        android:id="@+id/newPackagingFragment"
+        android:name="ru.faserkraft.client.activity.NewPackagingFragment"
+        android:label="fragment_new_packaging"
+        tools:layout="@layout/fragment_new_packaging" />
 
 </navigation>

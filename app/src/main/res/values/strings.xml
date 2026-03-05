@@ -51,4 +51,8 @@
     <string name="inventory">Остатки</string>
     <string name="packaging_count">Количество: %1$d</string>
     <string name="inventory_by_stages">Остатки по этапам</string>
+    <string name="new_packaging">Новая упаковка</string>
+    <string name="packaging_number">Номер упаковки</string>
+    <string name="create_packaging">Создать упаковку</string>
+    <string name="select_all_products">Выбрать все</string>
 </resources>
