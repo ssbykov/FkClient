@@ -7,7 +7,7 @@ data class PackagingDto(
     val id: Int,
     @SerializedName("serial_number")
     val serialNumber: String,
-    val products: List<Int>
+    val products: List<FinishedProductDto>
 ) : ItemDto()
 
 data class PackagingCreateDto(

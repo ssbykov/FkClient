@@ -49,10 +49,13 @@
     <string name="qr_code">QR-код</string>
     <string name="employee_selection">Выбор сотрудника</string>
     <string name="inventory">Остатки</string>
-    <string name="packaging_count">Количество: %1$d</string>
+    <string name="state_count">Количество: %1$d</string>
+    <string name="items_count">Позиций: %1$d</string>
     <string name="inventory_by_stages">Остатки по этапам</string>
     <string name="new_packaging">Новая упаковка</string>
     <string name="packaging_number">Номер упаковки</string>
     <string name="create_packaging">Создать упаковку</string>
     <string name="select_all_products">Выбрать все</string>
+    <string name="packaging_contents">Модули в упаковке</string>
+    <string name="close">Закрыть</string>
 </resources>

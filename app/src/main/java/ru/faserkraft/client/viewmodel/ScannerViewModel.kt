@@ -138,6 +138,7 @@ class ScannerViewModel @Inject constructor(
         object NavigateToRegistration : UiEvent()
         object NavigateToProduct : UiEvent()
         object NavigateToNewProduct : UiEvent()
+        object NavigateToNewPackaging : UiEvent()
         object NavigateToPackaging : UiEvent()
     }
 
@@ -305,7 +306,7 @@ class ScannerViewModel @Inject constructor(
             )
         )
         loadAvailableProductsForPackaging()
-        _events.emit(UiEvent.NavigateToPackaging)
+        _events.emit(UiEvent.NavigateToNewPackaging)
     }
 
     suspend fun createPackaging(newPackaging: PackagingCreateDto): Result<Unit> =
