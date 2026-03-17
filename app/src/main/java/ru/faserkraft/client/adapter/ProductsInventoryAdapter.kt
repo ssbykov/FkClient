@@ -67,7 +67,7 @@ class ProductsInventoryAdapter :
         fun bind(dto: ProductsInventoryDto) = with(binding) {
             tvStepName.text = dto.stepName
             tvCount.text = itemView.context.getString(
-                R.string.packaging_count,
+                R.string.state_count,
                 dto.count
             )
         }
