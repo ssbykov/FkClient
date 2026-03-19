@@ -27,6 +27,7 @@
         android:id="@+id/llPackagingSerial"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_card"
         android:layout_marginTop="12dp"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
@@ -40,14 +41,36 @@
             android:text="@string/packaging_number"
             android:textSize="12sp" />
 
-        <TextView
-            android:id="@+id/tvPackagingSerial"
+        <!-- строка с номером и иконкой редактирования -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            tools:text="PKG-000000123" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvPackagingSerial"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="PKG-000000123" />
+
+            <ImageButton
+                android:id="@+id/btnEdit"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="2dp"
+                android:visibility="gone"
+                android:src="@drawable/ic_edit"
+                android:contentDescription="@string/edit"
+                app:tint="@color/black" />
+        </LinearLayout>
     </LinearLayout>
+
 
     <!-- Количество позиций / краткая инфа -->
     <TextView

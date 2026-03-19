@@ -18,6 +18,7 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.PackagingContentAdapter
 import ru.faserkraft.client.adapter.PackagingContentUiItem
 import ru.faserkraft.client.databinding.FragmentPackagingBinding
+import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
 class PackagingFragment : Fragment() {
@@ -40,6 +41,16 @@ class PackagingFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel.userData.observe(viewLifecycleOwner) { user ->
+            val role = user?.role
+            binding.btnEdit.visibility =
+                if (role == UserRole.ADMIN || role == UserRole.MASTER) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
+        }
 
         // номер упаковки
         viewModel.packagingState.observe(viewLifecycleOwner) { packaging ->
