@@ -12,6 +12,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
@@ -100,6 +101,14 @@ class PackagingFragment : Fragment() {
         // кнопка закрытия (или назад)
         binding.btnClose.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+
+        // кнопка редактирования
+        binding.btnEdit.setOnClickListener {
+            val action =
+                PackagingFragmentDirections
+                    .actionPackagingFragmentToNewPackagingFragment(viewModel.packagingState.value)
+            findNavController().navigate(action)
         }
 
     }

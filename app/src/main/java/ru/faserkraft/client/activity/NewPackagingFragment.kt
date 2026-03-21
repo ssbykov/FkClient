@@ -12,6 +12,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.adapter.PackagingProductUiItem
@@ -26,6 +27,8 @@ class NewPackagingFragment : Fragment() {
     private lateinit var binding: FragmentNewPackagingBinding
 
     private lateinit var adapter: PackagingProductsAdapter
+
+    private val args: NewPackagingFragmentArgs by navArgs()
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -72,20 +75,45 @@ class NewPackagingFragment : Fragment() {
 
         // загрузка списка доступных продуктов для упаковки
         viewModel.availableProductsForPackaging.observe(viewLifecycleOwner) { products ->
-            // маппинг к UI‑модели
-            val uiItems = products.map { p ->
+            val editingPackaging = args.packaging
+            val selectedIdsFromPackaging =
+                editingPackaging?.products?.map { it.id }?.toSet().orEmpty()
+
+            // продукты, пришедшие из API
+            val base = products.map { p ->
                 PackagingProductUiItem(
                     id = p.id,
                     serialNumber = p.serialNumber,
                     processName = p.process.name,
-                    isSelected = false
+                    isSelected = selectedIdsFromPackaging.contains(p.id)
                 )
             }
+
+            // продукты, которых нет в availableProductsForPackaging, но есть в упаковке
+            val extra = editingPackaging?.products
+                ?.filter { ep -> base.none { it.id == ep.id } }
+                ?.map { ep ->
+                    PackagingProductUiItem(
+                        id = ep.id,
+                        serialNumber = ep.serialNumber,
+                        processName = ep.process.name,
+                        isSelected = true
+                    )
+                }.orEmpty()
+
+            val uiItems = base + extra
             adapter.submitList(uiItems)
-            // сброс чекбокса "выбрать все"
+
+
             binding.cbSelectAll.setOnCheckedChangeListener(null)
-            binding.cbSelectAll.isChecked = false
+            val allSelected = uiItems.isNotEmpty() && uiItems.all { it.isSelected }
+            binding.cbSelectAll.isChecked = allSelected
             binding.cbSelectAll.setOnCheckedChangeListener(selectAllListener)
+        }
+
+        // начальная загрузка
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.loadAvailableProductsForPackaging()
         }
 
         // ошибки

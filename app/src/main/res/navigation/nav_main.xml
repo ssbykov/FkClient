@@ -128,11 +128,21 @@
         android:id="@+id/newPackagingFragment"
         android:name="ru.faserkraft.client.activity.NewPackagingFragment"
         android:label="fragment_new_packaging"
-        tools:layout="@layout/fragment_new_packaging" />
+        tools:layout="@layout/fragment_new_packaging" >
+        <argument
+            android:name="packaging"
+            app:argType="ru.faserkraft.client.dto.PackagingDto"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
     <fragment
         android:id="@+id/packagingFragment"
         android:name="ru.faserkraft.client.activity.PackagingFragment"
         android:label="fragment_packaging"
-        tools:layout="@layout/fragment_packaging" />
+        tools:layout="@layout/fragment_packaging" >
+        <action
+            android:id="@+id/action_packagingFragment_to_newPackagingFragment"
+            app:destination="@id/newPackagingFragment" />
+    </fragment>
 
 </navigation>
