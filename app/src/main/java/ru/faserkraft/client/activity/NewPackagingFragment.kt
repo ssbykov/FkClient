@@ -85,6 +85,8 @@ class NewPackagingFragment : Fragment() {
                     id = p.id,
                     serialNumber = p.serialNumber,
                     processName = p.process.name,
+                    sizeType = p.process.type?.id ?: 0,
+                    packagingCount = p.process.type?.packagingCount ?: 1,
                     isSelected = selectedIdsFromPackaging.contains(p.id)
                 )
             }
@@ -97,6 +99,8 @@ class NewPackagingFragment : Fragment() {
                         id = ep.id,
                         serialNumber = ep.serialNumber,
                         processName = ep.process.name,
+                        sizeType = ep.process.type?.id ?: 0,
+                        packagingCount = ep.process.type?.packagingCount ?: 1,
                         isSelected = true
                     )
                 }.orEmpty()
@@ -132,13 +136,11 @@ class NewPackagingFragment : Fragment() {
         }
 
         // создание упаковки
-        binding.btnCreate.setOnClickListener {
+        binding.btnSave.setOnClickListener {
             val serial = binding.tvPackagingSerial.text?.toString().orEmpty()
-            val selectedIds = adapter.currentList
-                .filter { it.isSelected }
-                .map { it.id }
 
-            if (selectedIds.isEmpty()) {
+            val selectedItems = adapter.currentList.filter { it.isSelected }
+            if (selectedItems.isEmpty()) {
                 AlertDialog.Builder(requireContext())
                     .setMessage("Необходимо выбрать хотя бы один продукт!")
                     .setPositiveButton("ОК", null)
@@ -146,9 +148,31 @@ class NewPackagingFragment : Fragment() {
                 return@setOnClickListener
             }
 
+            val firstTypeSize = selectedItems.first().sizeType
+
+            val hasDifferentTypeSize = selectedItems.any { it.sizeType != firstTypeSize }
+            if (hasDifferentTypeSize) {
+                AlertDialog.Builder(requireContext())
+                    .setMessage("Все выбранные продукты должны быть одного типоразмера!")
+                    .setPositiveButton("ОК", null)
+                    .show()
+                return@setOnClickListener
+            }
+
+            val maxAllowed = selectedItems.first().packagingCount
+            val selectedCount = selectedItems.size
+
+            if (selectedCount > (maxAllowed ?: 1)) {
+                AlertDialog.Builder(requireContext())
+                    .setMessage("Количество выбранных продуктов не должно превышать $maxAllowed!")
+                    .setPositiveButton("ОК", null)
+                    .show()
+                return@setOnClickListener
+            }
+
             val newPackaging = PackagingCreateDto(
                 serialNumber = serial,
-                products = selectedIds
+                products = selectedItems.map { it.id }
             )
 
             viewLifecycleOwner.lifecycleScope.launch {
@@ -156,6 +180,7 @@ class NewPackagingFragment : Fragment() {
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             }
         }
+
 
         // начальная загрузка
 //        viewModel.loadAvailableProductsForPackaging()

@@ -66,5 +66,7 @@ data class PackagingProductUiItem(
     val id: Int,
     val serialNumber: String,
     val processName: String,
+    val sizeType: Int?,
+    val packagingCount: Int?,
     val isSelected: Boolean = false,
 )

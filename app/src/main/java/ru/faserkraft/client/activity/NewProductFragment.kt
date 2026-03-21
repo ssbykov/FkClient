@@ -74,7 +74,7 @@ class NewProductFragment : Fragment() {
             }
         }
 
-        binding.btnCreate.setOnClickListener {
+        binding.btnSave.setOnClickListener {
 
             val index = selectedIndex
             if (index == null || index < 0 || index >= processes.size) {
