@@ -7,6 +7,10 @@ data class PackagingDto(
     val id: Int,
     @SerializedName("serial_number")
     val serialNumber: String,
+    @SerializedName("performed_by")
+    val performedBy: EmployeeDto? = null,
+    @SerializedName("performed_at")
+    val performedAt: String? = null,
     val products: List<FinishedProductDto>
 ) : ItemDto()
 
@@ -15,9 +19,3 @@ data class PackagingCreateDto(
     val serialNumber: String,
     val products: List<Int>
 ) : ItemDto()
-
-val emptyPackaging = PackagingDto(
-    id = 0,
-    serialNumber = "",
-    products = listOf(),
-)
