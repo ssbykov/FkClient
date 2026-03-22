@@ -24,6 +24,9 @@ import ru.faserkraft.client.model.UserData
 import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.utils.formatIsoToUi
 import ru.faserkraft.client.viewmodel.ScannerViewModel
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 class PackagingFragment : Fragment() {
 
@@ -120,15 +123,19 @@ class PackagingFragment : Fragment() {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateEditButtonVisibility() {
         val role = currentUser?.role
         val userEmail = currentUser?.email
         val packagingEmail = currentPackaging?.performedBy?.user?.email
+        val packagingDate = currentPackaging?.performedAt
 
         val canEdit =
             role == UserRole.ADMIN ||
                     role == UserRole.MASTER ||
-                    packagingEmail == userEmail
+                    (packagingEmail == userEmail && Instant.parse(packagingDate)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate() == LocalDate.now())
 
         binding.btnEdit.visibility = if (canEdit) View.VISIBLE else View.GONE
     }
