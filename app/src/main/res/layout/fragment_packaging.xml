@@ -30,6 +30,7 @@
         android:background="@drawable/bg_card"
         android:layout_marginTop="12dp"
         android:orientation="vertical"
+        android:padding="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTitle">
@@ -41,7 +42,6 @@
             android:text="@string/packaging_number"
             android:textSize="12sp" />
 
-        <!-- строка с номером и иконкой редактирования -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -69,6 +69,21 @@
                 android:contentDescription="@string/edit"
                 app:tint="@color/black" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvCreatedBy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="12sp"
+            tools:text="Сотрудник: Иван Иванов" />
+
+        <TextView
+            android:id="@+id/tvCreatedAt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            tools:text="Дата: 21.03.2026 17:05" />
     </LinearLayout>
 
 

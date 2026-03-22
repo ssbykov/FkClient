@@ -19,7 +19,10 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.PackagingContentAdapter
 import ru.faserkraft.client.adapter.PackagingContentUiItem
 import ru.faserkraft.client.databinding.FragmentPackagingBinding
+import ru.faserkraft.client.dto.PackagingDto
+import ru.faserkraft.client.model.UserData
 import ru.faserkraft.client.model.UserRole
+import ru.faserkraft.client.utils.formatIsoToUi
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
 class PackagingFragment : Fragment() {
@@ -28,6 +31,9 @@ class PackagingFragment : Fragment() {
     private lateinit var binding: FragmentPackagingBinding
 
     private lateinit var adapter: PackagingContentAdapter
+
+    private var currentUser: UserData? = null
+    private var currentPackaging: PackagingDto? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -44,18 +50,19 @@ class PackagingFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.userData.observe(viewLifecycleOwner) { user ->
-            val role = user?.role
-            binding.btnEdit.visibility =
-                if (role == UserRole.ADMIN || role == UserRole.MASTER) {
-                    View.VISIBLE
-                } else {
-                    View.GONE
-                }
+            currentUser = user
+            updateEditButtonVisibility()
         }
 
         // номер упаковки
         viewModel.packagingState.observe(viewLifecycleOwner) { packaging ->
+            currentPackaging = packaging
+
             binding.tvPackagingSerial.text = packaging?.serialNumber
+            binding.tvCreatedBy.text = packaging?.performedBy?.name
+            binding.tvCreatedAt.text = formatIsoToUi(packaging?.performedAt)
+
+            updateEditButtonVisibility()
         }
 
         // адаптер без чекбоксов, просто отображение списка
@@ -111,5 +118,18 @@ class PackagingFragment : Fragment() {
             findNavController().navigate(action)
         }
 
+    }
+
+    private fun updateEditButtonVisibility() {
+        val role = currentUser?.role
+        val userEmail = currentUser?.email
+        val packagingEmail = currentPackaging?.performedBy?.user?.email
+
+        val canEdit =
+            role == UserRole.ADMIN ||
+                    role == UserRole.MASTER ||
+                    packagingEmail == userEmail
+
+        binding.btnEdit.visibility = if (canEdit) View.VISIBLE else View.GONE
     }
 }
