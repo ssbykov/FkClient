@@ -134,6 +134,9 @@
             app:argType="ru.faserkraft.client.dto.PackagingDto"
             app:nullable="true"
             android:defaultValue="@null" />
+        <action
+            android:id="@+id/action_newPackagingFragment_to_packagingFragment"
+            app:destination="@id/packagingFragment" />
     </fragment>
     <fragment
         android:id="@+id/packagingFragment"

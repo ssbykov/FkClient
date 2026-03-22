@@ -12,9 +12,12 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavOptions
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
+import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.PackagingProductUiItem
 import ru.faserkraft.client.adapter.PackagingProductsAdapter
 import ru.faserkraft.client.databinding.FragmentNewPackagingBinding
@@ -176,15 +179,23 @@ class NewPackagingFragment : Fragment() {
             )
 
             viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.createPackaging(newPackaging)
-                requireActivity().onBackPressedDispatcher.onBackPressed()
+                val result = viewModel.createPackaging(newPackaging)
+                result.onSuccess {
+                    val navOptions = NavOptions.Builder()
+                        .setPopUpTo(R.id.scannerFragment, false)
+                        .build()
+
+                    findNavController().navigate(
+                        R.id.action_newPackagingFragment_to_packagingFragment,
+                        null,
+                        navOptions
+                    )
+                }.onFailure {
+                    // тут просто ничего не делаем, диалог покажет подписка на errorState
+                }
             }
         }
 
-
-        // начальная загрузка
-//        viewModel.loadAvailableProductsForPackaging()
-//        viewModel.generateNewPackagingSerialIfNeeded()
     }
 
     private val selectAllListener =
