@@ -54,7 +54,11 @@ class ProductsInventoryFragment : Fragment() {
             }
 
             // группировка по процессам
-            val grouped = list.groupBy { it.processName }
+            val grouped = list
+                .groupBy { it.processName }
+                .entries
+                .sortedBy { it.key }
+                .associate { it.toPair() }
 
             val uiItems = mutableListOf<ProductsInventoryUiItem>()
             grouped.forEach { (processName, items) ->
