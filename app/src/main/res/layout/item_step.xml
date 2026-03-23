@@ -38,7 +38,7 @@
             android:layout_height="20dp"
             android:layout_marginStart="8dp"
             tools:src="@drawable/status_pending"
-            android:contentDescription="status"/>
+            android:contentDescription="@string/status"/>
     </LinearLayout>
 
     <TextView
