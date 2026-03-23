@@ -33,7 +33,7 @@
         android:id="@+id/registrationFragment"
         android:name="ru.faserkraft.client.activity.RegistrationFragment"
         android:label="fragment_registration"
-        tools:layout="@layout/fragment_registration" >
+        tools:layout="@layout/fragment_registration">
         <action
             android:id="@+id/action_registrationFragment_to_qrGenerationFragment"
             app:destination="@id/qrGenerationFragment" />
@@ -110,9 +110,9 @@
             app:nullable="true" />
         <argument
             android:name="planDate"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null" />
+            app:nullable="true" />
     </fragment>
     <fragment
         android:id="@+id/qrGenerationFragment"
@@ -123,17 +123,21 @@
         android:id="@+id/productsInventoryFragment"
         android:name="ru.faserkraft.client.activity.ProductsInventoryFragment"
         android:label="fragment_products_inventory"
-        tools:layout="@layout/fragment_products_inventory" />
+        tools:layout="@layout/fragment_products_inventory">
+        <action
+            android:id="@+id/action_productsInventoryFragment_to_productsInventoryByProcessFragment"
+            app:destination="@id/productsInventoryByProcessFragment" />
+    </fragment>
     <fragment
         android:id="@+id/newPackagingFragment"
         android:name="ru.faserkraft.client.activity.NewPackagingFragment"
         android:label="fragment_new_packaging"
-        tools:layout="@layout/fragment_new_packaging" >
+        tools:layout="@layout/fragment_new_packaging">
         <argument
             android:name="packaging"
+            android:defaultValue="@null"
             app:argType="ru.faserkraft.client.dto.PackagingDto"
-            app:nullable="true"
-            android:defaultValue="@null" />
+            app:nullable="true" />
         <action
             android:id="@+id/action_newPackagingFragment_to_packagingFragment"
             app:destination="@id/packagingFragment" />
@@ -142,10 +146,19 @@
         android:id="@+id/packagingFragment"
         android:name="ru.faserkraft.client.activity.PackagingFragment"
         android:label="fragment_packaging"
-        tools:layout="@layout/fragment_packaging" >
+        tools:layout="@layout/fragment_packaging">
         <action
             android:id="@+id/action_packagingFragment_to_newPackagingFragment"
             app:destination="@id/newPackagingFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/productsInventoryByProcessFragment"
+        android:name="ru.faserkraft.client.activity.ProductsInventoryByProcessFragment"
+        android:label="fragment_products_inventory_by_process"
+        tools:layout="@layout/fragment_products_inventory_by_process">
+        <argument
+            android:name="productsInventoryDto"
+            app:argType="ru.faserkraft.client.dto.ProductsInventoryDto" />
     </fragment>
 
 </navigation>

@@ -58,4 +58,8 @@
     <string name="select_all_products">Выбрать все</string>
     <string name="packaging_contents">Модули в упаковке</string>
     <string name="close">Закрыть</string>
+    <string name="products_in_production">Модули в производстве</string>
+    <string name="stage">Этап</string>
+    <string name="status">Статус</string>
+    <string name="created_at">Создан: %1$s</string>
 </resources>
