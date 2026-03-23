@@ -12,6 +12,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.adapter.ProductsInventoryAdapter
@@ -38,7 +39,13 @@ class ProductsInventoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = ProductsInventoryAdapter()
+        val adapter = ProductsInventoryAdapter { dto ->
+            val action =
+                ProductsInventoryFragmentDirections
+                    .actionProductsInventoryFragmentToProductsInventoryByProcessFragment(dto)
+            findNavController().navigate(action)
+        }
+
         binding.rvProductsStats.layoutManager = LinearLayoutManager(requireContext())
         binding.rvProductsStats.adapter = adapter
 
@@ -53,23 +60,24 @@ class ProductsInventoryFragment : Fragment() {
                 return@observe
             }
 
-            // группировка по процессам
             val grouped = list
+                .sortedWith(
+                    compareBy<ProductsInventoryDto> { it.processName }
+                        .thenBy { it.stepDefinitionId }
+                )
                 .groupBy { it.processName }
-                .entries
-                .sortedBy { it.key }
-                .associate { it.toPair() }
 
             val uiItems = mutableListOf<ProductsInventoryUiItem>()
             grouped.forEach { (processName, items) ->
                 uiItems += ProductsInventoryUiItem.ProcessHeader(processName)
-                items.forEach { dto: ProductsInventoryDto ->
+                items.forEach { dto ->
                     uiItems += ProductsInventoryUiItem.StageItem(dto)
                 }
             }
 
             adapter.submitList(uiItems)
         }
+
 
         // состояние загрузки
         viewModel.uiState.observe(viewLifecycleOwner) { state ->

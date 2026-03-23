@@ -11,7 +11,9 @@ import ru.faserkraft.client.databinding.ItemInventoryStageBinding
 import ru.faserkraft.client.dto.ProductsInventoryDto
 
 
-class ProductsInventoryAdapter :
+class ProductsInventoryAdapter(
+    private val onStageClick: (ProductsInventoryDto) -> Unit
+) :
     ListAdapter<ProductsInventoryUiItem, RecyclerView.ViewHolder>(Diff()) {
 
     companion object {
@@ -38,7 +40,7 @@ class ProductsInventoryAdapter :
 
             else -> {
                 val binding = ItemInventoryStageBinding.inflate(inflater, parent, false)
-                StageVH(binding)
+                StageVH(binding, onStageClick)
             }
         }
     }
@@ -62,7 +64,8 @@ class ProductsInventoryAdapter :
     }
 
     class StageVH(
-        private val binding: ItemInventoryStageBinding
+        private val binding: ItemInventoryStageBinding,
+        private val onClick: (ProductsInventoryDto) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(dto: ProductsInventoryDto) = with(binding) {
             tvStepName.text = dto.stepName
@@ -70,6 +73,9 @@ class ProductsInventoryAdapter :
                 R.string.state_count,
                 dto.count
             )
+            root.setOnClickListener {
+                onClick(dto)
+            }
         }
     }
 
