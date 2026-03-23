@@ -58,6 +58,12 @@ class ApiRepositoryImpl @Inject constructor(
     override suspend fun getProductsInventory(
     ): List<ProductsInventoryDto>? = callApi { api.getProductsInventory() }
 
+    override suspend fun getProductsByLastCompletedStep(
+        processId: Int,
+        stepDefinitionId: Int
+    ): List<ProductDto>? =
+        callApi { api.getProductsByLastCompletedStep(processId, stepDefinitionId) }
+
     override suspend fun getFinishedProduct(
     ): List<FinishedProductDto>? = callApi { api.getFinishedProduct() }
 

@@ -37,6 +37,11 @@ interface ApiRepository {
 
     suspend fun getProductsInventory(): List<ProductsInventoryDto>?
 
+    suspend fun getProductsByLastCompletedStep(
+        processId: Int,
+        stepDefinitionId: Int,
+    ): List<ProductDto>?
+
     suspend fun getFinishedProduct(): List<FinishedProductDto>?
 
     suspend fun getDayPlans(date: String): List<DayPlanDto>?

@@ -67,6 +67,10 @@ class ScannerViewModel @Inject constructor(
     val productsInventory: LiveData<List<ProductsInventoryDto>?> =
         _productsInventory
 
+    private val _productsInventoryByProcess =
+        MutableLiveData<List<ProductDto>?>()
+    val productsInventoryByProcess: LiveData<List<ProductDto>?> = _productsInventoryByProcess
+
     private val _newProduct = MutableLiveData<ProductCreateDto>()
     val newProduct: LiveData<ProductCreateDto> = _newProduct
 
@@ -123,6 +127,7 @@ class ScannerViewModel @Inject constructor(
     fun clearUiData() {
         _productState.value = null
         _productsInventory.value = null
+        _productsInventoryByProcess.value = null
         _newProduct.value = ProductCreateDto(serialNumber = "")
         _processes.value = null
         _employees.value = null
@@ -271,6 +276,12 @@ class ScannerViewModel @Inject constructor(
         withLoading {
             repository.getProductsInventory()
         }?.let { _productsInventory.postValue(it) }
+    }
+
+    suspend fun getProductsByLastCompletedStep(processId: Int, stepDefinitionId: Int) {
+        withLoading {
+            repository.getProductsByLastCompletedStep(processId, stepDefinitionId)
+        }?.let { _productsInventoryByProcess.postValue(it) }
     }
 
     suspend fun loadAvailableProductsForPackaging() {
