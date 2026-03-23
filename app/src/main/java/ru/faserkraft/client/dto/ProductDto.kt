@@ -2,6 +2,7 @@ package ru.faserkraft.client.dto
 
 import com.google.gson.annotations.SerializedName
 import ru.faserkraft.client.R
+import java.io.Serializable
 
 
 data class ProductCreateDto(
@@ -86,5 +87,5 @@ data class ProductsInventoryDto(
     val stepName: String,
     @SerializedName("count")
     val count: Int,
-)
+) : Serializable
 
