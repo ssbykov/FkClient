@@ -9,7 +9,6 @@
     android:paddingBottom="16dp"
     tools:context=".activity.PackagingFragment">
 
-    <!-- Заголовок -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="0dp"
@@ -22,84 +21,100 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Номер упаковки -->
-    <LinearLayout
-        android:id="@+id/llPackagingSerial"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardPackagingInfo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_card"
         android:layout_marginTop="12dp"
-        android:orientation="vertical"
-        android:padding="12dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="2dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTitle">
 
-        <TextView
-            android:id="@+id/tvPackagingSerialLabel"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/packaging_number"
-            android:textSize="12sp" />
+            android:padding="12dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/tvPackagingSerialLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/packaging_number"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toStartOf="@id/btnEdit"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEdit"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:contentDescription="@string/edit"
+                android:visibility="gone"
+                app:backgroundTint="#4DA3FF"
+                app:cornerRadius="20dp"
+                app:icon="@drawable/ic_edit"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconTint="@android:color/white"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/tvPackagingSerial"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="16sp"
+                android:layout_marginTop="2dp"
+                android:textSize="18sp"
                 android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvPackagingSerialLabel"
                 tools:text="PKG-000000123" />
 
-            <ImageButton
-                android:id="@+id/btnEdit"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginStart="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="2dp"
-                android:visibility="gone"
-                android:src="@drawable/ic_edit"
-                android:contentDescription="@string/edit"
-                app:tint="@color/black" />
-        </LinearLayout>
+            <TextView
+                android:id="@+id/tvCreatedBy"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="13sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvPackagingSerial"
+                tools:text="Сотрудник: Иван Иванов" />
 
-        <TextView
-            android:id="@+id/tvCreatedBy"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textSize="12sp"
-            tools:text="Сотрудник: Иван Иванов" />
+            <TextView
+                android:id="@+id/tvCreatedAt"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="13sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvCreatedBy"
+                app:layout_constraintBottom_toBottomOf="parent"
+                tools:text="Дата: 21.03.2026 17:05" />
 
-        <TextView
-            android:id="@+id/tvCreatedAt"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="12sp"
-            tools:text="Дата: 21.03.2026 17:05" />
-    </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
+    </com.google.android.material.card.MaterialCardView>
 
-    <!-- Количество позиций / краткая инфа -->
     <TextView
         android:id="@+id/tvItemsSummary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/llPackagingSerial"
+        app:layout_constraintTop_toBottomOf="@id/cardPackagingInfo"
         tools:text="3 позиции, всего 120 шт." />
 
-    <!-- Список продукции в упаковке -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvPackagingProducts"
         android:layout_width="0dp"
@@ -110,7 +125,6 @@
         app:layout_constraintTop_toBottomOf="@id/tvItemsSummary"
         tools:listitem="@layout/item_packaging_content_product" />
 
-    <!-- Кнопка (например, Закрыть / Распечатать этикетку / Изменить) -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnClose"
         android:layout_width="0dp"
