@@ -15,7 +15,7 @@
         android:layout_marginEnd="16dp"
         android:gravity="center"
         android:paddingTop="24dp"
-        android:text="@string/inventory_by_stages"
+        android:text="@string/products_in_production"
         android:textSize="22sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
