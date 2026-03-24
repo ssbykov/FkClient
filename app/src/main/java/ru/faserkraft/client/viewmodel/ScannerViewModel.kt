@@ -356,6 +356,13 @@ class ScannerViewModel @Inject constructor(
         loadRegistrationData()
     }
 
+    // ---------- Packaging operations ----------
+    suspend fun deletePackaging(serialNumber: String): Result<Unit> =
+        withActionAndResult {
+            repository.deletePackaging(serialNumber)
+            _packagingState.postValue(null)
+        }
+
     // ---------- Step operations ----------
     suspend fun closeStep(step: StepDto) {
         if (step.id == 0) return
