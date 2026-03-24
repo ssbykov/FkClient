@@ -11,8 +11,9 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemProductDetailBinding
 import ru.faserkraft.client.utils.formatIsoToUi
 
-@RequiresApi(Build.VERSION_CODES.O)
-class ProductsInventoryByProcessAdapter :
+class ProductsInventoryByProcessAdapter (
+    private val onItemClick: (String) -> Unit
+) :
     ListAdapter<ProductsInventoryByProcessUiItem, ProductsInventoryByProcessAdapter.ContentVH>(ContentDiff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContentVH {
@@ -21,23 +22,29 @@ class ProductsInventoryByProcessAdapter :
             parent,
             false
         )
-        return ContentVH(binding)
+        return ContentVH(binding, onItemClick)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: ContentVH, position: Int) {
         holder.bind(getItem(position))
     }
 
     class ContentVH(
-        private val binding: ItemProductDetailBinding
+        private val binding: ItemProductDetailBinding,
+        private val onStageClick: (String) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        @RequiresApi(Build.VERSION_CODES.O)
         fun bind(item: ProductsInventoryByProcessUiItem) = with(binding) {
             tvProductSerial.text = item.serialNumber
             tvCreated.text = binding.root.context.getString(
                 R.string.created_at,
                 formatIsoToUi(item.createdAt)
             )
+            binding.root.setOnClickListener {
+                onStageClick(item.serialNumber)
+            }
 
         }
     }

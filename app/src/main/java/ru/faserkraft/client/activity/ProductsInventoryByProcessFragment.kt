@@ -1,17 +1,16 @@
 package ru.faserkraft.client.activity
 
 import android.app.AlertDialog
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
@@ -20,7 +19,6 @@ import ru.faserkraft.client.adapter.ProductsInventoryByProcessUiItem
 import ru.faserkraft.client.databinding.FragmentProductsInventoryByProcessBinding
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
-@RequiresApi(Build.VERSION_CODES.O)
 class ProductsInventoryByProcessFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
@@ -29,7 +27,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
     private var _binding: FragmentProductsInventoryByProcessBinding? = null
     private val binding get() = _binding!!
 
-    private val adapter = ProductsInventoryByProcessAdapter()
+    private lateinit var adapter: ProductsInventoryByProcessAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,6 +39,17 @@ class ProductsInventoryByProcessFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        adapter = ProductsInventoryByProcessAdapter { dto ->
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.handleProductQr(dto)
+                findNavController().navigate(
+                    ProductsInventoryByProcessFragmentDirections
+                        .actionProductsInventoryByProcessFragmentToProductFullFragment()
+                )
+            }
+        }
+
         super.onViewCreated(view, savedInstanceState)
 
         setupRecycler()
@@ -88,6 +97,9 @@ class ProductsInventoryByProcessFragment : Fragment() {
                 }
             }
         }
+
+        binding.btnBack.setOnClickListener { findNavController().navigateUp() }
+
     }
 
     private fun renderHeader() {
