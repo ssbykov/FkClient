@@ -31,10 +31,13 @@ interface Api {
         @Path("serial_number") id: String,
     ): Response<ProductDto>
 
-    @GET(BASE_URL + "packaging/{serial_number}")
+    @GET(BASE_URL + "packaging/by_serial/{serial_number}")
     suspend fun getPackaging(
         @Path("serial_number") serialNumber: String
     ): Response<PackagingDto>
+
+    @GET(BASE_URL + "packaging/get_all_in_storage")
+    suspend fun getPackagingInStorage(): Response<List<PackagingDto>>
 
     @DELETE(BASE_URL + "packaging/{serial_number}")
     suspend fun deletePackaging(

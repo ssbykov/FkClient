@@ -82,6 +82,8 @@ class ScannerViewModel @Inject constructor(
     private val _packagingState = MutableLiveData<PackagingDto?>()
     val packagingState: LiveData<PackagingDto?> = _packagingState
 
+    private val _packagingBoxes = MutableLiveData<List<PackagingDto>?>()
+    val packagingBoxes: LiveData<List<PackagingDto>?> = _packagingBoxes
 
     private val _processes = MutableLiveData<List<ProcessDto>?>()
     val processes: LiveData<List<ProcessDto>?> = _processes
@@ -129,6 +131,7 @@ class ScannerViewModel @Inject constructor(
         _productsInventory.value = null
         _productsInventoryByProcess.value = null
         _newProduct.value = ProductCreateDto(serialNumber = "")
+        _packagingBoxes.value = null
         _processes.value = null
         _employees.value = null
         _dayPlans.value = DayPlansDto(date = getToday(), plans = null)
@@ -229,6 +232,22 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
+    suspend fun setProduct(product: ProductDto) {
+        _productState.postValue(product)
+
+        val initialStep = product.steps
+            .firstOrNull { it.status != "done" }
+            ?: product.steps.lastOrNull()
+            ?: run {
+                _errorState.emit(PRODUCT_NO_STEPS)
+                return
+            }
+
+        _selectedStep.postValue(initialStep)
+        _events.emit(UiEvent.NavigateToProduct)
+    }
+
+    // ---------- Packaging ----------
     suspend fun getPackaging(serialNumber: String) {
         updateUiState { it.copy(isLoading = true) }
         try {
@@ -251,26 +270,16 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
-    suspend fun setProduct(product: ProductDto) {
-        _productState.postValue(product)
-
-        val initialStep = product.steps
-            .firstOrNull { it.status != "done" }
-            ?: product.steps.lastOrNull()
-            ?: run {
-                _errorState.emit(PRODUCT_NO_STEPS)
-                return
-            }
-
-        _selectedStep.postValue(initialStep)
-        _events.emit(UiEvent.NavigateToProduct)
-    }
-
     suspend fun setPackaging(packaging: PackagingDto) {
         _packagingState.postValue(packaging)
         _events.emit(UiEvent.NavigateToPackaging)
     }
 
+    suspend fun getPackagingInStorage() {
+        withLoading {
+            repository.getPackagingInStorage()
+        }?.let { _packagingBoxes.postValue(it) }
+    }
 
     suspend fun getProductsInventory() {
         withLoading {
