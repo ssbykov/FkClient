@@ -11,6 +11,8 @@ data class PackagingDto(
     val performedBy: EmployeeDto? = null,
     @SerializedName("performed_at")
     val performedAt: String? = null,
+    @SerializedName("shipment_at")
+    val shipmentAt: String? = null,
     val products: List<FinishedProductDto>
 ) : ItemDto()
 
