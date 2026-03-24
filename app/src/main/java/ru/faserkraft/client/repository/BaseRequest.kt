@@ -52,3 +52,37 @@ suspend fun <R> callApi(
     }
 }
 
+suspend fun callApiNoBody(
+    block: suspend () -> Response<Unit>
+) {
+    try {
+        val response = block()
+
+        if (response.code() == 404) {
+            val raw = response.errorBody()?.string().orEmpty()
+            val (serverCode, serverDetail) = parseApiErrorBody(raw)
+
+            throw AppError.ApiError(
+                status = 404,
+                uiCode = serverCode ?: "error_api_404",
+                message = serverDetail ?: "Не найдено"
+            )
+        } else {
+            if (!response.isSuccessful) {
+                throw AppError.ApiError(
+                    status = response.code(),
+                    uiCode = "error_api_${response.code()}",
+                    message = response.message()
+                )
+            }
+            // 204 / 200 без тела — просто выходим
+        }
+    } catch (e: IOException) {
+        throw AppError.NetworkError
+    } catch (e: AppError) {
+        throw e
+    } catch (e: Exception) {
+        throw AppError.UnknownError
+    }
+}
+
