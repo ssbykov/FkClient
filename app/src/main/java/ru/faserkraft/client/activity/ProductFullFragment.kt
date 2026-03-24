@@ -39,16 +39,15 @@ class ProductFullFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = StepsAdapter { step ->
-            if (viewModel.userData.value?.role != UserRole.MASTER) return@StepsAdapter
+        val role = viewModel.userData.value?.role
+        val adapter = StepsAdapter(role) { step ->
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.setEmployees()
-                val action =
-                ProductFullFragmentDirections
-                    .actionProductFullFragmentToEditStepFragment(step)
-                findNavController().navigate(action)
+                findNavController().navigate(
+                    ProductFullFragmentDirections
+                        .actionProductFullFragmentToEditStepFragment(step)
+                )
             }
-
         }
 
         binding.rvSteps.layoutManager = LinearLayoutManager(requireContext())
