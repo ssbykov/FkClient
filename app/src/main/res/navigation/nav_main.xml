@@ -28,6 +28,9 @@
         <action
             android:id="@+id/action_scannerFragment_to_packagingFragment"
             app:destination="@id/packagingFragment" />
+        <action
+            android:id="@+id/action_scannerFragment_to_productsStorageFragment"
+            app:destination="@id/productsStorageFragment" />
     </fragment>
     <fragment
         android:id="@+id/registrationFragment"
@@ -168,6 +171,11 @@
             android:id="@+id/action_productsInventoryByProcessFragment_to_productFullFragment"
             app:destination="@id/productFullFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/productsStorageFragment"
+        android:name="ru.faserkraft.client.activity.ProductsStorageFragment"
+        android:label="fragment_products_storage"
+        tools:layout="@layout/fragment_products_storage" />
 
 
 </navigation>

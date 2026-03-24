@@ -62,4 +62,8 @@
     <string name="stage">Этап</string>
     <string name="status">Статус</string>
     <string name="created_at">Создан: %1$s</string>
+    <string name="storage">Склад</string>
+    <string name="products_storage">Продукция на складе</string>
+    <string name="products_count">Количество модулей: </string>
+    <string name="packaging_boxes">Упаковок</string>
 </resources>

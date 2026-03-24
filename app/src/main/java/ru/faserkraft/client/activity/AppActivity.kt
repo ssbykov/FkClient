@@ -68,6 +68,14 @@ class AppActivity : AppCompatActivity() {
                     true
                 }
 
+                R.id.storageFragment -> {
+                    val currentId = navController.currentDestination?.id
+                    if (currentId != R.id.productsStorageFragment) {
+                        navController.navigate(R.id.productsStorageFragment, null, options)
+                    }
+                    true
+                }
+
                 else -> false
             }
         }
