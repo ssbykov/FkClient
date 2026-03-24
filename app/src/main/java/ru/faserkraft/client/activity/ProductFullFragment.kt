@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.adapter.StepsAdapter
 import ru.faserkraft.client.databinding.FragmentProductFullBinding
-import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.utils.formatIsoToUi
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
