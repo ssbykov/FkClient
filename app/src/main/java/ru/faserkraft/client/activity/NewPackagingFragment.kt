@@ -16,6 +16,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.PackagingProductUiItem
@@ -145,8 +146,36 @@ class NewPackagingFragment : Fragment() {
             val selectedItems = adapter.currentList.filter { it.isSelected }
             if (selectedItems.isEmpty()) {
                 AlertDialog.Builder(requireContext())
-                    .setMessage("Необходимо выбрать хотя бы один продукт!")
-                    .setPositiveButton("ОК", null)
+                    .setIcon(android.R.drawable.ic_delete)
+                    .setTitle("Внимание")
+                    .setMessage("Вы не выбрали ни одного продукта!\nУдалить упаковку?")
+                    .setNegativeButton("ОК") { dialog, _ ->
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            val result = viewModel.deletePackaging(serial)
+                            if (result.isSuccess) {
+                                view.let { root ->
+                                    Snackbar.make(
+                                        root,
+                                        "Упаковка удалена",
+                                        Snackbar.LENGTH_SHORT
+                                    ).show()
+                                }
+                                val navOptions = NavOptions.Builder()
+                                    .setPopUpTo(R.id.nav_main, true)
+                                    .build()
+
+                                findNavController().navigate(
+                                    R.id.scannerFragment,
+                                    null,
+                                    navOptions
+                                )
+                            }
+                        }
+                        dialog.dismiss()
+                    }
+                    .setPositiveButton("Отмена") { dialog, _ ->
+                        dialog.dismiss()
+                    }
                     .show()
                 return@setOnClickListener
             }
