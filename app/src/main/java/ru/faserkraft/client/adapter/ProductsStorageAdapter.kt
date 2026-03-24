@@ -36,14 +36,10 @@ class ProductsStorageAdapter(
         fun bind(item: ProductsStorageUiItem) = with(binding) {
             binding.tvWorkProcess.text = item.process
             binding.tvDoneValue.text = item.productCount
-            // Пример, подставь свои поля под разметку:
-//            .text = item.name
-//            tvBoxCode.text = item.code
-//            tvBoxCount.text = item.count.toString()
-//
-//            root.setOnClickListener {
-//                onItemClick(item)
-//            }
+
+            root.setOnClickListener {
+                onItemClick(item)
+            }
         }
     }
 

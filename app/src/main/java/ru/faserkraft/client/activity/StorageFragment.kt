@@ -12,6 +12,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.adapter.ProductsStorageAdapter   // свой адаптер
@@ -19,7 +20,7 @@ import ru.faserkraft.client.adapter.ProductsStorageUiItem
 import ru.faserkraft.client.databinding.FragmentProductsStorageBinding
 import ru.faserkraft.client.viewmodel.ScannerViewModel       // своя VM
 
-class ProductsStorageFragment : Fragment() {
+class StorageFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
     private lateinit var binding: FragmentProductsStorageBinding
@@ -38,8 +39,10 @@ class ProductsStorageFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val adapter = ProductsStorageAdapter { item ->
-            // обработка клика по элементу склада
-            // TODO: навигация / действие
+            val action =
+                StorageFragmentDirections
+                    .actionProductsStorageFragmentToPackagingShipmentFragment(item.process)
+            findNavController().navigate(action)
         }
 
         binding.rvProductsStats.layoutManager = LinearLayoutManager(requireContext())
