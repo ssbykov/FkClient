@@ -1,7 +1,9 @@
 package ru.faserkraft.client.adapter
 
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
@@ -12,15 +14,17 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemStepBinding
 import ru.faserkraft.client.dto.StepDto
 import ru.faserkraft.client.dto.toUiStatus
+import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.utils.formatIsoToUi
 
 class StepsAdapter(
+    private val role: UserRole?,
     private val onItemClick: (StepDto) -> Unit
 ) : ListAdapter<StepDto, StepsAdapter.StepVH>(StepDiff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StepVH {
         val binding = ItemStepBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return StepVH(binding, onItemClick)
+        return StepVH(binding, role, onItemClick)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -30,6 +34,7 @@ class StepsAdapter(
 
     class StepVH(
         private val binding: ItemStepBinding,
+        private val role: UserRole?,
         private val onItemClick: (StepDto) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -44,10 +49,10 @@ class StepsAdapter(
                 )
 
                 val uiStatus = step.toUiStatus()
-                imgStatus.setImageResource(uiStatus.iconRes)
-                root.setBackgroundColor(
-                    ContextCompat.getColor(root.context, uiStatus.bgColorRes)
-                )
+                val bg = root.background.mutate()
+                if (bg is GradientDrawable) {
+                    bg.setColor(ContextCompat.getColor(root.context, uiStatus.bgColorRes))
+                }
 
                 val completedAtText = formatIsoToUi(step.performedAt)
                 tvCompletedAt.text = root.context.getString(
@@ -55,9 +60,11 @@ class StepsAdapter(
                     completedAtText
                 )
 
-                binding.root.setOnClickListener {
-                    if (step.status != "done") return@setOnClickListener
-                    onItemClick(step)
+                if (role == UserRole.MASTER && step.status == "done") {
+                    btnEdit.visibility = View.VISIBLE
+                    btnEdit.setOnClickListener {
+                        onItemClick(step)
+                    }
                 }
             }
         }
