@@ -1,5 +1,6 @@
 package ru.faserkraft.client.repository
 
+import retrofit2.Response
 import ru.faserkraft.client.api.Api
 import ru.faserkraft.client.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
@@ -28,6 +29,9 @@ class ApiRepositoryImpl @Inject constructor(
 
     override suspend fun getPackaging(serialNumber: String): PackagingDto? =
         callApi { api.getPackaging(serialNumber) }
+
+    override suspend fun deletePackaging(serialNumber: String) =
+        callApiNoBody { api.deletePackaging(serialNumber) }
 
     override suspend fun postProduct(product: ProductCreateDto): ProductDto? =
         callApi { api.postProduct(product) }

@@ -19,6 +19,7 @@ import ru.faserkraft.client.dto.QrDataResponseDto
 interface ApiRepository {
     suspend fun getProduct(serialNumber: String): ProductDto?
     suspend fun getPackaging(serialNumber: String): PackagingDto?
+    suspend fun deletePackaging(serialNumber: String)
     suspend fun postProduct(product: ProductCreateDto): ProductDto?
 
     suspend fun createPackaging(

@@ -36,12 +36,16 @@ interface Api {
         @Path("serial_number") serialNumber: String
     ): Response<PackagingDto>
 
+    @DELETE(BASE_URL + "packaging/{serial_number}")
+    suspend fun deletePackaging(
+        @Path("serial_number") serialNumber: String
+    ): Response<Unit>
+
     @GET("products/by-last-completed-step")
     suspend fun getProductsByLastCompletedStep(
         @Query("process_id") processId: Int,
         @Query("step_definition_id") stepDefinitionId: Int,
     ): Response<List<ProductDto>>
-
 
     @GET(BASE_URL + "products/finished")
     suspend fun getFinishedProduct(
