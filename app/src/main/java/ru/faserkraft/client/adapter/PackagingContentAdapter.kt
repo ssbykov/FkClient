@@ -7,7 +7,9 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.databinding.ItemPackagingContentProductBinding
 
-class PackagingContentAdapter :
+class PackagingContentAdapter (
+    private val onItemClick: (String) -> Unit
+) :
     ListAdapter<PackagingContentUiItem, PackagingContentAdapter.ContentVH>(ContentDiff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContentVH {
@@ -16,7 +18,7 @@ class PackagingContentAdapter :
             parent,
             false
         )
-        return ContentVH(binding)
+        return ContentVH(binding, onItemClick)
     }
 
     override fun onBindViewHolder(holder: ContentVH, position: Int) {
@@ -24,14 +26,17 @@ class PackagingContentAdapter :
     }
 
     class ContentVH(
-        private val binding: ItemPackagingContentProductBinding
+        private val binding: ItemPackagingContentProductBinding,
+        private val onItemClick: (String) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: PackagingContentUiItem) = with(binding) {
-            // номер продукта
             tvProductSerial.text = item.serialNumber
-            // название процесса
             tvProcessName.text = item.processName
+
+            root.setOnClickListener {
+                onItemClick(item.serialNumber)
+            }
         }
     }
 

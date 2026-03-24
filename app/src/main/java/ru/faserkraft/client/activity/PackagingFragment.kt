@@ -69,7 +69,15 @@ class PackagingFragment : Fragment() {
         }
 
         // адаптер без чекбоксов, просто отображение списка
-        adapter = PackagingContentAdapter()
+        adapter = PackagingContentAdapter {
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.handleProductQr(it)
+                findNavController().navigate(
+                    R.id.action_packagingFragment_to_productFullFragment
+                )
+            }
+
+        }
 
         binding.rvPackagingProducts.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPackagingProducts.adapter = adapter
