@@ -434,7 +434,7 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
-    private suspend fun handleProductQr(serialNumber: String) {
+    suspend fun handleProductQr(serialNumber: String) {
         withLoading {
             getProduct(serialNumber)
         }
