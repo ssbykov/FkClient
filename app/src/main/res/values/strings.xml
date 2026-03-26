@@ -50,6 +50,7 @@
     <string name="employee_selection">Выбор сотрудника</string>
     <string name="inventory">Остатки</string>
     <string name="state_count">Количество: %1$d</string>
+    <string name="employee_plan_products">Факт на дату: %1$s</string>
     <string name="total_count">Всего: %1$d</string>
     <string name="items_in_box">%1$s × %2$d шт.</string>
     <string name="items_count">Позиций: %1$d</string>

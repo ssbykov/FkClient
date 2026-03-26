@@ -79,9 +79,14 @@
         android:name="ru.faserkraft.client.activity.DayPlanFragment"
         android:label="fragment_day_plan"
         tools:layout="@layout/fragment_day_plan">
+
         <action
             android:id="@+id/action_dayPlanFragment_to_addDayPlanFragment"
             app:destination="@id/addDayPlanFragment" />
+
+        <action
+            android:id="@+id/action_dayPlanFragment_to_employeePlanProductsFragment"
+            app:destination="@id/employeePlanProductsFragment" />
     </fragment>
     <fragment
         android:id="@+id/editProductFragment"
@@ -192,5 +197,17 @@
             android:name="process"
             app:argType="string" />
     </fragment>
+    <fragment
+        android:id="@+id/employeePlanProductsFragment"
+        android:name="ru.faserkraft.client.activity.EmployeePlanProductsFragment"
+        android:label="fragment_employee_plan_products"
+        tools:layout="@layout/fragment_employee_plan_products">
 
+        <argument
+            android:name="employeePlanDto"
+            app:argType="ru.faserkraft.client.dto.EmployeePlanDto" />
+        <action
+            android:id="@+id/action_employeePlanProductsFragment_to_productFullFragment"
+            app:destination="@id/productFullFragment" />
+    </fragment>
 </navigation>

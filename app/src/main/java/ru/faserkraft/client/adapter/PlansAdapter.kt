@@ -1,7 +1,9 @@
 package ru.faserkraft.client.adapter
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.DiffUtil
@@ -11,7 +13,11 @@ import ru.faserkraft.client.databinding.ItemEmployeeHeaderBinding
 import ru.faserkraft.client.databinding.ItemPlanBinding
 import ru.faserkraft.client.dto.EmployeePlanDto
 
-class PlansAdapter(private val onStepClick: (EmployeePlanDto) -> Unit) :
+class PlansAdapter(
+    private var canEdit: Boolean,
+    private val onEditPlanClick: (EmployeePlanDto) -> Unit,
+    private val onEmployeeProductsClick: (EmployeePlanDto) -> Unit,
+) :
     ListAdapter<EmployeePlanUiItem, RecyclerView.ViewHolder>(Diff()) {
 
     companion object {
@@ -38,7 +44,7 @@ class PlansAdapter(private val onStepClick: (EmployeePlanDto) -> Unit) :
 
             else -> {
                 val binding = ItemPlanBinding.inflate(inflater, parent, false)
-                StepVH(onStepClick, binding)
+                StepVH(onEditPlanClick, onEmployeeProductsClick, binding)
             }
         }
     }
@@ -47,8 +53,15 @@ class PlansAdapter(private val onStepClick: (EmployeePlanDto) -> Unit) :
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = getItem(position)) {
             is EmployeePlanUiItem.Header -> (holder as HeaderVH).bind(item)
-            is EmployeePlanUiItem.Step -> (holder as StepVH).bind(item.plan)
+            is EmployeePlanUiItem.Step -> (holder as StepVH).bind(item.plan, canEdit)
         }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun setCanEdit(value: Boolean) {
+        if (canEdit == value) return
+        canEdit = value
+        notifyDataSetChanged()
     }
 
     class HeaderVH(
@@ -60,19 +73,32 @@ class PlansAdapter(private val onStepClick: (EmployeePlanDto) -> Unit) :
     }
 
     class StepVH(
-        private val onStepClick: (EmployeePlanDto) -> Unit,
+        private val onEditPlanClick: (EmployeePlanDto) -> Unit,
+        private val onEmployeeProductsClick: (EmployeePlanDto) -> Unit,
         private val binding: ItemPlanBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        private var canEdit: Boolean = false
+
         @RequiresApi(Build.VERSION_CODES.O)
-        fun bind(plan: EmployeePlanDto) = with(binding) {
+        fun bind(plan: EmployeePlanDto, canEdit: Boolean) = with(binding) {
+            this@StepVH.canEdit = canEdit
+
             tvWorkProcess.text = plan.workProcess
             tvStepName.text = plan.stepDefinition.template.name
             tvPlanValue.text = plan.plannedQuantity.toString()
             tvDoneValue.text = plan.actualQuantity.toString()
 
-            binding.root.setOnClickListener {
-                onStepClick(plan)
+            if (canEdit) {
+                btnEdit.visibility = View.VISIBLE
+                btnEdit.setOnClickListener { onEditPlanClick(plan) }
+            } else {
+                btnEdit.visibility = View.GONE
+                btnEdit.setOnClickListener(null)
+            }
+
+            root.setOnClickListener {
+                onEmployeeProductsClick(plan)
             }
         }
     }
@@ -98,6 +124,7 @@ class PlansAdapter(private val onStepClick: (EmployeePlanDto) -> Unit) :
         ): Boolean =
             oldItem == newItem
     }
+
 }
 
 sealed class EmployeePlanUiItem {

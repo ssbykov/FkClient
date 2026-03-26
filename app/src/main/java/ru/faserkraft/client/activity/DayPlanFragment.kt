@@ -35,6 +35,7 @@ class DayPlanFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
     private lateinit var binding: FragmentDayPlanBinding
+    private lateinit var adapter: PlansAdapter
     private var currentUserRole: UserRole? = null
     private var canEdit: Boolean = false
     private var datePicker: MaterialDatePicker<Long>? = null
@@ -57,11 +58,9 @@ class DayPlanFragment : Fragment() {
             showDatePicker()
         }
 
-        val adapter = PlansAdapter(
-
-            onStepClick = { employeePlan ->
-                if (!canEdit) return@PlansAdapter
-
+        adapter = PlansAdapter(
+            canEdit,
+            onEditPlanClick = { employeePlan ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     viewModel.setEmployees()
                     viewModel.setProcesses()
@@ -71,6 +70,16 @@ class DayPlanFragment : Fragment() {
                         R.id.action_dayPlanFragment_to_addDayPlanFragment,
                         bundle
                     )
+                }
+            },
+            onEmployeeProductsClick = { employeePlan ->
+                viewLifecycleOwner.lifecycleScope.launch {
+
+                    val action =
+                        DayPlanFragmentDirections
+                            .actionDayPlanFragmentToEmployeePlanProductsFragment(employeePlan)
+
+                    findNavController().navigate(action)
                 }
             }
         )
@@ -141,11 +150,11 @@ class DayPlanFragment : Fragment() {
 
             if (dayPlans.plans.isNullOrEmpty()) {
                 adapter.submitList(emptyList())
-                updateCanEditForCurrentState(planDateApi = null)
+                recomputeCanEdit(planDateApi = null)
                 return@observe
             }
 
-            updateCanEditForCurrentState(planDate)
+            recomputeCanEdit(planDate)
 
             val uiItems = mutableListOf<EmployeePlanUiItem>()
 
@@ -203,7 +212,7 @@ class DayPlanFragment : Fragment() {
 
         viewModel.userData.observe(viewLifecycleOwner) { user ->
             currentUserRole = user?.role
-            updateCanEditForCurrentState()
+            recomputeCanEdit()
         }
 
         binding.fabAddPlan.setOnClickListener {
@@ -247,7 +256,7 @@ class DayPlanFragment : Fragment() {
     }
 
 
-    private fun updateCanEditForCurrentState(planDateApi: String? = null) {
+    private fun recomputeCanEdit(planDateApi: String? = null) {
         val isMaster = currentUserRole == UserRole.MASTER
 
         val effectiveDateApi = planDateApi ?: run {
@@ -260,6 +269,10 @@ class DayPlanFragment : Fragment() {
 
         canEdit = isMaster && isDateEditable
         binding.fabAddPlan.visibility = if (canEdit) View.VISIBLE else View.GONE
+
+        if (this::adapter.isInitialized) {
+            adapter.setCanEdit(canEdit)
+        }
     }
 
 }
