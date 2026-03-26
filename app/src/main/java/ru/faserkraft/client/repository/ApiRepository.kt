@@ -9,6 +9,7 @@ import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.FinishedProductDto
 import ru.faserkraft.client.dto.PackagingCreateDto
 import ru.faserkraft.client.dto.PackagingDto
+import ru.faserkraft.client.dto.PackagingShipmentResponse
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
@@ -20,6 +21,7 @@ interface ApiRepository {
     suspend fun getProduct(serialNumber: String): ProductDto?
     suspend fun getPackaging(serialNumber: String): PackagingDto?
     suspend fun getPackagingInStorage(): List<PackagingDto>?
+    suspend fun setPackagingShipment(packagingIds: List<Int>): PackagingShipmentResponse?
     suspend fun deletePackaging(serialNumber: String)
     suspend fun postProduct(product: ProductCreateDto): ProductDto?
 

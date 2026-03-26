@@ -10,6 +10,7 @@ import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.FinishedProductDto
 import ru.faserkraft.client.dto.PackagingCreateDto
 import ru.faserkraft.client.dto.PackagingDto
+import ru.faserkraft.client.dto.PackagingShipmentResponse
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
@@ -31,6 +32,9 @@ class ApiRepositoryImpl @Inject constructor(
 
     override suspend fun getPackagingInStorage(): List<PackagingDto>? =
         callApi { api.getPackagingInStorage() }
+
+    override suspend fun setPackagingShipment(packagingIds: List<Int>): PackagingShipmentResponse? =
+        callApi { api.setPackagingShipment(packagingIds) }
 
     override suspend fun deletePackaging(serialNumber: String) =
         callApiNoBody { api.deletePackaging(serialNumber) }

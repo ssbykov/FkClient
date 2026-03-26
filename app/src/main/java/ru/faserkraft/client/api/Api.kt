@@ -16,6 +16,7 @@ import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.FinishedProductDto
 import ru.faserkraft.client.dto.PackagingCreateDto
 import ru.faserkraft.client.dto.PackagingDto
+import ru.faserkraft.client.dto.PackagingShipmentResponse
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
@@ -38,6 +39,11 @@ interface Api {
 
     @GET(BASE_URL + "packaging/get_all_in_storage")
     suspend fun getPackagingInStorage(): Response<List<PackagingDto>>
+
+    @POST(BASE_URL + "packaging/shipment")
+    suspend fun setPackagingShipment(
+        @Body packagingIds: List<Int>
+    ): Response<PackagingShipmentResponse>
 
     @DELETE(BASE_URL + "packaging/{serial_number}")
     suspend fun deletePackaging(

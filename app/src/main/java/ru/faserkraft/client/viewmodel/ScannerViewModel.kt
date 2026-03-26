@@ -19,6 +19,7 @@ import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.FinishedProductDto
 import ru.faserkraft.client.dto.PackagingCreateDto
 import ru.faserkraft.client.dto.PackagingDto
+import ru.faserkraft.client.dto.PackagingShipmentResponse
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
@@ -370,6 +371,11 @@ class ScannerViewModel @Inject constructor(
         withActionAndResult {
             repository.deletePackaging(serialNumber)
             _packagingState.postValue(null)
+        }
+
+    suspend fun setPackagingShipment(packagingIds: List<Int>): PackagingShipmentResponse? =
+        withAction {
+            repository.setPackagingShipment(packagingIds)
         }
 
     // ---------- Step operations ----------
