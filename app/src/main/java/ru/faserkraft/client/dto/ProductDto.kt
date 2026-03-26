@@ -87,6 +87,8 @@ data class ProductsInventoryDto(
     val stepDefinitionId: Int,
     @SerializedName("step_name")
     val stepName: String,
+    @SerializedName("step_name_genitive")
+    val stepNameGenitive: String,
     @SerializedName("count")
     val count: Int,
 ) : Serializable

@@ -68,7 +68,7 @@ class ProductsInventoryAdapter(
         private val onClick: (ProductsInventoryDto) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(dto: ProductsInventoryDto) = with(binding) {
-            tvStepName.text = dto.stepName
+            tvStepName.text = dto.stepNameGenitive
             tvCount.text = itemView.context.getString(
                 R.string.state_count,
                 dto.count
