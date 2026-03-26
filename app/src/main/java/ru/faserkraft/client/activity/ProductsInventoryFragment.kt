@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.adapter.ProductsInventoryAdapter
 import ru.faserkraft.client.adapter.ProductsInventoryUiItem
@@ -25,6 +26,7 @@ class ProductsInventoryFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
     private lateinit var binding: FragmentProductsInventoryBinding
+    private lateinit var adapter: ProductsInventoryAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,7 +41,7 @@ class ProductsInventoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = ProductsInventoryAdapter { dto ->
+        adapter = ProductsInventoryAdapter { dto ->
             val action =
                 ProductsInventoryFragmentDirections
                     .actionProductsInventoryFragmentToProductsInventoryByProcessFragment(dto)
@@ -49,6 +51,16 @@ class ProductsInventoryFragment : Fragment() {
         binding.rvProductsStats.layoutManager = LinearLayoutManager(requireContext())
         binding.rvProductsStats.adapter = adapter
 
+        // empty view observer
+        val emptyObserver = object : RecyclerView.AdapterDataObserver() {
+            override fun onChanged() = checkEmpty()
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = checkEmpty()
+            override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = checkEmpty()
+        }
+        adapter.registerAdapterDataObserver(emptyObserver)
+        emptyObserver.onChanged()
+
+        // первоначальная загрузка
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.getProductsInventory()
         }
@@ -78,7 +90,6 @@ class ProductsInventoryFragment : Fragment() {
             adapter.submitList(uiItems)
         }
 
-
         // состояние загрузки
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             val isLoading = state.isLoading
@@ -107,5 +118,11 @@ class ProductsInventoryFragment : Fragment() {
                 viewModel.getProductsInventory()
             }
         }
+    }
+
+    private fun checkEmpty() {
+        val isEmpty = adapter.itemCount == 0
+        binding.tvEmptyInventory.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        binding.rvProductsStats.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 }

@@ -70,4 +70,5 @@
     <string name="packaging_boxes">Упаковок</string>
     <string name="packaging_for_shipment">Упаковки для отправки</string>
     <string name="no_products_in_storage">Нет упакованных товаров для отгрузки!</string>
+    <string name="empty_production">Нет модулей в производстве!</string>
 </resources>
