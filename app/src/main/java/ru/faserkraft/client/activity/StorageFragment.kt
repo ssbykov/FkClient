@@ -14,16 +14,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
-import ru.faserkraft.client.adapter.ProductsStorageAdapter   // свой адаптер
+import ru.faserkraft.client.adapter.ProductsStorageAdapter
 import ru.faserkraft.client.adapter.ProductsStorageUiItem
 import ru.faserkraft.client.databinding.FragmentProductsStorageBinding
-import ru.faserkraft.client.viewmodel.ScannerViewModel       // своя VM
+import ru.faserkraft.client.viewmodel.ScannerViewModel
 
 class StorageFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
     private lateinit var binding: FragmentProductsStorageBinding
+    private lateinit var adapter: ProductsStorageAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,7 +40,7 @@ class StorageFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = ProductsStorageAdapter { item ->
+        adapter = ProductsStorageAdapter { item ->
             val action =
                 StorageFragmentDirections
                     .actionProductsStorageFragmentToPackagingShipmentFragment(item.process)
@@ -47,6 +49,15 @@ class StorageFragment : Fragment() {
 
         binding.rvProductsStats.layoutManager = LinearLayoutManager(requireContext())
         binding.rvProductsStats.adapter = adapter
+
+        // empty view observer
+        val emptyObserver = object : RecyclerView.AdapterDataObserver() {
+            override fun onChanged() = checkEmpty()
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = checkEmpty()
+            override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = checkEmpty()
+        }
+        adapter.registerAdapterDataObserver(emptyObserver)
+        emptyObserver.onChanged()
 
         // первоначальная загрузка
         viewLifecycleOwner.lifecycleScope.launch {
@@ -74,7 +85,6 @@ class StorageFragment : Fragment() {
 
             adapter.submitList(uiList)
         }
-
 
         // состояние загрузки
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
@@ -104,5 +114,11 @@ class StorageFragment : Fragment() {
                 viewModel.getPackagingInStorage()
             }
         }
+    }
+
+    private fun checkEmpty() {
+        val isEmpty = adapter.itemCount == 0
+        binding.tvEmptyStorage.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        binding.rvProductsStats.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 }
