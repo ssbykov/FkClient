@@ -189,8 +189,4 @@ class PackagingShipmentFragment : Fragment() {
             adapter.submitList(updated)
         }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun nowIsoString(): String {
-        return OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-    }
 }
