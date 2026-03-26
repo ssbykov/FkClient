@@ -16,6 +16,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
@@ -48,13 +49,12 @@ class NewPackagingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // пример: номер упаковки приходит из VM или генерится заранее
+        // номер упаковки
         viewModel.packagingState.observe(viewLifecycleOwner) { packaging ->
             binding.tvPackagingSerial.text = packaging?.serialNumber
         }
 
         adapter = PackagingProductsAdapter { item, isChecked ->
-            // обновляем список с учётом изменения выбранности
             val current = adapter.currentList.toMutableList()
             val index = current.indexOfFirst { it.id == item.id }
             if (index != -1) {
@@ -62,7 +62,6 @@ class NewPackagingFragment : Fragment() {
                 adapter.submitList(current)
             }
 
-            // если хотя бы один не выбран – снимаем "выбрать все", иначе ставим
             val allSelected = adapter.currentList.all { it.isSelected }
             if (binding.cbSelectAll.isChecked != allSelected) {
                 binding.cbSelectAll.setOnCheckedChangeListener(null)
@@ -74,6 +73,15 @@ class NewPackagingFragment : Fragment() {
         binding.rvProducts.layoutManager = LinearLayoutManager(requireContext())
         binding.rvProducts.adapter = adapter
 
+        // empty view observer
+        val emptyObserver = object : RecyclerView.AdapterDataObserver() {
+            override fun onChanged() = checkEmpty()
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = checkEmpty()
+            override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = checkEmpty()
+        }
+        adapter.registerAdapterDataObserver(emptyObserver)
+        emptyObserver.onChanged()    // первичная проверка
+
         // обработчик "выбрать все"
         binding.cbSelectAll.setOnCheckedChangeListener(selectAllListener)
 
@@ -83,7 +91,6 @@ class NewPackagingFragment : Fragment() {
             val selectedIdsFromPackaging =
                 editingPackaging?.products?.map { it.id }?.toSet().orEmpty()
 
-            // продукты, пришедшие из API
             val base = products.map { p ->
                 PackagingProductUiItem(
                     id = p.id,
@@ -95,7 +102,6 @@ class NewPackagingFragment : Fragment() {
                 )
             }
 
-            // продукты, которых нет в availableProductsForPackaging, но есть в упаковке
             val extra = editingPackaging?.products
                 ?.filter { ep -> base.none { it.id == ep.id } }
                 ?.map { ep ->
@@ -111,7 +117,6 @@ class NewPackagingFragment : Fragment() {
 
             val uiItems = base + extra
             adapter.submitList(uiItems)
-
 
             binding.cbSelectAll.setOnCheckedChangeListener(null)
             val allSelected = uiItems.isNotEmpty() && uiItems.all { it.isSelected }
@@ -139,7 +144,7 @@ class NewPackagingFragment : Fragment() {
             }
         }
 
-        // создание упаковки
+        // создание упаковки (без изменений)
         binding.btnSave.setOnClickListener {
             val serial = binding.tvPackagingSerial.text?.toString().orEmpty()
 
@@ -220,11 +225,17 @@ class NewPackagingFragment : Fragment() {
                         navOptions
                     )
                 }.onFailure {
-                    // тут просто ничего не делаем, диалог покажет подписка на errorState
+                    // обработка через errorState
                 }
             }
         }
+    }
 
+    private fun checkEmpty() {
+        val isEmpty = adapter.itemCount == 0
+        binding.tvEmptyProducts.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        binding.rvProducts.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.cbSelectAll.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 
     private val selectAllListener =

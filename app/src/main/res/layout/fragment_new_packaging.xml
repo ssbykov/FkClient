@@ -49,6 +49,20 @@
             tools:text="PKG-000000123" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/tvEmptyProducts"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:text="@string/no_product_for_packaging"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/llPackagingSerial"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
     <!-- Чекбокс "выбрать все" -->
     <CheckBox
         android:id="@+id/cbSelectAll"
@@ -56,8 +70,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="@string/select_all_products"
-        app:layout_constraintTop_toBottomOf="@id/llPackagingSerial"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvEmptyProducts"        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Список продуктов с чекбоксами -->
