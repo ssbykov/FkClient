@@ -137,13 +137,17 @@ class PackagingFragment : Fragment() {
         val userEmail = currentUser?.email
         val packagingEmail = currentPackaging?.performedBy?.user?.email
         val packagingDate = currentPackaging?.performedAt
+        val shipmentAt = currentPackaging?.shipmentAt
+
+        val isNotShipped = shipmentAt.isNullOrBlank()
 
         val canEdit =
             role == UserRole.ADMIN ||
                     role == UserRole.MASTER ||
                     (packagingEmail == userEmail && Instant.parse(packagingDate)
                         .atZone(ZoneId.systemDefault())
-                        .toLocalDate() == LocalDate.now())
+                        .toLocalDate() == LocalDate.now()) &&
+                    isNotShipped
 
         binding.btnEdit.visibility = if (canEdit) View.VISIBLE else View.GONE
     }
