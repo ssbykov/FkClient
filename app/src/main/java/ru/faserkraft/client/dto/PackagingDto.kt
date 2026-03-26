@@ -21,3 +21,8 @@ data class PackagingCreateDto(
     val serialNumber: String,
     val products: List<Int>
 ) : ItemDto()
+
+data class PackagingShipmentResponse(
+    @SerializedName("updated_ids")
+    val updatedIds: List<Int>
+)
