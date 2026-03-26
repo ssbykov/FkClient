@@ -46,6 +46,12 @@ interface ApiRepository {
         stepDefinitionId: Int,
     ): List<ProductDto>?
 
+    suspend fun getProductsByStepEmployeeDay(
+        stepDefinitionId: Int,
+        day: String,
+        employeeId: Int
+    ): List<ProductDto>?
+
     suspend fun getFinishedProduct(): List<FinishedProductDto>?
 
     suspend fun getDayPlans(date: String): List<DayPlanDto>?

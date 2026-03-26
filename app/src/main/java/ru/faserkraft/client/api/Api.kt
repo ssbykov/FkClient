@@ -56,6 +56,13 @@ interface Api {
         @Query("step_definition_id") stepDefinitionId: Int,
     ): Response<List<ProductDto>>
 
+    @GET("products/by-step-employee-day")
+    suspend fun getProductsByStepEmployeeDay(
+        @Query("step_definition_id") stepDefinitionId: Int,
+        @Query("day") day: String,
+        @Query("employee_id") employeeId: Int? = null,
+    ): Response<List<ProductDto>>
+
     @GET(BASE_URL + "products/finished")
     suspend fun getFinishedProduct(
     ): Response<List<FinishedProductDto>>

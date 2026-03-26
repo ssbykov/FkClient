@@ -288,10 +288,34 @@ class ScannerViewModel @Inject constructor(
         }?.let { _productsInventory.postValue(it) }
     }
 
-    suspend fun getProductsByLastCompletedStep(processId: Int, stepDefinitionId: Int) {
+    suspend fun getProductsByLastCompletedStep(
+        processId: Int,
+        stepDefinitionId: Int
+    ) {
         withLoading {
-            repository.getProductsByLastCompletedStep(processId, stepDefinitionId)
-        }?.let { _productsInventoryByProcess.postValue(it) }
+            repository.getProductsByLastCompletedStep(
+                processId = processId,
+                stepDefinitionId = stepDefinitionId
+            )
+        }?.let { products ->
+            _productsInventoryByProcess.postValue(products)
+        }
+    }
+
+    suspend fun getProductsByStepEmployeeDay(
+        stepDefinitionId: Int,
+        day: String,
+        employeeId: Int,
+    ) {
+        withLoading {
+            repository.getProductsByStepEmployeeDay(
+                stepDefinitionId = stepDefinitionId,
+                day = day,
+                employeeId = employeeId,
+            )
+        }?.let { products ->
+            _productsInventoryByProcess.postValue(products)
+        }
     }
 
     suspend fun loadAvailableProductsForPackaging() {
