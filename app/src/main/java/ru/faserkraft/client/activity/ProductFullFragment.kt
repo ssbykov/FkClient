@@ -13,8 +13,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
+import ru.faserkraft.client.adapter.StepUiItem
 import ru.faserkraft.client.adapter.StepsAdapter
 import ru.faserkraft.client.databinding.FragmentProductFullBinding
+import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.utils.formatIsoToUi
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
@@ -38,13 +40,13 @@ class ProductFullFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val role = viewModel.userData.value?.role
-        val adapter = StepsAdapter(role) { step ->
+
+        val adapter = StepsAdapter { step ->
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.setEmployees()
                 findNavController().navigate(
                     ProductFullFragmentDirections
-                        .actionProductFullFragmentToEditStepFragment(step)
+                        .actionProductFullFragmentToEditStepFragment(step.stepDto)
                 )
             }
         }
@@ -60,10 +62,19 @@ class ProductFullFragment : Fragment() {
             binding.tvTechProcess.text = "Техпроцесс: ${product.process.name}"
             binding.tvStartAt.text = "Запуск: ${formatIsoToUi(product.createdAt)}"
 
-            adapter.submitList(product.steps)
+
+            val stepUiItems = product.steps.map { step ->
+                val isEditable =
+                    viewModel.userData.value?.role == UserRole.MASTER
+                            && product.packagingId == null
+                            && step.performedAt != null
+
+                StepUiItem(isEditable, step)
+            }
+            adapter.submitList(stepUiItems)
+
+            binding.btnBack.setOnClickListener { findNavController().navigateUp() }
+
         }
-
-        binding.btnBack.setOnClickListener { findNavController().navigateUp() }
-
     }
 }

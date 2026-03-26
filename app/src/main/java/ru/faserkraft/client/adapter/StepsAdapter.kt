@@ -14,17 +14,15 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemStepBinding
 import ru.faserkraft.client.dto.StepDto
 import ru.faserkraft.client.dto.toUiStatus
-import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.utils.formatIsoToUi
 
 class StepsAdapter(
-    private val role: UserRole?,
-    private val onItemClick: (StepDto) -> Unit
-) : ListAdapter<StepDto, StepsAdapter.StepVH>(StepDiff()) {
+    private val onItemClick: (StepUiItem) -> Unit
+) : ListAdapter<StepUiItem, StepsAdapter.StepVH>(StepDiff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StepVH {
         val binding = ItemStepBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return StepVH(binding, role, onItemClick)
+        return StepVH(binding, onItemClick)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -34,33 +32,32 @@ class StepsAdapter(
 
     class StepVH(
         private val binding: ItemStepBinding,
-        private val role: UserRole?,
-        private val onItemClick: (StepDto) -> Unit
+        private val onItemClick: (StepUiItem) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         @RequiresApi(Build.VERSION_CODES.O)
-        fun bind(step: StepDto) {
+        fun bind(step: StepUiItem) {
             with(binding) {
-                tvStepIndex.text = step.stepDefinition.order.toString()
-                tvStepName.text = step.stepDefinition.template.name
+                tvStepIndex.text = step.stepDto.stepDefinition.order.toString()
+                tvStepName.text = step.stepDto.stepDefinition.template.name
                 tvExecutor.text = root.context.getString(
                     R.string.step_executor,
-                    step.performedBy?.name ?: "-"
+                    step.stepDto.performedBy?.name ?: "-"
                 )
 
-                val uiStatus = step.toUiStatus()
+                val uiStatus = step.stepDto.toUiStatus()
                 val bg = root.background.mutate()
                 if (bg is GradientDrawable) {
                     bg.setColor(ContextCompat.getColor(root.context, uiStatus.bgColorRes))
                 }
 
-                val completedAtText = formatIsoToUi(step.performedAt)
+                val completedAtText = formatIsoToUi(step.stepDto.performedAt)
                 tvCompletedAt.text = root.context.getString(
                     R.string.step_completed_at,
                     completedAtText
                 )
 
-                if (role == UserRole.MASTER && step.status == "done") {
+                if (step.isEditable) {
                     btnEdit.visibility = View.VISIBLE
                     btnEdit.setOnClickListener {
                         onItemClick(step)
@@ -71,11 +68,16 @@ class StepsAdapter(
 
     }
 
-    class StepDiff : DiffUtil.ItemCallback<StepDto>() {
-        override fun areItemsTheSame(oldItem: StepDto, newItem: StepDto): Boolean =
-            oldItem.id == newItem.id
+    class StepDiff : DiffUtil.ItemCallback<StepUiItem>() {
+        override fun areItemsTheSame(oldItem: StepUiItem, newItem: StepUiItem): Boolean =
+            oldItem.stepDto.id == newItem.stepDto.id
 
-        override fun areContentsTheSame(oldItem: StepDto, newItem: StepDto): Boolean =
+        override fun areContentsTheSame(oldItem: StepUiItem, newItem: StepUiItem): Boolean =
             oldItem == newItem
     }
 }
+
+data class StepUiItem(
+    val isEditable: Boolean,
+    val stepDto: StepDto,
+)
