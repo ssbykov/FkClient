@@ -5,6 +5,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.chip.Chip
+import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemPackagingShipmentBinding
 
 class PackagingShipmentAdapter(
@@ -32,7 +34,24 @@ class PackagingShipmentAdapter(
         fun bind(item: PackagingShipmentUiItem) = with(binding) {
 
             tvPackagingSerial.text = item.serialNumber
-            tvCount.text = item.itemsCount.toString()
+            tvTotalCount.text = itemView.context.getString(
+                R.string.total_count,
+                item.totalCount
+            )
+
+            chipGroupTypes.removeAllViews()
+            item.types.forEach { typeInfo ->
+                val chipText = itemView.context.getString(
+                    R.string.items_in_box,
+                    typeInfo.name,
+                    typeInfo.count
+                )
+                val chip = Chip(root.context).apply {
+                    text = chipText
+                    setTextAppearance(R.style.Widget_FK_ModuleTypeChip)
+                }
+                chipGroupTypes.addView(chip)
+            }
 
             cbSelected.setOnCheckedChangeListener(null)
 
@@ -65,6 +84,12 @@ class PackagingShipmentAdapter(
 data class PackagingShipmentUiItem(
     val id: Int,
     val serialNumber: String,
-    val itemsCount: Int,
+    val totalCount: Int,
+    val types: List<ModuleTypeUi>,
     val isSelected: Boolean
+)
+
+data class ModuleTypeUi(
+    val name: String,  // "UF‑3‑20‑ПС"
+    val count: Int     // 4
 )

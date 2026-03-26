@@ -16,10 +16,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
+import ru.faserkraft.client.adapter.ModuleTypeUi
 import ru.faserkraft.client.adapter.PackagingShipmentAdapter
 import ru.faserkraft.client.adapter.PackagingShipmentUiItem
 import ru.faserkraft.client.databinding.FragmentPackagingShipmentBinding
-import ru.faserkraft.client.dto.PackagingDto
+import ru.faserkraft.client.dto.FinishedProductDto
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -77,15 +78,27 @@ class PackagingShipmentFragment : Fragment() {
 
             val uiItems: List<PackagingShipmentUiItem> = packaging
                 .orEmpty()
-                .filter { packaging ->
-                    packaging.products.any { it.process.name == process }
+                .filter { box ->
+                    box.products.any { it.process.name == process }
                 }
-                .map { p ->
+                .map { box ->
+                    // группируем продукты по имени процесса
+                    val groups: Map<String, List<FinishedProductDto>> =
+                        box.products.groupBy { it.process.name }
+
+                    val types = groups.map { (name, list) ->
+                        ModuleTypeUi(
+                            name = name,
+                            count = list.size
+                        )
+                    }
+
                     PackagingShipmentUiItem(
-                        id = p.id,
-                        serialNumber = p.serialNumber,
-                        itemsCount = p.products.size,
-                        isSelected = false,
+                        id = box.id,
+                        serialNumber = box.serialNumber,
+                        totalCount = box.products.size,
+                        types = types,
+                        isSelected = false
                     )
                 }
 
@@ -96,6 +109,7 @@ class PackagingShipmentFragment : Fragment() {
             binding.cbSelectAll.isChecked = allSelected
             binding.cbSelectAll.setOnCheckedChangeListener(selectAllListener)
         }
+
 
         // начальная загрузка (при необходимости передаём process.id)
         viewLifecycleOwner.lifecycleScope.launch {
@@ -129,48 +143,42 @@ class PackagingShipmentFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val now = nowIsoString()
+            viewLifecycleOwner.lifecycleScope.launch {
+                val result = viewModel.setPackagingShipment(selectedUiItems.map { it.id })
 
-            // у вас в VM есть список PackagingDto -> маппим по id
-            val allPackagings = viewModel.packagingBoxes.value.orEmpty()
-            val selectedPackagings: List<PackagingDto> =
-                selectedUiItems.mapNotNull { ui ->
-                    allPackagings.find { it.id == ui.id }?.copy(
-                        shipmentAt = now
-                    )
+                when {
+                    result == null -> {
+                        // Ошибка уже показана в withAction
+                        return@launch
+                    }
+
+                    result.updatedIds.size != selectedUiItems.size -> {
+                        AlertDialog.Builder(requireContext())
+                            .setTitle("Частичное обновление")
+                            .setMessage("Обновлено: ${result.updatedIds.size} из ${selectedUiItems.size}")
+                            .setPositiveButton("ОК", null)
+                            .show()
+                    }
+
+                    result.updatedIds.isNotEmpty() -> {
+                        // Успех - все обновилось
+                        AlertDialog.Builder(requireContext())
+                            .setTitle("Успех")
+                            .setMessage("Отгрузка установлена для ${result.updatedIds.size} упаковок")
+                            .setPositiveButton("ОК", null)
+                            .show()
+                    }
+
+                    else -> {
+                        AlertDialog.Builder(requireContext())
+                            .setTitle("Ошибка")
+                            .setMessage("Не удалось установить отгрузку")
+                            .setPositiveButton("ОК", null)
+                            .show()
+                    }
                 }
-
-            if (selectedPackagings.isEmpty()) {
-                AlertDialog.Builder(requireContext())
-                    .setTitle("Ошибка")
-                    .setMessage("Не удалось сопоставить выбранные упаковки с данными")
-                    .setPositiveButton("ОК", null)
-                    .show()
-                return@setOnClickListener
             }
 
-//            viewLifecycleOwner.lifecycleScope.launch {
-//                val result = viewModel.setShipmentForPackagings(selectedPackagings)
-//                result.onSuccess {
-//                    Snackbar.make(
-//                        requireView(),
-//                        "Отгрузка оформлена для ${selectedPackagings.size} упаковок",
-//                        Snackbar.LENGTH_SHORT
-//                    ).show()
-//
-//                    val navOptions = NavOptions.Builder()
-//                        .setPopUpTo(R.id.scannerFragment, false)
-//                        .build()
-//
-//                    findNavController().navigate(
-//                        R.id.action_newPackagingShipmentFragment_to_packagingFragment,
-//                        null,
-//                        navOptions
-//                    )
-//                }.onFailure {
-//                    // ошибка покажется через errorState
-//                }
-//            }
         }
     }
 

@@ -20,5 +20,20 @@
         <item name="closeIconVisible">false</item>
     </style>
 
+    <style name="Widget.FK.ModuleTypeChip" parent="Widget.MaterialComponents.Chip.Action">
+        <item name="chipIconEnabled">false</item>
+        <item name="chipStrokeColor">@color/brand_blue_light</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipBackgroundColor">@android:color/transparent</item>
+        <item name="android:textColor">@color/brand_blue</item>
+        <item name="android:textSize">12sp</item>
+        <item name="chipMinHeight">24dp</item>
+        <item name="chipCornerRadius">12dp</item>
+        <item name="checkedIconVisible">false</item>
+        <item name="closeIconVisible">false</item>
+        <item name="rippleColor">@color/brand_blue</item>
+    </style>
+
+
 </resources>
 
