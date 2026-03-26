@@ -48,20 +48,20 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <com.google.android.material.button.MaterialButton
+            <ImageButton
                 android:id="@+id/btnEdit"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_edit_circle_blue"
                 android:contentDescription="@string/edit"
+                android:padding="6dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_edit"
                 android:visibility="gone"
-                app:backgroundTint="#4DA3FF"
-                app:cornerRadius="20dp"
-                app:icon="@drawable/ic_edit"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconTint="@android:color/white"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@color/brand_blue" />
 
             <TextView
                 android:id="@+id/tvPackagingSerial"
@@ -93,10 +93,10 @@
                 android:layout_height="wrap_content"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="13sp"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tvCreatedBy"
-                app:layout_constraintBottom_toBottomOf="parent"
                 tools:text="Дата: 21.03.2026 17:05" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
