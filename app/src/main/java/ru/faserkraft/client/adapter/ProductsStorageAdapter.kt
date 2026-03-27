@@ -36,6 +36,8 @@ class ProductsStorageAdapter(
         fun bind(item: ProductsStorageUiItem) = with(binding) {
             binding.tvWorkProcess.text = item.process
             binding.tvDoneValue.text = item.productCount
+            binding.tvPackagingValue.text = item.packagingCount
+
 
             root.setOnClickListener {
                 onItemClick(item)
@@ -60,4 +62,5 @@ data class ProductsStorageUiItem(
     val id: Int,
     val process: String,
     val productCount: String,
+    val packagingCount: String,
 )

@@ -18,7 +18,7 @@
         android:orientation="vertical"
         android:padding="12dp">
 
-        <!-- Номер -->
+        <!-- Номер процесса -->
         <TextView
             android:id="@+id/tvWorkProcess"
             android:layout_width="wrap_content"
@@ -27,7 +27,7 @@
             android:textStyle="bold"
             tools:text="УФ-20-30" />
 
-        <!-- Строка 'Запланировано' -->
+        <!-- Количество модулей -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -49,6 +49,30 @@
                 android:textColor="@color/brand_blue"
                 android:textStyle="bold"
                 tools:text="10" />
+        </LinearLayout>
+
+        <!-- Строка 'Количество упаковок' -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvPackagingLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/packaging_count"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/tvPackagingValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:textColor="@color/brand_blue"
+                android:textStyle="bold"
+                tools:text="5" />
         </LinearLayout>
 
         <!-- Строка 'Выполнено' -->

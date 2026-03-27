@@ -74,4 +74,5 @@
     <string name="empty_production">Нет модулей в производстве!</string>
     <string name="no_product_for_packaging">Нет доступных продуктов для упаковки</string>
     <string name="product_type">Тип продукции</string>
+    <string name="packaging_count">Количество упаковок:</string>
 </resources>

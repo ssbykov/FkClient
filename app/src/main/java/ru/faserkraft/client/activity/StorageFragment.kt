@@ -76,10 +76,17 @@ class StorageFragment : Fragment() {
                 .groupBy { it.process.id to it.process.name }
                 .map { (key, products) ->
                     val (processId, processName) = key
+
+                    // Считаем количество упаковок для этого процесса
+                    val packagingCount = list.count { packaging ->
+                        packaging.products.any { it.process.id == processId }
+                    }
+
                     ProductsStorageUiItem(
                         id = processId,
                         process = processName,
-                        productCount = products.size.toString()
+                        productCount = products.size.toString(),
+                        packagingCount = packagingCount.toString()
                     )
                 }
 
