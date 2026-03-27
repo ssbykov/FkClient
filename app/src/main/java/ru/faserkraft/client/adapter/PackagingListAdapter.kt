@@ -9,7 +9,9 @@ import com.google.android.material.chip.Chip
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemPackagingBinding
 
-class PackagingListAdapter : ListAdapter<PackagingListUiItem, PackagingListAdapter.PackagingVH>(PackagingDiff()) {
+class PackagingListAdapter(
+    private val onChipCheckedChange: (item: PackagingListUiItem) -> Unit
+) : ListAdapter<PackagingListUiItem, PackagingListAdapter.PackagingVH>(PackagingDiff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PackagingVH {
         val binding = ItemPackagingBinding.inflate(
@@ -17,7 +19,7 @@ class PackagingListAdapter : ListAdapter<PackagingListUiItem, PackagingListAdapt
             parent,
             false
         )
-        return PackagingVH(binding)
+        return PackagingVH(binding, onChipCheckedChange)
     }
 
     override fun onBindViewHolder(holder: PackagingVH, position: Int) {
@@ -25,7 +27,8 @@ class PackagingListAdapter : ListAdapter<PackagingListUiItem, PackagingListAdapt
     }
 
     class PackagingVH(
-        private val binding: ItemPackagingBinding
+        private val binding: ItemPackagingBinding,
+        private val onChipCheckedChange: (item: PackagingListUiItem) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: PackagingListUiItem) = with(binding) {
@@ -46,6 +49,9 @@ class PackagingListAdapter : ListAdapter<PackagingListUiItem, PackagingListAdapt
                 val chip = Chip(root.context).apply {
                     text = chipText
                     setTextAppearance(R.style.Widget_FK_ModuleTypeChip)
+                    setOnClickListener {
+                        onChipCheckedChange(item)
+                    }
                 }
                 chipGroupTypes.addView(chip)
             }

@@ -16,6 +16,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
+import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.ModuleTypeUi
 import ru.faserkraft.client.adapter.PackagingListAdapter
 import ru.faserkraft.client.adapter.PackagingListUiItem
@@ -50,7 +51,16 @@ class PackagingListFragment : Fragment() {
         val process = args.process
         binding.tvProcess.text = process
 
-        adapter = PackagingListAdapter()
+        adapter = PackagingListAdapter(
+            onChipCheckedChange = { item ->
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewModel.handlePackagingSerialQr(item.serialNumber)
+                    findNavController().navigate(
+                        R.id.action_packagingListFragment_to_packagingFragment
+                    )
+                }
+            }
+        )
 
         binding.rvProducts.layoutManager = LinearLayoutManager(requireContext())
         binding.rvProducts.adapter = adapter
