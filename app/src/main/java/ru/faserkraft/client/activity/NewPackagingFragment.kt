@@ -115,7 +115,7 @@ class NewPackagingFragment : Fragment() {
                     )
                 }.orEmpty()
 
-            val uiItems = base + extra
+            val uiItems = (base + extra).sortedBy { it.serialNumber }
             adapter.submitList(uiItems)
 
             binding.cbSelectAll.setOnCheckedChangeListener(null)
@@ -216,7 +216,8 @@ class NewPackagingFragment : Fragment() {
                 val result = viewModel.createPackaging(newPackaging)
                 result.onSuccess {
                     val navOptions = NavOptions.Builder()
-                        .setPopUpTo(R.id.scannerFragment, false)
+                        .setPopUpTo(R.id.newPackagingFragment, inclusive = true)
+                        .setLaunchSingleTop(true)
                         .build()
 
                     findNavController().navigate(

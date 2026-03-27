@@ -28,6 +28,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
+
 class PackagingFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
@@ -92,7 +93,7 @@ class PackagingFragment : Fragment() {
                     serialNumber = p.serialNumber,
                     processName = p.process.name
                 )
-            }
+            }.sortedBy { item -> item.serialNumber }
             adapter.submitList(uiItems)
 
             binding.tvItemsSummary.text = getString(
@@ -114,11 +115,6 @@ class PackagingFragment : Fragment() {
                         .show()
                 }
             }
-        }
-
-        // кнопка закрытия (или назад)
-        binding.btnClose.setOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         // кнопка редактирования
