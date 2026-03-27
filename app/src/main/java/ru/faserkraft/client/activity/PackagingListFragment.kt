@@ -83,6 +83,15 @@ class PackagingListFragment : Fragment() {
                 }
 
             adapter.submitList(uiItems)
+
+            // Показ/скрытие сообщения об отсутствии упаковок
+            if (uiItems.isEmpty()) {
+                binding.tvEmptyPackaging.visibility = View.VISIBLE
+                binding.rvProducts.visibility = View.GONE
+            } else {
+                binding.tvEmptyPackaging.visibility = View.GONE
+                binding.rvProducts.visibility = View.VISIBLE
+            }
         }
 
 
@@ -114,7 +123,6 @@ class PackagingListFragment : Fragment() {
                     process
                 )
             findNavController().navigate(action)
-
         }
     }
 }
