@@ -43,7 +43,7 @@ class StorageFragment : Fragment() {
         adapter = ProductsStorageAdapter { item ->
             val action =
                 StorageFragmentDirections
-                    .actionProductsStorageFragmentToPackagingShipmentFragment(item.process)
+                    .actionProductsStorageFragmentToPackagingListFragment(item.process)
             findNavController().navigate(action)
         }
 

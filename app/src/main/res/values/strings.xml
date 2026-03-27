@@ -73,4 +73,5 @@
     <string name="no_products_in_storage">Нет упакованных товаров для отгрузки!</string>
     <string name="empty_production">Нет модулей в производстве!</string>
     <string name="no_product_for_packaging">Нет доступных продуктов для упаковки</string>
+    <string name="product_type">Тип продукции</string>
 </resources>

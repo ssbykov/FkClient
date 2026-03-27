@@ -32,6 +32,7 @@
             android:id="@+id/action_scannerFragment_to_productsStorageFragment"
             app:destination="@id/productsStorageFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/registrationFragment"
         android:name="ru.faserkraft.client.activity.RegistrationFragment"
@@ -41,6 +42,7 @@
             android:id="@+id/action_registrationFragment_to_qrGenerationFragment"
             app:destination="@id/qrGenerationFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/productFragment"
         android:name="ru.faserkraft.client.activity.ProductFragment"
@@ -56,15 +58,17 @@
             android:id="@+id/action_productFragment_to_editProductStatusFragment"
             app:destination="@id/editProductStatusFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/productFullFragment"
         android:name="ru.faserkraft.client.activity.ProductFullFragment"
         android:label="ProductFullFragment"
-        tools:layout="@layout/fragment_product_full" >
+        tools:layout="@layout/fragment_product_full">
         <action
             android:id="@+id/action_productFullFragment_to_editStepFragment"
             app:destination="@id/editStepFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/newProductFragment"
         android:name="ru.faserkraft.client.activity.NewProductFragment"
@@ -74,30 +78,32 @@
             android:id="@+id/action_newProductFragment_to_productFragment"
             app:destination="@id/productFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/dayPlanFragment"
         android:name="ru.faserkraft.client.activity.DayPlanFragment"
         android:label="fragment_day_plan"
         tools:layout="@layout/fragment_day_plan">
-
         <action
             android:id="@+id/action_dayPlanFragment_to_addDayPlanFragment"
             app:destination="@id/addDayPlanFragment" />
-
         <action
             android:id="@+id/action_dayPlanFragment_to_employeePlanProductsFragment"
             app:destination="@id/employeePlanProductsFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/editProductFragment"
         android:name="ru.faserkraft.client.activity.EditProductFragment"
         android:label="fragment_edit_product"
         tools:layout="@layout/fragment_edit_product" />
+
     <fragment
         android:id="@+id/editProductStatusFragment"
         android:name="ru.faserkraft.client.activity.EditProductStatusFragment"
         android:label="fragment_edit_status_product"
         tools:layout="@layout/fragment_edit_status_product" />
+
     <fragment
         android:id="@+id/editStepFragment"
         android:name="ru.faserkraft.client.activity.EditStepFragment"
@@ -107,12 +113,12 @@
             android:name="step"
             app:argType="ru.faserkraft.client.dto.StepDto" />
     </fragment>
+
     <fragment
         android:id="@+id/addDayPlanFragment"
         android:name="ru.faserkraft.client.activity.AddDayPlanFragment"
         android:label="fragment_add_day_plan"
         tools:layout="@layout/fragment_add_day_plan">
-
         <argument
             android:name="plan"
             android:defaultValue="@null"
@@ -124,11 +130,13 @@
             app:argType="string"
             app:nullable="true" />
     </fragment>
+
     <fragment
         android:id="@+id/qrGenerationFragment"
         android:name="ru.faserkraft.client.activity.QrGenerationFragment"
         android:label="fragment_qr_generation"
         tools:layout="@layout/fragment_qr_generation" />
+
     <fragment
         android:id="@+id/productsInventoryFragment"
         android:name="ru.faserkraft.client.activity.ProductsInventoryFragment"
@@ -138,6 +146,7 @@
             android:id="@+id/action_productsInventoryFragment_to_productsInventoryByProcessFragment"
             app:destination="@id/productsInventoryByProcessFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/newPackagingFragment"
         android:name="ru.faserkraft.client.activity.NewPackagingFragment"
@@ -152,6 +161,7 @@
             android:id="@+id/action_newPackagingFragment_to_packagingFragment"
             app:destination="@id/packagingFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/packagingFragment"
         android:name="ru.faserkraft.client.activity.PackagingFragment"
@@ -164,45 +174,61 @@
             android:id="@+id/action_packagingFragment_to_productFullFragment"
             app:destination="@id/productFullFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/productsInventoryByProcessFragment"
         android:name="ru.faserkraft.client.activity.ProductsInventoryByProcessFragment"
         android:label="fragment_products_inventory_by_process"
         tools:layout="@layout/fragment_products_inventory_by_process">
-
         <argument
             android:name="productsInventoryDto"
             app:argType="ru.faserkraft.client.dto.ProductsInventoryDto" />
-
         <action
             android:id="@+id/action_productsInventoryByProcessFragment_to_productFullFragment"
             app:destination="@id/productFullFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/productsStorageFragment"
         android:name="ru.faserkraft.client.activity.StorageFragment"
         android:label="fragment_products_storage"
-        tools:layout="@layout/fragment_products_storage" >
+        tools:layout="@layout/fragment_products_storage">
         <action
             android:id="@+id/action_productsStorageFragment_to_packagingShipmentFragment"
             app:destination="@id/packagingShipmentFragment" />
+        <action
+            android:id="@+id/action_productsStorageFragment_to_packagingListFragment"
+            app:destination="@id/packagingListFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/packagingShipmentFragment"
         android:name="ru.faserkraft.client.activity.PackagingShipmentFragment"
         android:label="PackagingShipmentFragment"
-        tools:layout="@layout/fragment_packaging_shipment" >
-
+        tools:layout="@layout/fragment_packaging_shipment">
         <argument
             android:name="process"
             app:argType="string" />
     </fragment>
+
+    <fragment
+        android:id="@+id/packagingListFragment"
+        android:name="ru.faserkraft.client.activity.PackagingListFragment"
+        android:label="PackagingListFragment"
+        tools:layout="@layout/fragment_packaging_list">
+        <argument
+            android:name="process"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_packagingListFragment_to_packagingShipmentFragment"
+            app:destination="@id/packagingShipmentFragment" />
+    </fragment>
+
     <fragment
         android:id="@+id/employeePlanProductsFragment"
         android:name="ru.faserkraft.client.activity.EmployeePlanProductsFragment"
         android:label="fragment_employee_plan_products"
         tools:layout="@layout/fragment_employee_plan_products">
-
         <argument
             android:name="employeePlanDto"
             app:argType="ru.faserkraft.client.dto.EmployeePlanDto" />
@@ -210,4 +236,5 @@
             android:id="@+id/action_employeePlanProductsFragment_to_productFullFragment"
             app:destination="@id/productFullFragment" />
     </fragment>
+
 </navigation>

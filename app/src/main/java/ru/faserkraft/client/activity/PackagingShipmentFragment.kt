@@ -13,6 +13,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
@@ -22,8 +23,6 @@ import ru.faserkraft.client.adapter.PackagingShipmentUiItem
 import ru.faserkraft.client.databinding.FragmentPackagingShipmentBinding
 import ru.faserkraft.client.dto.FinishedProductDto
 import ru.faserkraft.client.viewmodel.ScannerViewModel
-import java.time.OffsetDateTime
-import java.time.format.DateTimeFormatter
 
 
 class PackagingShipmentFragment : Fragment() {
@@ -144,41 +143,56 @@ class PackagingShipmentFragment : Fragment() {
             }
 
             viewLifecycleOwner.lifecycleScope.launch {
-                val result = viewModel.setPackagingShipment(selectedUiItems.map { it.id })
+                // suspend-лямбда, которую будем вызывать после подтверждения
+                val confirmAction: suspend () -> Unit = {
+                    val result = viewModel.setPackagingShipment(selectedUiItems.map { it.id })
 
-                when {
-                    result == null -> {
-                        // Ошибка уже показана в withAction
-                        return@launch
-                    }
+                    when {
+                        result == null -> {
+                            // Ошибка уже показана в withAction
+                            // Просто выходим из лямбды
+                        }
 
-                    result.updatedIds.size != selectedUiItems.size -> {
-                        AlertDialog.Builder(requireContext())
-                            .setTitle("Частичное обновление")
-                            .setMessage("Обновлено: ${result.updatedIds.size} из ${selectedUiItems.size}")
-                            .setPositiveButton("ОК", null)
-                            .show()
-                    }
+                        result.updatedIds.size != selectedUiItems.size -> {
+                            AlertDialog.Builder(requireContext())
+                                .setTitle("Частичное обновление")
+                                .setMessage("Обновлено: ${result.updatedIds.size} из ${selectedUiItems.size}")
+                                .setPositiveButton("ОК", null)
+                                .show()
+                            findNavController().navigateUp()
+                        }
 
-                    result.updatedIds.isNotEmpty() -> {
-                        // Успех - все обновилось
-                        AlertDialog.Builder(requireContext())
-                            .setTitle("Успех")
-                            .setMessage("Отгрузка установлена для ${result.updatedIds.size} упаковок")
-                            .setPositiveButton("ОК", null)
-                            .show()
-                    }
+                        result.updatedIds.isNotEmpty() -> {
+                            AlertDialog.Builder(requireContext())
+                                .setTitle("Успех")
+                                .setMessage("Отгрузка установлена для ${result.updatedIds.size} упаковок")
+                                .setPositiveButton("ОК", null)
+                                .show()
+                            findNavController().navigateUp()
+                        }
 
-                    else -> {
-                        AlertDialog.Builder(requireContext())
-                            .setTitle("Ошибка")
-                            .setMessage("Не удалось установить отгрузку")
-                            .setPositiveButton("ОК", null)
-                            .show()
+                        else -> {
+                            AlertDialog.Builder(requireContext())
+                                .setTitle("Ошибка")
+                                .setMessage("Не удалось установить отгрузку")
+                                .setPositiveButton("ОК", null)
+                                .show()
+                        }
                     }
                 }
-            }
 
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Подтвердить отгрузку")
+                    .setMessage("Подтвердить установку отгрузки для ${selectedUiItems.size} упаковок?")
+                    .setNegativeButton("Отмена", null)
+                    .setPositiveButton("OK") { _, _ ->
+                        // запускаем suspend-лямбду в корутине
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            confirmAction()
+                        }
+                    }
+                    .show()
+            }
         }
     }
 
