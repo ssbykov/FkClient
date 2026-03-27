@@ -98,8 +98,6 @@ class ProductsInventoryByProcessFragment : Fragment() {
             }
         }
 
-        binding.btnBack.setOnClickListener { findNavController().navigateUp() }
-
     }
 
     private fun renderHeader() {

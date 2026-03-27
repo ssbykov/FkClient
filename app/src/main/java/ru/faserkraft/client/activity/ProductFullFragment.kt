@@ -73,8 +73,6 @@ class ProductFullFragment : Fragment() {
             }
             adapter.submitList(stepUiItems)
 
-            binding.btnBack.setOnClickListener { findNavController().navigateUp() }
-
         }
     }
 }

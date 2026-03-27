@@ -105,7 +105,6 @@ class EmployeePlanProductsFragment : Fragment() {
             }
         }
 
-        binding.btnBack.setOnClickListener { findNavController().navigateUp() }
     }
 
     private fun renderHeader() {
