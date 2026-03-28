@@ -134,7 +134,7 @@ class ProductFragment : Fragment() {
             }
         }
 
-        binding.tvProcess.setOnClickListener {
+        binding.btnEdit.setOnClickListener {
             if (userRole == UserRole.ADMIN || userRole == UserRole.MASTER) {
                 AlertDialog.Builder(requireContext())
                     .setTitle("Изменение процесса")

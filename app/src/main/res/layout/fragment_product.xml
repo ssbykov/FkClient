@@ -43,6 +43,20 @@
             android:layout_height="wrap_content"
             android:padding="12dp">
 
+            <ImageButton
+                android:id="@+id/btnEdit"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:background="@drawable/bg_edit_circle"
+                android:contentDescription="@string/edit"
+                android:padding="6dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_edit"
+                app:tint="@color/status_success_text" />
+
             <TextView
                 android:id="@+id/tvProcess"
                 android:layout_width="0dp"
