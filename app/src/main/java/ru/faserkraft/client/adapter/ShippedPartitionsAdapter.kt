@@ -50,7 +50,12 @@ class ShippedPartitionsAdapter(
             chipGroupTypes.removeAllViews()
             item.moduleTypes.forEach { moduleType ->
                 val chip = Chip(chipGroupTypes.context).apply {
-                    text = "${moduleType.type} × ${moduleType.count} шт."
+                    val chipText = itemView.context.getString(
+                        R.string.items_in_box,
+                        moduleType.type,
+                        moduleType.count
+                    )
+                    text = chipText
                     isCloseIconVisible = false
                     isClickable = false
                 }
