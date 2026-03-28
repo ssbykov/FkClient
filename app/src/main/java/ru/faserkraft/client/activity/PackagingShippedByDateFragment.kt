@@ -22,6 +22,7 @@ import ru.faserkraft.client.adapter.PackagingListAdapter
 import ru.faserkraft.client.adapter.PackagingListUiItem
 import ru.faserkraft.client.databinding.FragmentShippedByDateBinding
 import ru.faserkraft.client.dto.FinishedProductDto
+import ru.faserkraft.client.utils.convertDate
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
 
@@ -49,7 +50,10 @@ class ShippedByDateFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val shipmentDate = args.shipmentDate
-        binding.tvStatsTitle.text = shipmentDate
+        binding.tvStatsTitle.text = getString(
+            R.string.shipped_by_date,
+            convertDate(shipmentDate)
+        )
 
         adapter = PackagingListAdapter(
             onItemClick = { item ->

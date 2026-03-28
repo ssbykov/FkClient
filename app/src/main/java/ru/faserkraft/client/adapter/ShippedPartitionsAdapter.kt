@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemShippedPartitionBinding
+import ru.faserkraft.client.utils.convertDate
 
 class ShippedPartitionsAdapter(
     private val onItemClick: ((ShippedPartitionsUiItem) -> Unit)
@@ -36,7 +37,7 @@ class ShippedPartitionsAdapter(
 
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(item: ShippedPartitionsUiItem) = with(binding) {
-            tvShipmentDate.text = item.shipmentDate
+            tvShipmentDate.text = convertDate(item.shipmentDate)
             tvPackagingCount.text = itemView.context.getString(
                 R.string.total_packaging_count,
                 item.packagingCount
