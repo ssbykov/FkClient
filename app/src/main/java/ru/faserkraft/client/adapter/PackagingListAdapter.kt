@@ -28,7 +28,7 @@ class PackagingListAdapter(
 
     class PackagingVH(
         private val binding: ItemPackagingBinding,
-        private val onChipCheckedChange: (item: PackagingListUiItem) -> Unit
+        private val onItemClick: (item: PackagingListUiItem) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: PackagingListUiItem) = with(binding) {
@@ -48,12 +48,13 @@ class PackagingListAdapter(
                 )
                 val chip = Chip(root.context).apply {
                     text = chipText
-                    setTextAppearance(R.style.Widget_FK_ModuleTypeChip)
+                    isCloseIconVisible = false
+                    isClickable = false
                 }
                 chipGroupTypes.addView(chip)
             }
             root.setOnClickListener {
-                onChipCheckedChange(item)
+                onItemClick(item)
             }
 
         }

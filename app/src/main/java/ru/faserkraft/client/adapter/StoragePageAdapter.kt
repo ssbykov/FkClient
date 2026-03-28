@@ -7,17 +7,14 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import ru.faserkraft.client.activity.ShippedPartitionsFragment
 import ru.faserkraft.client.activity.StorageFragment
 
-class StoragePageAdapter(
-    fragmentManager: FragmentManager,
-    lifecycle: Lifecycle
-) : FragmentStateAdapter(fragmentManager, lifecycle) {
+class StoragePageAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
 
     override fun getItemCount(): Int = 2
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
-            0 -> StorageFragment()           // Экран склада
-            1 -> ShippedPartitionsFragment() // Экран отгруженных партий
+            0 -> StorageFragment()
+            1 -> ShippedPartitionsFragment()
             else -> throw IllegalStateException("Invalid position: $position")
         }
     }

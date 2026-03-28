@@ -48,7 +48,8 @@ class PackagingShipmentAdapter(
                 )
                 val chip = Chip(root.context).apply {
                     text = chipText
-                    setTextAppearance(R.style.Widget_FK_ModuleTypeChip)
+                    isCloseIconVisible = false
+                    isClickable = false
                 }
                 chipGroupTypes.addView(chip)
             }

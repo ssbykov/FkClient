@@ -12,9 +12,11 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
+import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.ModuleTypeDto
 import ru.faserkraft.client.adapter.ShippedPartitionsAdapter
 import ru.faserkraft.client.adapter.ShippedPartitionsUiItem
@@ -41,10 +43,11 @@ class ShippedPartitionsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = ShippedPartitionsAdapter { item ->
-            // При клике на отгруженную партию — переход к деталям (если нужно)
-            // Пока без переходов, можно добавить при необходимости
+            val bundle = Bundle().apply {
+                putString("shipmentDate", item.shipmentDate)
+            }
+            findNavController().navigate(R.id.action_global_shippedByDateFragment, bundle)
         }
-
         binding.rvShippedPartitions.layoutManager = LinearLayoutManager(requireContext())
         binding.rvShippedPartitions.adapter = adapter
 

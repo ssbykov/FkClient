@@ -12,7 +12,7 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemShippedPartitionBinding
 
 class ShippedPartitionsAdapter(
-    private val onItemClick: ((ShippedPartitionsUiItem) -> Unit)? = null
+    private val onItemClick: ((ShippedPartitionsUiItem) -> Unit)
 ) : ListAdapter<ShippedPartitionsUiItem, ShippedPartitionsAdapter.ContentVH>(ContentDiff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContentVH {
@@ -31,7 +31,7 @@ class ShippedPartitionsAdapter(
 
     class ContentVH(
         private val binding: ItemShippedPartitionBinding,
-        private val onItemClick: ((ShippedPartitionsUiItem) -> Unit)?
+        private val onItemClick: ((ShippedPartitionsUiItem) -> Unit)
     ) : RecyclerView.ViewHolder(binding.root) {
 
         @RequiresApi(Build.VERSION_CODES.O)
@@ -63,7 +63,7 @@ class ShippedPartitionsAdapter(
             }
 
             root.setOnClickListener {
-                onItemClick?.invoke(item)
+                onItemClick(item)
             }
         }
     }

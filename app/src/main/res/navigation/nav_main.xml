@@ -42,10 +42,37 @@
         <action
             android:id="@+id/action_storageContainerFragment_to_packagingListFragment"
             app:destination="@id/packagingListFragment" />
-        <action
-            android:id="@+id/action_storageContainerFragment_to_shippedPartitionsFragment"
-            app:destination="@id/shippedPartitionsFragment" />
+
+        <navigation
+            android:id="@+id/storage_navigation"
+            app:startDestination="@id/productsStorageFragment">
+
+            <fragment
+                android:id="@+id/productsStorageFragment"
+                android:name="ru.faserkraft.client.activity.StorageFragment"
+                android:label="Склад"
+                tools:layout="@layout/fragment_products_storage">
+                <action
+                    android:id="@+id/action_productsStorageFragment_to_packagingShipmentFragment"
+                    app:destination="@id/packagingShipmentFragment" />
+                <action
+                    android:id="@+id/action_productsStorageFragment_to_packagingListFragment"
+                    app:destination="@id/packagingListFragment" />
+            </fragment>
+
+            <fragment
+                android:id="@+id/shippedPartitionsFragment"
+                android:name="ru.faserkraft.client.activity.ShippedPartitionsFragment"
+                android:label="Отгруженные партии"
+                tools:layout="@layout/fragment_shipped_partitions">
+                <action
+                    android:id="@+id/action_shippedPartitionsFragment_to_shippedByDateFragment"
+                    app:destination="@id/shippedByDateFragment" />
+            </fragment>
+        </navigation>
+
     </fragment>
+
     <fragment
         android:id="@+id/registrationFragment"
         android:name="ru.faserkraft.client.activity.RegistrationFragment"
@@ -252,10 +279,27 @@
             android:id="@+id/action_employeePlanProductsFragment_to_productFullFragment"
             app:destination="@id/productFullFragment" />
     </fragment>
+
     <fragment
-        android:id="@+id/shippedPartitionsFragment"
-        android:name="ru.faserkraft.client.activity.ShippedPartitionsFragment"
-        android:label="fragment_shipped_partitions"
-        tools:layout="@layout/fragment_shipped_partitions" />
+        android:id="@+id/shippedByDateFragment"
+        android:name="ru.faserkraft.client.activity.ShippedByDateFragment"
+        android:label="fragment_shipped_by_date"
+        tools:layout="@layout/fragment_shipped_by_date">
+        <argument
+            android:name="shipmentDate"
+            app:argType="string" />
+    </fragment>
+
+    <action
+        android:id="@+id/action_global_packagingFragment"
+        app:destination="@id/packagingFragment" />
+
+    <action
+        android:id="@+id/action_global_productFullFragment"
+        app:destination="@id/productFullFragment" />
+
+    <action
+        android:id="@+id/action_global_shippedByDateFragment"
+        app:destination="@id/shippedByDateFragment" />
 
 </navigation>
