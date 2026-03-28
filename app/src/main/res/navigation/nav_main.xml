@@ -43,34 +43,6 @@
             android:id="@+id/action_storageContainerFragment_to_packagingListFragment"
             app:destination="@id/packagingListFragment" />
 
-        <navigation
-            android:id="@+id/storage_navigation"
-            app:startDestination="@id/productsStorageFragment">
-
-            <fragment
-                android:id="@+id/productsStorageFragment"
-                android:name="ru.faserkraft.client.activity.StorageFragment"
-                android:label="Склад"
-                tools:layout="@layout/fragment_products_storage">
-                <action
-                    android:id="@+id/action_productsStorageFragment_to_packagingShipmentFragment"
-                    app:destination="@id/packagingShipmentFragment" />
-                <action
-                    android:id="@+id/action_productsStorageFragment_to_packagingListFragment"
-                    app:destination="@id/packagingListFragment" />
-            </fragment>
-
-            <fragment
-                android:id="@+id/shippedPartitionsFragment"
-                android:name="ru.faserkraft.client.activity.ShippedPartitionsFragment"
-                android:label="Отгруженные партии"
-                tools:layout="@layout/fragment_shipped_partitions">
-                <action
-                    android:id="@+id/action_shippedPartitionsFragment_to_shippedByDateFragment"
-                    app:destination="@id/shippedByDateFragment" />
-            </fragment>
-        </navigation>
-
     </fragment>
 
     <fragment
