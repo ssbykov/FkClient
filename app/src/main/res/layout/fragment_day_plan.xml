@@ -51,6 +51,21 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Сообщение об отсутствии планов -->
+    <TextView
+        android:id="@+id/tvEmptyPlans"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:gravity="center"
+        android:text="@string/no_plans_for_day"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/tilDate"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
     <!-- Pull-to-refresh + список планов -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"

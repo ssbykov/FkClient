@@ -80,4 +80,5 @@
     <string name="packaging_count">Количество упаковок:</string>
     <string name="shipped_partitions">Отгруженные партии</string>
     <string name="no_shipped_partitions">Нет отгруженных партий</string>
+    <string name="no_plans_for_day">Для выбранной даты нет планов</string>
 </resources>

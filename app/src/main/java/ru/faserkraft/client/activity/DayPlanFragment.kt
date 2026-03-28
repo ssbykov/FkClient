@@ -87,6 +87,14 @@ class DayPlanFragment : Fragment() {
         binding.rvPlans.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPlans.adapter = adapter
 
+        val emptyObserver = object : RecyclerView.AdapterDataObserver() {
+            override fun onChanged() = checkEmpty()
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = checkEmpty()
+            override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = checkEmpty()
+        }
+        adapter.registerAdapterDataObserver(emptyObserver)
+        emptyObserver.onChanged()
+
         val swipeCallback = object : ItemTouchHelper.SimpleCallback(
             0,
             ItemTouchHelper.END
@@ -228,6 +236,13 @@ class DayPlanFragment : Fragment() {
                 findNavController().navigate(action)
             }
         }
+    }
+
+
+    private fun checkEmpty() {
+        val isEmpty = adapter.itemCount == 0
+        binding.tvEmptyPlans.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        binding.rvPlans.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 
     private fun showDatePicker() {
