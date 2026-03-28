@@ -41,9 +41,8 @@ class StorageFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = ProductsStorageAdapter { item ->
-            val action =
-                StorageFragmentDirections
-                    .actionProductsStorageFragmentToPackagingListFragment(item.process)
+            val action = StorageContainerFragmentDirections
+                .actionStorageContainerFragmentToPackagingListFragment(item.process)
             findNavController().navigate(action)
         }
 
@@ -85,8 +84,8 @@ class StorageFragment : Fragment() {
                     ProductsStorageUiItem(
                         id = processId,
                         process = processName,
-                        productCount = products.size.toString(),
-                        packagingCount = packagingCount.toString()
+                        productCount = products.size,
+                        packagingCount = packagingCount
                     )
                 }
 

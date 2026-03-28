@@ -29,10 +29,23 @@
             android:id="@+id/action_scannerFragment_to_packagingFragment"
             app:destination="@id/packagingFragment" />
         <action
-            android:id="@+id/action_scannerFragment_to_productsStorageFragment"
-            app:destination="@id/productsStorageFragment" />
+            android:id="@+id/action_scannerFragment_to_storageContainerFragment"
+            app:destination="@id/storageContainerFragment" />
     </fragment>
 
+    <fragment
+        android:id="@+id/storageContainerFragment"
+        android:name="ru.faserkraft.client.activity.StorageContainerFragment"
+        android:label="Склад"
+        tools:layout="@layout/fragment_storage_container">
+
+        <action
+            android:id="@+id/action_storageContainerFragment_to_packagingListFragment"
+            app:destination="@id/packagingListFragment" />
+        <action
+            android:id="@+id/action_storageContainerFragment_to_shippedPartitionsFragment"
+            app:destination="@id/shippedPartitionsFragment" />
+    </fragment>
     <fragment
         android:id="@+id/registrationFragment"
         android:name="ru.faserkraft.client.activity.RegistrationFragment"
@@ -239,5 +252,10 @@
             android:id="@+id/action_employeePlanProductsFragment_to_productFullFragment"
             app:destination="@id/productFullFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/shippedPartitionsFragment"
+        android:name="ru.faserkraft.client.activity.ShippedPartitionsFragment"
+        android:label="fragment_shipped_partitions"
+        tools:layout="@layout/fragment_shipped_partitions" />
 
 </navigation>

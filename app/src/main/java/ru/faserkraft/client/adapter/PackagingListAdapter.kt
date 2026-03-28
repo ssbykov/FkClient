@@ -10,7 +10,7 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemPackagingBinding
 
 class PackagingListAdapter(
-    private val onChipCheckedChange: (item: PackagingListUiItem) -> Unit
+    private val onItemClick: (item: PackagingListUiItem) -> Unit
 ) : ListAdapter<PackagingListUiItem, PackagingListAdapter.PackagingVH>(PackagingDiff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PackagingVH {
@@ -19,7 +19,7 @@ class PackagingListAdapter(
             parent,
             false
         )
-        return PackagingVH(binding, onChipCheckedChange)
+        return PackagingVH(binding, onItemClick)
     }
 
     override fun onBindViewHolder(holder: PackagingVH, position: Int) {
@@ -35,7 +35,7 @@ class PackagingListAdapter(
 
             tvPackagingSerial.text = item.serialNumber
             tvTotalCount.text = itemView.context.getString(
-                R.string.total_count,
+                R.string.total_items_count,
                 item.totalCount
             )
 
@@ -49,12 +49,13 @@ class PackagingListAdapter(
                 val chip = Chip(root.context).apply {
                     text = chipText
                     setTextAppearance(R.style.Widget_FK_ModuleTypeChip)
-                    setOnClickListener {
-                        onChipCheckedChange(item)
-                    }
                 }
                 chipGroupTypes.addView(chip)
             }
+            root.setOnClickListener {
+                onChipCheckedChange(item)
+            }
+
         }
 
     }

@@ -35,7 +35,7 @@ class PackagingShipmentAdapter(
 
             tvPackagingSerial.text = item.serialNumber
             tvTotalCount.text = itemView.context.getString(
-                R.string.total_count,
+                R.string.total_items_count,
                 item.totalCount
             )
 

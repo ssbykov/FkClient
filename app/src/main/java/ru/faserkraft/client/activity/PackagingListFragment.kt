@@ -52,7 +52,7 @@ class PackagingListFragment : Fragment() {
         binding.tvProcess.text = process
 
         adapter = PackagingListAdapter(
-            onChipCheckedChange = { item ->
+            onItemClick = { item ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     viewModel.handlePackagingSerialQr(item.serialNumber)
                     findNavController().navigate(

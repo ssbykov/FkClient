@@ -7,6 +7,7 @@ import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemStorageBinding
 
 class ProductsStorageAdapter(
@@ -35,9 +36,14 @@ class ProductsStorageAdapter(
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(item: ProductsStorageUiItem) = with(binding) {
             binding.tvWorkProcess.text = item.process
-            binding.tvDoneValue.text = item.productCount
-            binding.tvPackagingValue.text = item.packagingCount
-
+            binding.tvModuleCount.text = itemView.context.getString(
+                R.string.total_items_count,
+                item.productCount
+            )
+            binding.tvPackagingCount.text = itemView.context.getString(
+                R.string.total_packaging_count,
+                item.packagingCount
+            )
 
             root.setOnClickListener {
                 onItemClick(item)
@@ -61,6 +67,6 @@ class ProductsStorageAdapter(
 data class ProductsStorageUiItem(
     val id: Int,
     val process: String,
-    val productCount: String,
-    val packagingCount: String,
+    val productCount: Int,
+    val packagingCount: Int,
 )
