@@ -88,7 +88,7 @@ class ShippedPartitionsFragment : Fragment() {
                     val moduleTypes = allProducts
                         .groupBy { it.process.id to it.process.name }
                         .map { (key, products) ->
-                            val (processId, processName) = key
+                            val (_, processName) = key
                             ModuleTypeDto(
                                 type = processName,
                                 count = products.size
