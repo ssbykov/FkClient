@@ -21,6 +21,7 @@ interface ApiRepository {
     suspend fun getProduct(serialNumber: String): ProductDto?
     suspend fun getPackaging(serialNumber: String): PackagingDto?
     suspend fun getPackagingInStorage(): List<PackagingDto>?
+    suspend fun getShippedPackaging(): List<PackagingDto>?
     suspend fun setPackagingShipment(packagingIds: List<Int>): PackagingShipmentResponse?
     suspend fun deletePackaging(serialNumber: String)
     suspend fun postProduct(product: ProductCreateDto): ProductDto?

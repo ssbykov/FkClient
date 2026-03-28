@@ -40,6 +40,9 @@ interface Api {
     @GET(BASE_URL + "packaging/get_all_in_storage")
     suspend fun getPackagingInStorage(): Response<List<PackagingDto>>
 
+    @GET(BASE_URL + "packaging/get_all_shipped")
+    suspend fun getShippedPackaging(): Response<List<PackagingDto>>
+
     @POST(BASE_URL + "packaging/shipment")
     suspend fun setPackagingShipment(
         @Body packagingIds: List<Int>

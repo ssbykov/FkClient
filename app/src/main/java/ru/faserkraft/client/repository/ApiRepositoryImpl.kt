@@ -33,6 +33,9 @@ class ApiRepositoryImpl @Inject constructor(
     override suspend fun getPackagingInStorage(): List<PackagingDto>? =
         callApi { api.getPackagingInStorage() }
 
+    override suspend fun getShippedPackaging(): List<PackagingDto>? =
+        callApi { api.getShippedPackaging() }
+
     override suspend fun setPackagingShipment(packagingIds: List<Int>): PackagingShipmentResponse? =
         callApi { api.setPackagingShipment(packagingIds) }
 

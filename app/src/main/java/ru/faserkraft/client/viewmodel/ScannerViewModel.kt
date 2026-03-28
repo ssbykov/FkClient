@@ -86,6 +86,9 @@ class ScannerViewModel @Inject constructor(
     private val _packagingBoxes = MutableLiveData<List<PackagingDto>?>()
     val packagingBoxes: LiveData<List<PackagingDto>?> = _packagingBoxes
 
+    private val _shippedPackaging = MutableLiveData<List<PackagingDto>?>()
+    val shippedPackaging: LiveData<List<PackagingDto>?> = _shippedPackaging
+
     private val _processes = MutableLiveData<List<ProcessDto>?>()
     val processes: LiveData<List<ProcessDto>?> = _processes
 
@@ -133,6 +136,7 @@ class ScannerViewModel @Inject constructor(
         _productsInventoryByProcess.value = null
         _newProduct.value = ProductCreateDto(serialNumber = "")
         _packagingBoxes.value = null
+        _shippedPackaging.value = null
         _processes.value = null
         _employees.value = null
         _dayPlans.value = DayPlansDto(date = getToday(), plans = null)
@@ -280,6 +284,12 @@ class ScannerViewModel @Inject constructor(
         withLoading {
             repository.getPackagingInStorage()
         }?.let { _packagingBoxes.postValue(it) }
+    }
+
+    suspend fun getShippedPackaging() {
+        withLoading {
+            repository.getShippedPackaging()
+        }?.let { _shippedPackaging.postValue(it) }
     }
 
     suspend fun getProductsInventory() {
