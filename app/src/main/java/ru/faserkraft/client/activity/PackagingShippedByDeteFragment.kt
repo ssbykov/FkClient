@@ -20,7 +20,6 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.ModuleTypeUi
 import ru.faserkraft.client.adapter.PackagingListAdapter
 import ru.faserkraft.client.adapter.PackagingListUiItem
-import ru.faserkraft.client.databinding.FragmentPackagingListBinding
 import ru.faserkraft.client.databinding.FragmentShippedByDateBinding
 import ru.faserkraft.client.dto.FinishedProductDto
 import ru.faserkraft.client.viewmodel.ScannerViewModel
