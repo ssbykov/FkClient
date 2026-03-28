@@ -51,7 +51,8 @@
     <string name="inventory">Остатки</string>
     <string name="state_count">Количество: %1$d</string>
     <string name="employee_plan_products">Факт на дату: %1$s</string>
-    <string name="total_count">Всего: %1$d</string>
+    <string name="total_items_count">Всего: %1$d модулей</string>
+    <string name="total_packaging_count">Всего: %1$d упаковок</string>
     <string name="items_in_box">%1$s × %2$d шт.</string>
     <string name="items_count">Позиций: %1$d</string>
     <string name="inventory_by_stages">Остатки по этапам</string>
@@ -66,6 +67,7 @@
     <string name="status">Статус</string>
     <string name="created_at">Создан: %1$s</string>
     <string name="storage">Склад</string>
+    <string name="shipped">Отгрузки</string>
     <string name="products_storage">Продукция на складе</string>
     <string name="products_count">Количество модулей: </string>
     <string name="packaging_boxes">Упаковок</string>
@@ -75,4 +77,6 @@
     <string name="no_product_for_packaging">Нет доступных продуктов для упаковки</string>
     <string name="product_type">Тип продукции</string>
     <string name="packaging_count">Количество упаковок:</string>
+    <string name="shipped_partitions">Отгруженные партии</string>
+    <string name="no_shipped_partitions">Нет отгруженных партий</string>
 </resources>
