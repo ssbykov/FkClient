@@ -28,6 +28,7 @@ zxing = "4.3.0"
 mapstruct = "1.6.3"
 swiperefreshlayout = "1.2.0"
 serializationJson = "1.10.0"
+lottie = "6.7.1"
 
 [libraries]
 # AndroidX Core
@@ -75,6 +76,9 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 # swiper
 swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
+
+# lottie
+lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
