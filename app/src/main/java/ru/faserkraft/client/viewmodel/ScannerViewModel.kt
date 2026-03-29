@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.auth.AppAuth
+import ru.faserkraft.client.dto.DailyPlanCopyDto
 import ru.faserkraft.client.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
 import ru.faserkraft.client.dto.DayPlansDto
@@ -467,6 +468,15 @@ class ScannerViewModel @Inject constructor(
                 plannedQuantity = plannedQuantity,
             )
             repository.updateStepInDailyPlan(body)?.let { plans ->
+                _dayPlans.value = _dayPlans.value?.copy(plans = plans)
+            }
+        }
+
+    suspend fun copyDailyPlan(
+        dayPlanCopy: DailyPlanCopyDto
+    ): Result<Unit> =
+        withActionAndResult {
+            repository.copyDailyPlan(dayPlanCopy)?.let { plans ->
                 _dayPlans.value = _dayPlans.value?.copy(plans = plans)
             }
         }

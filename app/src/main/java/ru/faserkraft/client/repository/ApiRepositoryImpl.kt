@@ -1,6 +1,7 @@
 package ru.faserkraft.client.repository
 
 import ru.faserkraft.client.api.Api
+import ru.faserkraft.client.dto.DailyPlanCopyDto
 import ru.faserkraft.client.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
 import ru.faserkraft.client.dto.DayPlanDto
@@ -95,6 +96,9 @@ class ApiRepositoryImpl @Inject constructor(
     override suspend fun getDayPlans(
         date: String
     ): List<DayPlanDto>? = callApi { api.getDayPlans(date) }
+
+    override suspend fun copyDailyPlan(dayPlanCopy: DailyPlanCopyDto): List<DayPlanDto>? =
+        callApi { api.copyDailyPlan(dayPlanCopy) }
 
     override suspend fun changeProductStatus(
         productId: Long,

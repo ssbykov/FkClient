@@ -23,13 +23,14 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.EmployeePlanUiItem
 import ru.faserkraft.client.adapter.PlansAdapter
 import ru.faserkraft.client.databinding.FragmentDayPlanBinding
+import ru.faserkraft.client.dto.DailyPlanCopyDto
 import ru.faserkraft.client.dto.EmployeePlanDto
 import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.utils.apiPattern
 import ru.faserkraft.client.utils.convertDate
 import ru.faserkraft.client.utils.formatPlanDate
-import ru.faserkraft.client.utils.isPlanDateEditable
 import ru.faserkraft.client.viewmodel.ScannerViewModel
+import java.time.LocalDate
 
 class DayPlanFragment : Fragment() {
 
@@ -38,6 +39,7 @@ class DayPlanFragment : Fragment() {
     private lateinit var adapter: PlansAdapter
     private var currentUserRole: UserRole? = null
     private var canEdit: Boolean = false
+    private var isPastDate: Boolean = false
     private var datePicker: MaterialDatePicker<Long>? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -224,16 +226,12 @@ class DayPlanFragment : Fragment() {
         }
 
         binding.fabAddPlan.setOnClickListener {
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.setEmployees()
-                viewModel.setProcesses()
-                val action =
-                    DayPlanFragmentDirections
-                        .actionDayPlanFragmentToAddDayPlanFragment(
-                            plan = null,
-                            planDate = binding.etDate.text?.toString().orEmpty()
-                        )
-                findNavController().navigate(action)
+            if (currentUserRole != UserRole.MASTER) return@setOnClickListener
+
+            if (isPastDate) {
+                showCopyPlanDialog()
+            } else {
+                openAddPlanScreen()
             }
         }
     }
@@ -271,6 +269,43 @@ class DayPlanFragment : Fragment() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun openAddPlanScreen() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.setEmployees()
+            viewModel.setProcesses()
+
+            val action =
+                DayPlanFragmentDirections
+                    .actionDayPlanFragmentToAddDayPlanFragment(
+                        plan = null,
+                        planDate = binding.etDate.text?.toString().orEmpty()
+                    )
+
+            findNavController().navigate(action)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun showCopyPlanDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Скопировать план?")
+            .setMessage("План будет скопирован на текущую дату.")
+            .setPositiveButton("Да") { dialog, _ ->
+                val planDate = convertDate(binding.etDate.text?.toString().orEmpty())
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val planDate = DailyPlanCopyDto(planDate)
+                    viewModel.copyDailyPlan(planDate)
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Отмена") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun recomputeCanEdit(planDateApi: String? = null) {
         val isMaster = currentUserRole == UserRole.MASTER
 
@@ -280,13 +315,27 @@ class DayPlanFragment : Fragment() {
             api.takeIf { apiPattern.matches(it) }
         }
 
-        val isDateEditable = effectiveDateApi?.let { isPlanDateEditable(it) } ?: false
+        val selectedDate = effectiveDateApi?.let { LocalDate.parse(it) }
+        val today = LocalDate.now()
 
-        canEdit = isMaster && isDateEditable
+        isPastDate = selectedDate?.isBefore(today) == true
+
+        canEdit = isMaster
         binding.fabAddPlan.visibility = if (canEdit) View.VISIBLE else View.GONE
 
+        if (canEdit) {
+            if (isPastDate) {
+                binding.fabAddPlan.setImageResource(R.drawable.ic_copy)
+                binding.fabAddPlan.contentDescription = "Скопировать план"
+            } else {
+                binding.fabAddPlan.setImageResource(R.drawable.ic_add)
+                binding.fabAddPlan.contentDescription = "Добавить план"
+            }
+        }
+
         if (this::adapter.isInitialized) {
-            adapter.setCanEdit(canEdit)
+            val allowStepEdit = isMaster && !isPastDate
+            adapter.setCanEdit(allowStepEdit)
         }
     }
 

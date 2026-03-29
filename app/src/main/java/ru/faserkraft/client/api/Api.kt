@@ -7,6 +7,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import ru.faserkraft.client.dto.DailyPlanCopyDto
 import ru.faserkraft.client.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
 import ru.faserkraft.client.dto.DayPlanDto
@@ -79,6 +80,11 @@ interface Api {
     @GET(BASE_URL + "daily-plans")
     suspend fun getDayPlans(
         @Query("plan_date") date: String
+    ): Response<List<DayPlanDto>>
+
+    @POST(BASE_URL + "daily-plans/copy")
+    suspend fun copyDailyPlan(
+        @Body body: DailyPlanCopyDto
     ): Response<List<DayPlanDto>>
 
     @POST(BASE_URL + "daily-plans/add_step")

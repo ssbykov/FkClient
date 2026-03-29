@@ -1,5 +1,6 @@
 package ru.faserkraft.client.repository
 
+import ru.faserkraft.client.dto.DailyPlanCopyDto
 import ru.faserkraft.client.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
 import ru.faserkraft.client.dto.DayPlanDto
@@ -56,6 +57,7 @@ interface ApiRepository {
     suspend fun getFinishedProduct(): List<FinishedProductDto>?
 
     suspend fun getDayPlans(date: String): List<DayPlanDto>?
+    suspend fun copyDailyPlan(dayPlanCopy: DailyPlanCopyDto): List<DayPlanDto>?
     suspend fun changeProductStatus(
         productId: Long,
         status: ProductStatus,
