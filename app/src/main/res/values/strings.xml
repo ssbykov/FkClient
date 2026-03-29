@@ -83,4 +83,6 @@
     <string name="no_plans_for_day">Для выбранной даты нет планов</string>
     <string name="access_denied">Нет доступа к разделу</string>
     <string name="account_access_denied">У вашей учетной записи нет прав для просмотра этого раздела</string>
+    <string name="next_day">Следующий день</string>
+    <string name="previous_day">Предыдущий день</string>
 </resources>

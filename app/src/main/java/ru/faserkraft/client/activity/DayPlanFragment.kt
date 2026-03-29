@@ -234,6 +234,15 @@ class DayPlanFragment : Fragment() {
                 openAddPlanScreen()
             }
         }
+
+        binding.btnPrevDate.setOnClickListener {
+            shiftDate(-1)
+        }
+
+        binding.btnNextDate.setOnClickListener {
+            shiftDate(1)
+        }
+
     }
 
 
@@ -337,6 +346,22 @@ class DayPlanFragment : Fragment() {
             val allowStepEdit = isMaster && !isPastDate
             adapter.setCanEdit(allowStepEdit)
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun shiftDate(days: Long) {
+        val currentText = binding.etDate.text?.toString().orEmpty()
+        val apiDate = convertDate(currentText)
+
+        if (!apiPattern.matches(apiDate)) return
+
+        val newDate = LocalDate.parse(apiDate).plusDays(days)
+        val newApiDate = newDate.toString()
+        val newUiDate = convertDate(newApiDate)
+
+        binding.etDate.setText(newUiDate)
+        recomputeCanEdit(newApiDate)
+        viewModel.getDayPlans(newApiDate)
     }
 
 }
