@@ -23,10 +23,10 @@ import ru.faserkraft.client.viewmodel.ScannerViewModel
 class EditStepFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
-
     private val args: EditStepFragmentArgs by navArgs()
 
-    private lateinit var binding: FragmentEditStepBinding
+    private var _binding: FragmentEditStepBinding? = null
+    private val binding get() = _binding!!
 
     private lateinit var employeesAdapter: EmployeesAdapter
     private var employees: List<EmployeeUi> = emptyList()
@@ -35,36 +35,43 @@ class EditStepFragment : Fragment() {
     private var initialEmployeeId: Int? = null
     private var selectedIndex: Int? = null
 
+    private var activeDialog: AlertDialog? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentEditStepBinding.inflate(inflater, container, false)
+        _binding = FragmentEditStepBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
         employeesAdapter = EmployeesAdapter(requireContext())
         binding.actvEmployee.setAdapter(employeesAdapter)
 
         initialEmployeeId = args.step.performedBy?.id
 
         viewModel.employees.observe(viewLifecycleOwner) { list ->
-            employees = list
-                ?.map { EmployeeUi(it.id, it.name) }
-                .orEmpty()
+            employees = list?.map { EmployeeUi(it.id, it.name) }.orEmpty()
             employeesAdapter.setItems(employees)
             isEmployeesReady = true
-            selectEmployeeIfPossible()
+
+            if (selectedIndex == null) {
+                selectEmployeeIfPossible()
+            }
         }
 
         viewModel.productState.observe(viewLifecycleOwner) { state ->
-            binding.tvSerial.text = state?.serialNumber ?: "Не определен"
-            binding.tvStep.text = args.step.stepDefinition.template.name
+            val b = _binding ?: return@observe
+            b.tvSerial.text = state?.serialNumber ?: "Не определен"
+            b.tvStep.text = args.step.stepDefinition.template.name
             product = state
-            selectEmployeeIfPossible()
+            if (selectedIndex == null) {
+                selectEmployeeIfPossible()
+            }
         }
-
 
         binding.actvEmployee.setOnItemClickListener { _, _, position, _ ->
             selectedIndex = position
@@ -73,12 +80,15 @@ class EditStepFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    AlertDialog.Builder(requireContext())
+                    activeDialog?.dismiss()
+                    activeDialog = AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
                             viewModel.resetIsHandled()
                             dialog.dismiss()
+                            activeDialog = null
                         }
+                        .also { it.setOnDismissListener { activeDialog = null } }
                         .show()
                 }
             }
@@ -87,18 +97,13 @@ class EditStepFragment : Fragment() {
         binding.btnEdit.setOnClickListener {
             val index = selectedIndex
 
-            // 1) пользователь ничего не трогал → просто назад
             if (index == null) {
                 findNavController().navigateUp()
                 return@setOnClickListener
             }
 
-            // 2) обычная проверка индекса
             if (index < 0 || index >= employees.size) {
-                AlertDialog.Builder(requireContext())
-                    .setMessage("Сотрудник не выбран")
-                    .setPositiveButton("ОК") { dialog, _ -> dialog.dismiss() }
-                    .show()
+                showMessage("Сотрудник не выбран")
                 return@setOnClickListener
             }
 
@@ -106,7 +111,6 @@ class EditStepFragment : Fragment() {
                 val step = args.step
                 val newEmployee = employees.getOrNull(index) ?: return@launch
 
-                // 3) если выбран тот же сотрудник, что был — тоже просто назад
                 if (newEmployee.id == initialEmployeeId) {
                     findNavController().navigateUp()
                     return@launch
@@ -117,31 +121,48 @@ class EditStepFragment : Fragment() {
                     newEmployeeId = newEmployee.id
                 )
 
+                if (_binding == null) return@launch
+
                 result.onSuccess {
                     findNavController().navigateUp()
-                }.onFailure {
-                    // ошибку покажет подписка на errorState
                 }
+                // onFailure → errorState
             }
         }
 
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            binding.btnEdit.isEnabled = !state.isActionInProgress
-
-            binding.progressEdit.visibility =
+            val b = _binding ?: return@observe
+            b.btnEdit.isEnabled = !state.isActionInProgress
+            b.progressEdit.visibility =
                 if (state.isActionInProgress) View.VISIBLE else View.GONE
         }
+    }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        activeDialog?.dismiss()
+        activeDialog = null
+        _binding = null
     }
 
     private fun selectEmployeeIfPossible() {
         val id = args.step.performedBy?.id
         if (!isEmployeesReady || id == null) return
-
         val selectedEmployee = employees.find { it.id == id }
         selectedEmployee?.let {
-            binding.actvEmployee.setText(it.name, false)
+            _binding?.actvEmployee?.setText(it.name, false)
         }
     }
 
+    private fun showMessage(text: String) {
+        activeDialog?.dismiss()
+        activeDialog = AlertDialog.Builder(requireContext())
+            .setMessage(text)
+            .setPositiveButton("ОК") { dialog, _ ->
+                dialog.dismiss()
+                activeDialog = null
+            }
+            .also { it.setOnDismissListener { activeDialog = null } }
+            .show()
+    }
 }

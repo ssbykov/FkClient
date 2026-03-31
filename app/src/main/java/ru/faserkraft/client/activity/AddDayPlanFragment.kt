@@ -26,40 +26,34 @@ import ru.faserkraft.client.viewmodel.ScannerViewModel
 
 class AddDayPlanFragment : Fragment() {
 
-    // --- ViewModel / binding / args ---
-
     private val viewModel: ScannerViewModel by activityViewModels()
-    private lateinit var binding: FragmentAddDayPlanBinding
+
+    private var _binding: FragmentAddDayPlanBinding? = null
+    private val binding get() = _binding!!
 
     private val args: AddDayPlanFragmentArgs by navArgs()
     private val editingPlan: EmployeePlanDto? get() = args.plan
-
-    // --- Adapters ---
 
     private lateinit var employeesAdapter: EmployeesAdapter
     private lateinit var processAdapter: ProcessAdapter
     private lateinit var stepsAdapter: AddStepsAdapter
 
-    // --- UI data ---
-
     private var employees: List<EmployeeUi> = emptyList()
     private var processes: List<ProcessUi> = emptyList()
     private var steps: List<StepUi> = emptyList()
-
-    // --- Selection state ---
 
     private var selectedEmployeeIndex: Int? = null
     private var selectedProcessIndex: Int? = null
     private var selectedStepIndex: Int? = null
 
-    // --- Lifecycle ---
+    private var activeDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentAddDayPlanBinding.inflate(inflater, container, false)
+        _binding = FragmentAddDayPlanBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -71,6 +65,13 @@ class AddDayPlanFragment : Fragment() {
         setupUiListeners()
         observeUiState()
         collectErrors()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        activeDialog?.dismiss()
+        activeDialog = null
+        _binding = null
     }
 
     // --- Setup ---
@@ -85,7 +86,6 @@ class AddDayPlanFragment : Fragment() {
         binding.actvStep.setAdapter(stepsAdapter)
     }
 
-    /** Инициализация полей в режиме редактирования/создания */
     private fun setupMode() {
         if (editingPlan != null) {
             setupEditMode(editingPlan!!)
@@ -101,7 +101,6 @@ class AddDayPlanFragment : Fragment() {
 
     // --- Observers ---
 
-    /** Подгружаем сотрудников и восстанавливаем выбор при редактировании */
     private fun observeEmployees() {
         viewModel.employees.observe(viewLifecycleOwner) { list ->
             employees = list?.map { EmployeeUi(it.id, it.name) }.orEmpty()
@@ -119,16 +118,12 @@ class AddDayPlanFragment : Fragment() {
         }
     }
 
-    /** Подгружаем процессы и шаги, восстанавливаем значения при редактировании */
     private fun observeProcesses() {
         viewModel.processes.observe(viewLifecycleOwner) { list ->
-            processes = list
-                ?.map { ProcessUi(it.id, it.name) }
-                .orEmpty()
+            processes = list?.map { ProcessUi(it.id, it.name) }.orEmpty()
             processAdapter.setItems(processes)
 
             editingPlan?.let { plan ->
-                // Восстанавливаем процесс/этап только один раз
                 if (selectedProcessIndex == null) {
                     val processIndex = processes.indexOfFirst { it.name == plan.workProcess }
                     if (processIndex >= 0) {
@@ -138,10 +133,7 @@ class AddDayPlanFragment : Fragment() {
                         val processDto = viewModel.processes.value?.getOrNull(processIndex)
                         if (processDto != null) {
                             steps = processDto.steps.map { stepDto ->
-                                StepUi(
-                                    id = stepDto.id,
-                                    name = stepDto.template.name
-                                )
+                                StepUi(id = stepDto.id, name = stepDto.template.name)
                             }
                             stepsAdapter.setItems(steps)
 
@@ -160,12 +152,10 @@ class AddDayPlanFragment : Fragment() {
     // --- UI listeners ---
 
     private fun setupUiListeners() {
-        // выбор сотрудника
         binding.actvEmployee.setOnItemClickListener { _, _, position, _ ->
             selectedEmployeeIndex = position
         }
 
-        // выбор процесса
         binding.actvProcess.setOnItemClickListener { _, _, position, _ ->
             selectedProcessIndex = position
 
@@ -174,24 +164,18 @@ class AddDayPlanFragment : Fragment() {
                 ?: return@setOnItemClickListener
 
             steps = processDto.steps.map { stepDto ->
-                StepUi(
-                    id = stepDto.id,
-                    name = stepDto.template.name
-                )
+                StepUi(id = stepDto.id, name = stepDto.template.name)
             }
             stepsAdapter.setItems(steps)
 
-            // сбрасываем выбранный этап при смене процесса
             selectedStepIndex = null
             binding.actvStep.setText("", false)
         }
 
-        // выбор этапа
         binding.actvStep.setOnItemClickListener { _, _, position, _ ->
             selectedStepIndex = position
         }
 
-        // создание/обновление плана
         binding.btnCreatePlan.setOnClickListener {
             if (editingPlan == null) {
                 onCreatePlanClicked()
@@ -205,8 +189,10 @@ class AddDayPlanFragment : Fragment() {
 
     private fun observeUiState() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            binding.btnCreatePlan.isEnabled = !state.isActionInProgress
-            binding.progressCreatePlan.visibility =
+            // _binding может быть null в редких race condition — безопасный доступ
+            val b = _binding ?: return@observe
+            b.btnCreatePlan.isEnabled = !state.isActionInProgress
+            b.progressCreatePlan.visibility =
                 if (state.isActionInProgress) View.VISIBLE else View.GONE
         }
     }
@@ -215,12 +201,15 @@ class AddDayPlanFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    AlertDialog.Builder(requireContext())
+                    activeDialog?.dismiss()
+                    activeDialog = AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
                             viewModel.resetIsHandled()
                             dialog.dismiss()
+                            activeDialog = null
                         }
+                        .also { it.setOnDismissListener { activeDialog = null } }
                         .show()
                 }
             }
@@ -229,7 +218,6 @@ class AddDayPlanFragment : Fragment() {
 
     // --- Actions ---
 
-    /** Общая валидация выбора и количества */
     private fun validateSelection(): Triple<Int, Int, Int>? {
         val empIndex = selectedEmployeeIndex
         val procIndex = selectedProcessIndex
@@ -237,22 +225,18 @@ class AddDayPlanFragment : Fragment() {
         val qtyText = binding.etQty.text?.toString()?.trim()
 
         if (empIndex == null || empIndex !in employees.indices) {
-            showMessage("Сотрудник не выбран")
-            return null
+            showMessage("Сотрудник не выбран"); return null
         }
         if (procIndex == null || procIndex !in processes.indices) {
-            showMessage("Процесс не выбран")
-            return null
+            showMessage("Процесс не выбран"); return null
         }
         if (stepIndex == null || stepIndex !in steps.indices) {
-            showMessage("Этап не выбран")
-            return null
+            showMessage("Этап не выбран"); return null
         }
 
         val plannedQuantity = qtyText?.toIntOrNull()
         if (plannedQuantity == null || plannedQuantity <= 0) {
-            showMessage("Укажите корректное количество")
-            return null
+            showMessage("Укажите корректное количество"); return null
         }
 
         return Triple(empIndex, stepIndex, plannedQuantity)
@@ -274,10 +258,10 @@ class AddDayPlanFragment : Fragment() {
                 plannedQuantity = plannedQuantity
             )
 
+            if (_binding == null) return@launch
+
             result.onSuccess {
                 findNavController().navigateUp()
-            }.onFailure {
-                // ошибка уйдет в errorState
             }
         }
     }
@@ -294,15 +278,15 @@ class AddDayPlanFragment : Fragment() {
             val result = viewModel.updateStepInDailyPlan(
                 planDate = planDate,
                 employeeId = employeeId,
-                stepId = plan.id,              // id DailyPlanStep
+                stepId = plan.id,
                 stepDefinitionId = stepDefinitionId,
                 plannedQuantity = plannedQuantity
             )
 
+            if (_binding == null) return@launch
+
             result.onSuccess {
                 findNavController().navigateUp()
-            }.onFailure {
-                // ошибка уйдет в errorState
             }
         }
     }
@@ -310,9 +294,14 @@ class AddDayPlanFragment : Fragment() {
     // --- Helpers ---
 
     private fun showMessage(text: String) {
-        AlertDialog.Builder(requireContext())
+        activeDialog?.dismiss()
+        activeDialog = AlertDialog.Builder(requireContext())
             .setMessage(text)
-            .setPositiveButton("ОК") { dialog, _ -> dialog.dismiss() }
+            .setPositiveButton("ОК") { dialog, _ ->
+                dialog.dismiss()
+                activeDialog = null
+            }
+            .also { it.setOnDismissListener { activeDialog = null } }
             .show()
     }
 }

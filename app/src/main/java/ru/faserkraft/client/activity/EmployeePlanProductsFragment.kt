@@ -31,6 +31,8 @@ class EmployeePlanProductsFragment : Fragment() {
 
     private lateinit var adapter: ProductsInventoryByProcessAdapter
 
+    private var activeDialog: AlertDialog? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -41,6 +43,7 @@ class EmployeePlanProductsFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         val planDate = convertDate(args.employeePlanDto.date)
         binding.tvDetailTitle.text = getString(
@@ -48,16 +51,15 @@ class EmployeePlanProductsFragment : Fragment() {
             planDate
         )
 
-        adapter = ProductsInventoryByProcessAdapter {
+        adapter = ProductsInventoryByProcessAdapter { qrData ->
             viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.handleProductQr(it)
+                viewModel.handleProductQr(qrData)
+                if (_binding == null) return@launch
                 findNavController().navigate(
                     R.id.action_employeePlanProductsFragment_to_productFullFragment
                 )
             }
         }
-
-        super.onViewCreated(view, savedInstanceState)
 
         setupRecycler()
         setupObservers()
@@ -66,13 +68,20 @@ class EmployeePlanProductsFragment : Fragment() {
         setupRefresh()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding.rvProductsDetail.adapter = null
+        activeDialog?.dismiss()
+        activeDialog = null
+        _binding = null
+    }
+
     private fun setupRecycler() {
         binding.rvProductsDetail.layoutManager = LinearLayoutManager(requireContext())
         binding.rvProductsDetail.adapter = adapter
     }
 
     private fun setupObservers() {
-        // список продуктов, подтверждающих выполнение плана
         viewModel.productsInventoryByProcess.observe(viewLifecycleOwner) { list ->
             val items = list.orEmpty().map {
                 ProductsInventoryByProcessUiItem(
@@ -84,31 +93,33 @@ class EmployeePlanProductsFragment : Fragment() {
             adapter.submitList(items)
         }
 
-        // состояние загрузки
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             binding.swipeRefreshDetail.isRefreshing = state.isLoading
             binding.swipeRefreshDetail.isEnabled = !state.isLoading
         }
 
-        // ошибки
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    AlertDialog.Builder(requireContext())
+                    // 🟡 ИСПРАВЛЕНИЕ 4: закрываем предыдущий перед показом нового
+                    activeDialog?.dismiss()
+                    activeDialog = AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
                             viewModel.resetIsHandled()
                             dialog.dismiss()
+                            activeDialog = null
+                        }
+                        .also { builder ->
+                            builder.setOnDismissListener { activeDialog = null }
                         }
                         .show()
                 }
             }
         }
-
     }
 
     private fun renderHeader() {
-        // args.employeePlanDto (пример имени аргумента — подставь своё)
         with(args.employeePlanDto) {
             binding.tvProcessName.text = workProcess
             binding.tvEmployeeName.text = employee.name
@@ -117,12 +128,11 @@ class EmployeePlanProductsFragment : Fragment() {
     }
 
     private fun loadData() {
-        // запрос продуктов по плану сотрудника (подставь свой метод/аргументы)
         viewLifecycleOwner.lifecycleScope.launch {
             with(args.employeePlanDto) {
                 viewModel.getProductsByStepEmployeeDay(
                     stepDefinitionId = stepDefinition.id,
-                    day =date,
+                    day = date,
                     employeeId = employee.id
                 )
             }
@@ -133,10 +143,5 @@ class EmployeePlanProductsFragment : Fragment() {
         binding.swipeRefreshDetail.setOnRefreshListener {
             loadData()
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

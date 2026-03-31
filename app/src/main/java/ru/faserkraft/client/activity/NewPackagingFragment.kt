@@ -29,9 +29,12 @@ import ru.faserkraft.client.viewmodel.ScannerViewModel
 class NewPackagingFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
-    private lateinit var binding: FragmentNewPackagingBinding
+
+    private var _binding: FragmentNewPackagingBinding? = null
+    private val binding get() = _binding!!
 
     private lateinit var adapter: PackagingProductsAdapter
+    private var emptyObserver: RecyclerView.AdapterDataObserver? = null
 
     private val args: NewPackagingFragmentArgs by navArgs()
 
@@ -41,7 +44,7 @@ class NewPackagingFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        binding = FragmentNewPackagingBinding.inflate(inflater, container, false)
+        _binding = FragmentNewPackagingBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -62,7 +65,8 @@ class NewPackagingFragment : Fragment() {
                 adapter.submitList(current)
             }
 
-            val allSelected = adapter.currentList.all { it.isSelected }
+            // ✅ проверяем по локальному current, а не по adapter.currentList
+            val allSelected = current.isNotEmpty() && current.all { it.isSelected }
             if (binding.cbSelectAll.isChecked != allSelected) {
                 binding.cbSelectAll.setOnCheckedChangeListener(null)
                 binding.cbSelectAll.isChecked = allSelected
@@ -74,13 +78,13 @@ class NewPackagingFragment : Fragment() {
         binding.rvProducts.adapter = adapter
 
         // empty view observer
-        val emptyObserver = object : RecyclerView.AdapterDataObserver() {
+        emptyObserver = object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() = checkEmpty()
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = checkEmpty()
             override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = checkEmpty()
         }
-        adapter.registerAdapterDataObserver(emptyObserver)
-        emptyObserver.onChanged()    // первичная проверка
+        adapter.registerAdapterDataObserver(emptyObserver!!)
+        emptyObserver?.onChanged() // первичная проверка
 
         // обработчик "выбрать все"
         binding.cbSelectAll.setOnCheckedChangeListener(selectAllListener)
@@ -133,6 +137,7 @@ class NewPackagingFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
+                    if (msg.isBlank()) return@collect
                     AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
@@ -144,51 +149,52 @@ class NewPackagingFragment : Fragment() {
             }
         }
 
-        // создание упаковки (без изменений)
+        // создание/редактирование упаковки
         binding.btnSave.setOnClickListener {
             val serial = binding.tvPackagingSerial.text?.toString().orEmpty()
-
             val selectedItems = adapter.currentList.filter { it.isSelected }
-            if (selectedItems.isEmpty()) {
-                AlertDialog.Builder(requireContext())
-                    .setIcon(android.R.drawable.ic_delete)
-                    .setTitle("Внимание")
-                    .setMessage("Вы не выбрали ни одного продукта!\nУдалить упаковку?")
-                    .setNegativeButton("ОК") { dialog, _ ->
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            val result = viewModel.deletePackaging(serial)
-                            if (result.isSuccess) {
-                                view.let { root ->
-                                    Snackbar.make(
-                                        root,
-                                        "Упаковка удалена",
-                                        Snackbar.LENGTH_SHORT
-                                    ).show()
-                                }
-                                val navOptions = NavOptions.Builder()
-                                    .setPopUpTo(R.id.nav_main, true)
-                                    .build()
 
-                                findNavController().navigate(
-                                    R.id.scannerFragment,
-                                    null,
-                                    navOptions
-                                )
+            if (selectedItems.isEmpty()) {
+                if (args.packaging?.products != null) {
+                    AlertDialog.Builder(requireContext())
+                        .setIcon(android.R.drawable.ic_delete)
+                        .setTitle("Внимание")
+                        .setMessage("Вы не выбрали ни одного продукта!\nУдалить упаковку?")
+                        .setNegativeButton("ОК") { dialog, _ ->
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                val result = viewModel.deletePackaging(serial)
+                                if (result.isSuccess) {
+                                    Snackbar.make(view, "Упаковка удалена", Snackbar.LENGTH_SHORT)
+                                        .show()
+                                    val navOptions = NavOptions.Builder()
+                                        .setPopUpTo(R.id.nav_main, true)
+                                        .build()
+                                    findNavController().navigate(
+                                        R.id.scannerFragment,
+                                        null,
+                                        navOptions
+                                    )
+                                }
                             }
+                            dialog.dismiss()
                         }
-                        dialog.dismiss()
-                    }
-                    .setPositiveButton("Отмена") { dialog, _ ->
-                        dialog.dismiss()
-                    }
-                    .show()
+                        .setPositiveButton("Отмена") { dialog, _ -> dialog.dismiss() }
+                        .show()
+                } else {
+                    AlertDialog.Builder(requireContext())
+                        .setMessage("Выберите хотя бы один продукт!")
+                        .setPositiveButton("ОК", null)
+                        .show()
+                }
                 return@setOnClickListener
             }
 
-            val firstTypeSize = selectedItems.first().sizeType
+            val firstItem = selectedItems.first()
+            val firstTypeSize = firstItem.sizeType
+            val maxAllowed = firstItem.packagingCount ?: 1
+            val selectedCount = selectedItems.size
 
-            val hasDifferentTypeSize = selectedItems.any { it.sizeType != firstTypeSize }
-            if (hasDifferentTypeSize) {
+            if (selectedItems.any { it.sizeType != firstTypeSize }) {
                 AlertDialog.Builder(requireContext())
                     .setMessage("Все выбранные продукты должны быть одного типоразмера!")
                     .setPositiveButton("ОК", null)
@@ -196,10 +202,7 @@ class NewPackagingFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val maxAllowed = selectedItems.first().packagingCount
-            val selectedCount = selectedItems.size
-
-            if (selectedCount > (maxAllowed ?: 1)) {
+            if (selectedCount > maxAllowed) {
                 AlertDialog.Builder(requireContext())
                     .setMessage("Количество выбранных продуктов не должно превышать $maxAllowed!")
                     .setPositiveButton("ОК", null)
@@ -225,11 +228,17 @@ class NewPackagingFragment : Fragment() {
                         null,
                         navOptions
                     )
-                }.onFailure {
-                    // обработка через errorState
                 }
             }
         }
+    }
+
+    override fun onDestroyView() {
+        emptyObserver?.let { adapter.unregisterAdapterDataObserver(it) }
+        emptyObserver = null
+        binding.rvProducts.adapter = null
+        _binding = null
+        super.onDestroyView()
     }
 
     private fun checkEmpty() {

@@ -21,17 +21,21 @@ class EditProductStatusFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
 
-    private lateinit var binding: FragmentEditStatusProductBinding
+    private var _binding: FragmentEditStatusProductBinding? = null
+    private val binding get() = _binding!!
+
+    private var activeDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentEditStatusProductBinding.inflate(inflater, container, false)
+        _binding = FragmentEditStatusProductBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         viewModel.productState.observe(viewLifecycleOwner) { state ->
             binding.tvSerial.text = state?.serialNumber
@@ -41,16 +45,26 @@ class EditProductStatusFragment : Fragment() {
             }
         }
 
-        // обработка ошибок как у тебя
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            val b = _binding ?: return@observe
+            b.btnChangeStatus.isEnabled = !state.isActionInProgress
+            b.progressEdit.visibility =
+                if (state.isActionInProgress) View.VISIBLE else View.GONE
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    AlertDialog.Builder(requireContext())
+                    if (!isAdded) return@collect
+                    activeDialog?.dismiss()
+                    activeDialog = AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
                             viewModel.resetIsHandled()
                             dialog.dismiss()
+                            activeDialog = null
                         }
+                        .also { it.setOnDismissListener { activeDialog = null } }
                         .show()
                 }
             }
@@ -59,53 +73,53 @@ class EditProductStatusFragment : Fragment() {
         binding.btnChangeStatus.setOnClickListener {
             val product = viewModel.productState.value
             if (product == null) {
-                AlertDialog.Builder(requireContext())
+                activeDialog?.dismiss()
+                activeDialog = AlertDialog.Builder(requireContext())
                     .setMessage("Продукт не загружен")
-                    .setPositiveButton("ОК") { dialog, _ -> dialog.dismiss() }
+                    .setPositiveButton("ОК") { dialog, _ ->
+                        dialog.dismiss()
+                        activeDialog = null
+                    }
                     .show()
                 return@setOnClickListener
             }
 
             val checkedId = binding.rgStatus.checkedRadioButtonId
+
             if (checkedId == -1) {
                 findNavController().navigateUp()
+                return@setOnClickListener
             }
 
             viewLifecycleOwner.lifecycleScope.launch {
                 val result = when (checkedId) {
                     binding.rbNormal.id -> viewModel.setProductStatus(
-                        product.id,
-                        ProductStatus.NORMAL
+                        product.id, ProductStatus.NORMAL
                     )
-
                     binding.rbRestore.id -> viewModel.setProductStatus(
-                        product.id,
-                        ProductStatus.REWORK
+                        product.id, ProductStatus.REWORK
                     )
-
                     binding.rbScrap.id -> viewModel.setProductStatus(
-                        product.id,
-                        ProductStatus.SCRAP
+                        product.id, ProductStatus.SCRAP
                     )
-
                     else -> null
                 }
 
+                // проверяем что View ещё жива перед навигацией
+                if (_binding == null) return@launch
+
                 result?.onSuccess {
                     findNavController().navigateUp()
-                }?.onFailure {
-                    // ошибка уже уйдет в errorState
                 }
-            }
-
-
-            viewModel.uiState.observe(viewLifecycleOwner) { state ->
-                binding.btnChangeStatus.isEnabled = !state.isActionInProgress
-
-                binding.progressEdit.visibility =
-                    if (state.isActionInProgress) View.VISIBLE else View.GONE
+                // onFailure — ошибка уйдёт в errorState
             }
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        activeDialog?.dismiss()
+        activeDialog = null
+        _binding = null
+    }
 }

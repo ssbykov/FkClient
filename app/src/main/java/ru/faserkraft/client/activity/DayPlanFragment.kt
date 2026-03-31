@@ -35,19 +35,24 @@ import java.time.LocalDate
 class DayPlanFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
-    private lateinit var binding: FragmentDayPlanBinding
+
+    private var _binding: FragmentDayPlanBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var adapter: PlansAdapter
     private var currentUserRole: UserRole? = null
     private var canEdit: Boolean = false
     private var isPastDate: Boolean = false
     private var datePicker: MaterialDatePicker<Long>? = null
 
+    private lateinit var emptyObserver: RecyclerView.AdapterDataObserver
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentDayPlanBinding.inflate(inflater, container, false)
+        _binding = FragmentDayPlanBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -66,7 +71,6 @@ class DayPlanFragment : Fragment() {
                 viewLifecycleOwner.lifecycleScope.launch {
                     viewModel.setEmployees()
                     viewModel.setProcesses()
-
                     val bundle = bundleOf("plan" to employeePlan)
                     findNavController().navigate(
                         R.id.action_dayPlanFragment_to_addDayPlanFragment,
@@ -75,21 +79,16 @@ class DayPlanFragment : Fragment() {
                 }
             },
             onEmployeeProductsClick = { employeePlan ->
-                viewLifecycleOwner.lifecycleScope.launch {
-
-                    val action =
-                        DayPlanFragmentDirections
-                            .actionDayPlanFragmentToEmployeePlanProductsFragment(employeePlan)
-
-                    findNavController().navigate(action)
-                }
+                val action = DayPlanFragmentDirections
+                    .actionDayPlanFragmentToEmployeePlanProductsFragment(employeePlan)
+                findNavController().navigate(action)
             }
         )
 
         binding.rvPlans.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPlans.adapter = adapter
 
-        val emptyObserver = object : RecyclerView.AdapterDataObserver() {
+        emptyObserver = object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() = checkEmpty()
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = checkEmpty()
             override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = checkEmpty()
@@ -97,54 +96,49 @@ class DayPlanFragment : Fragment() {
         adapter.registerAdapterDataObserver(emptyObserver)
         emptyObserver.onChanged()
 
-        val swipeCallback = object : ItemTouchHelper.SimpleCallback(
-            0,
-            ItemTouchHelper.END
-        ) {
+        val swipeCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.END) {
             override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean = false
+                rv: RecyclerView,
+                vh: RecyclerView.ViewHolder,
+                t: RecyclerView.ViewHolder
+            ) = false
 
-            override fun getSwipeDirs(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder
-            ): Int {
+            override fun getSwipeDirs(rv: RecyclerView, vh: RecyclerView.ViewHolder): Int {
                 if (!canEdit) return 0
-
-                val position = viewHolder.bindingAdapterPosition
+                val position = vh.bindingAdapterPosition
                 val item = adapter.currentList.getOrNull(position)
                 return if (item is EmployeePlanUiItem.Header) 0
-                else super.getSwipeDirs(recyclerView, viewHolder)
+                else super.getSwipeDirs(rv, vh)
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.bindingAdapterPosition
                 val item = adapter.currentList.getOrNull(position)
 
+                // Сразу откатываем визуально — удалять будем только после подтверждения
                 adapter.notifyItemChanged(position)
 
                 if (item !is EmployeePlanUiItem.Step) return
+
+                if (!isAdded) return
 
                 AlertDialog.Builder(requireContext())
                     .setTitle("Удалить план?")
                     .setMessage("Вы уверены, что хотите удалить этот шаг плана?")
                     .setPositiveButton("Да") { dialog, _ ->
+                        dialog.dismiss()
                         val planId = item.plan.id
 
                         viewLifecycleOwner.lifecycleScope.launch {
-                            viewModel.removeStepFromDailyPlan(planId)
+                            val result = viewModel.removeStepFromDailyPlan(planId)
+                            result.onSuccess {
+                                // Обновление придёт через dayPlans observer автоматически
+                            }.onFailure {
+                                // Ошибка уйдёт в errorState — список не трогаем
+                            }
                         }
-
-                        val mutable = adapter.currentList.toMutableList()
-                        mutable.removeAt(position)
-                        adapter.submitList(mutable)
-                        dialog.dismiss()
                     }
-                    .setNegativeButton("Отмена") { dialog, _ ->
-                        dialog.dismiss()
-                    }
+                    .setNegativeButton("Отмена") { dialog, _ -> dialog.dismiss() }
                     .show()
             }
         }
@@ -152,10 +146,8 @@ class DayPlanFragment : Fragment() {
         ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.rvPlans)
 
         viewModel.dayPlans.observe(viewLifecycleOwner) { dayPlans ->
-
             val planDate = dayPlans.date
             val planDateUi = convertDate(dayPlans.date)
-
             binding.etDate.setText(planDateUi)
 
             if (dayPlans.plans.isNullOrEmpty()) {
@@ -167,13 +159,10 @@ class DayPlanFragment : Fragment() {
             recomputeCanEdit(planDate)
 
             val uiItems = mutableListOf<EmployeePlanUiItem>()
-
             dayPlans.plans.forEach { plan ->
                 val steps = plan.steps
                 if (steps.isEmpty()) return@forEach
-
                 uiItems += EmployeePlanUiItem.Header(plan.employee.name)
-
                 steps.forEach { step ->
                     val employeePlan = EmployeePlanDto(
                         id = step.id,
@@ -187,15 +176,12 @@ class DayPlanFragment : Fragment() {
                     uiItems += EmployeePlanUiItem.Step(employeePlan)
                 }
             }
-
             adapter.submitList(uiItems)
         }
 
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             val isLoading = state.isLoading
-
             binding.swipeRefresh.isRefreshing = isLoading
-
             binding.swipeRefresh.isEnabled = !isLoading
             binding.etDate.isEnabled = !isLoading
             binding.fabAddPlan.isEnabled = !isLoading
@@ -204,6 +190,7 @@ class DayPlanFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
+                    if (!isAdded) return@collect
                     AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
@@ -227,29 +214,29 @@ class DayPlanFragment : Fragment() {
 
         binding.fabAddPlan.setOnClickListener {
             if (currentUserRole != UserRole.MASTER) return@setOnClickListener
-
-            if (isPastDate) {
-                showCopyPlanDialog()
-            } else {
-                openAddPlanScreen()
-            }
+            if (isPastDate) showCopyPlanDialog() else openAddPlanScreen()
         }
 
-        binding.btnPrevDate.setOnClickListener {
-            shiftDate(-1)
-        }
-
-        binding.btnNextDate.setOnClickListener {
-            shiftDate(1)
-        }
-
+        binding.btnPrevDate.setOnClickListener { shiftDate(-1) }
+        binding.btnNextDate.setOnClickListener { shiftDate(1) }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        if (::emptyObserver.isInitialized) {
+            adapter.unregisterAdapterDataObserver(emptyObserver)
+        }
+        binding.rvPlans.adapter = null
+        datePicker?.dismiss()
+        datePicker = null
+        _binding = null
+    }
 
     private fun checkEmpty() {
+        val b = _binding ?: return
         val isEmpty = adapter.itemCount == 0
-        binding.tvEmptyPlans.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        binding.rvPlans.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        b.tvEmptyPlans.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        b.rvPlans.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 
     private fun showDatePicker() {

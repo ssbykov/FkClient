@@ -24,15 +24,17 @@ import ru.faserkraft.client.databinding.FragmentPackagingListBinding
 import ru.faserkraft.client.dto.FinishedProductDto
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
-
 class PackagingListFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
-    private lateinit var binding: FragmentPackagingListBinding
+
+    private var _binding: FragmentPackagingListBinding? = null
+    private val binding get() = _binding!!
 
     private val args: PackagingListFragmentArgs by navArgs()
-
     private lateinit var adapter: PackagingListAdapter
+
+    private var activeDialog: AlertDialog? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -40,7 +42,7 @@ class PackagingListFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        binding = FragmentPackagingListBinding.inflate(inflater, container, false)
+        _binding = FragmentPackagingListBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -55,6 +57,9 @@ class PackagingListFragment : Fragment() {
             onItemClick = { item ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     viewModel.handlePackagingSerialQr(item.serialNumber)
+
+                    if (_binding == null) return@launch
+
                     findNavController().navigate(
                         R.id.action_packagingListFragment_to_packagingFragment
                     )
@@ -66,22 +71,17 @@ class PackagingListFragment : Fragment() {
         binding.rvProducts.adapter = adapter
 
         viewModel.packagingBoxes.observe(viewLifecycleOwner) { packaging ->
+            val b = _binding ?: return@observe
 
             val uiItems: List<PackagingListUiItem> = packaging
                 .orEmpty()
-                .filter { box ->
-                    box.products.any { it.process.name == process }
-                }
+                .filter { box -> box.products.any { it.process.name == process } }
                 .map { box ->
-                    // группируем продукты по имени процесса
                     val groups: Map<String, List<FinishedProductDto>> =
                         box.products.groupBy { it.process.name }
 
                     val types = groups.map { (name, list) ->
-                        ModuleTypeUi(
-                            name = name,
-                            count = list.size
-                        )
+                        ModuleTypeUi(name = name, count = list.size)
                     }
 
                     PackagingListUiItem(
@@ -94,16 +94,9 @@ class PackagingListFragment : Fragment() {
 
             adapter.submitList(uiItems)
 
-            // Показ/скрытие сообщения об отсутствии упаковок
-            if (uiItems.isEmpty()) {
-                binding.tvEmptyPackaging.visibility = View.VISIBLE
-                binding.rvProducts.visibility = View.GONE
-            } else {
-                binding.tvEmptyPackaging.visibility = View.GONE
-                binding.rvProducts.visibility = View.VISIBLE
-            }
+            b.tvEmptyPackaging.visibility = if (uiItems.isEmpty()) View.VISIBLE else View.GONE
+            b.rvProducts.visibility = if (uiItems.isEmpty()) View.GONE else View.VISIBLE
         }
-
 
         // начальная загрузка
         viewLifecycleOwner.lifecycleScope.launch {
@@ -114,25 +107,34 @@ class PackagingListFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    AlertDialog.Builder(requireContext())
+                    activeDialog?.dismiss()
+                    activeDialog = AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
                             viewModel.resetIsHandled()
                             dialog.dismiss()
+                            activeDialog = null
+                        }
+                        .also { builder ->
+                            builder.setOnDismissListener { activeDialog = null }
                         }
                         .show()
                 }
             }
         }
 
-        // FAB – действие при нажатии (например, открыть экран упаковки для отправки)
         binding.fabAdd.setOnClickListener {
-            // Вариант 1: перейти к PackagingShipmentFragment с тем же process
-            val action =
-                PackagingListFragmentDirections.actionPackagingListFragmentToPackagingShipmentFragment(
-                    process
-                )
+            val action = PackagingListFragmentDirections
+                .actionPackagingListFragmentToPackagingShipmentFragment(process)
             findNavController().navigate(action)
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        activeDialog?.dismiss()
+        activeDialog = null
+        binding.rvProducts.adapter = null  // 🟡 ИСПРАВЛЕНИЕ 4
+        _binding = null
     }
 }

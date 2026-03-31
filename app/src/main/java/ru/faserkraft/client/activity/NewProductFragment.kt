@@ -26,20 +26,27 @@ class NewProductFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
 
-    private lateinit var binding: FragmentNewProductBinding
+    private var _binding: FragmentNewProductBinding? = null
+    private val binding get() = _binding!!
 
     private lateinit var processAdapter: ProcessAdapter
     private var processes: List<ProcessUi> = emptyList()
+
+    private var selectedIndex: Int? = null
+
+    private var activeDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentNewProductBinding.inflate(inflater, container, false)
+        _binding = FragmentNewProductBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
         processAdapter = ProcessAdapter(requireContext())
         binding.actvProcess.setAdapter(processAdapter)
 
@@ -54,34 +61,34 @@ class NewProductFragment : Fragment() {
             processAdapter.setItems(processes)
         }
 
-        var selectedIndex: Int? = null
-
         binding.actvProcess.setOnItemClickListener { _, _, position, _ ->
-            selectedIndex = position          // индекс в адаптере
+            selectedIndex = position
         }
 
+        // обработка ошибок
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    AlertDialog.Builder(requireContext())
+                    if (!isAdded) return@collect
+                    // 🟡 ИСПРАВЛЕНИЕ 3: закрываем предыдущий перед показом нового
+                    activeDialog?.dismiss()
+                    activeDialog = AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
                             viewModel.resetIsHandled()
                             dialog.dismiss()
+                            activeDialog = null
                         }
+                        .also { it.setOnDismissListener { activeDialog = null } }
                         .show()
                 }
             }
         }
 
         binding.btnSave.setOnClickListener {
-
             val index = selectedIndex
-            if (index == null || index < 0 || index >= processes.size) {
-                AlertDialog.Builder(requireContext())
-                    .setMessage("Процесс не выбран")
-                    .setPositiveButton("ОК") { dialog, _ -> dialog.dismiss() }
-                    .show()
+            if (index == null || index !in processes.indices) {
+                showMessage("Процесс не выбран")
                 return@setOnClickListener
             }
 
@@ -93,8 +100,11 @@ class NewProductFragment : Fragment() {
                 serialNumber = binding.tvSerial.text.toString(),
                 createdAt = nowIso
             )
+
             viewLifecycleOwner.lifecycleScope.launch {
                 val result = viewModel.createProduct(newProduct)
+
+                if (_binding == null) return@launch
 
                 result.onSuccess {
                     val navOptions = NavOptions.Builder()
@@ -106,11 +116,29 @@ class NewProductFragment : Fragment() {
                         null,
                         navOptions
                     )
-                }.onFailure {
-                    // тут просто ничего не делаем, диалог покажет подписка на errorState
                 }
+                // onFailure — диалог покажет подписка на errorState
             }
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        activeDialog?.dismiss()
+        activeDialog = null
+        _binding = null
+    }
+
+    private fun showMessage(text: String) {
+        if (!isAdded) return
+        activeDialog?.dismiss()
+        activeDialog = AlertDialog.Builder(requireContext())
+            .setMessage(text)
+            .setPositiveButton("ОК") { dialog, _ ->
+                dialog.dismiss()
+                activeDialog = null
+            }
+            .also { it.setOnDismissListener { activeDialog = null } }
+            .show()
+    }
 }

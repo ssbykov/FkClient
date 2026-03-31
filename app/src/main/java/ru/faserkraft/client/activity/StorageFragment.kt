@@ -24,15 +24,20 @@ import ru.faserkraft.client.viewmodel.ScannerViewModel
 class StorageFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
-    private lateinit var binding: FragmentProductsStorageBinding
+
+    private var _binding: FragmentProductsStorageBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var adapter: ProductsStorageAdapter
+
+    private lateinit var emptyObserver: RecyclerView.AdapterDataObserver
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentProductsStorageBinding.inflate(inflater, container, false)
+        _binding = FragmentProductsStorageBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -49,8 +54,8 @@ class StorageFragment : Fragment() {
         binding.rvProductsStats.layoutManager = LinearLayoutManager(requireContext())
         binding.rvProductsStats.adapter = adapter
 
-        // empty view observer
-        val emptyObserver = object : RecyclerView.AdapterDataObserver() {
+        // empty view observer — теперь через поле класса
+        emptyObserver = object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() = checkEmpty()
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = checkEmpty()
             override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = checkEmpty()
@@ -76,7 +81,6 @@ class StorageFragment : Fragment() {
                 .map { (key, products) ->
                     val (processId, processName) = key
 
-                    // Считаем количество упаковок для этого процесса
                     val packagingCount = list.count { packaging ->
                         packaging.products.any { it.process.id == processId }
                     }
@@ -122,9 +126,23 @@ class StorageFragment : Fragment() {
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // отписываемся от observer — предотвращаем утечку через адаптер
+        if (::emptyObserver.isInitialized) {
+            adapter.unregisterAdapterDataObserver(emptyObserver)
+        }
+        // обнуляем adapter у RecyclerView — разрываем цикл RV → Adapter → View
+        binding.rvProductsStats.adapter = null
+        // обнуляем binding — Fragment живёт дольше своего View
+        _binding = null
+    }
+
     private fun checkEmpty() {
+        // _binding может быть null если вызывается после onDestroyView
+        val b = _binding ?: return
         val isEmpty = adapter.itemCount == 0
-        binding.tvEmptyStorage.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        binding.rvProductsStats.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        b.tvEmptyStorage.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        b.rvProductsStats.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 }

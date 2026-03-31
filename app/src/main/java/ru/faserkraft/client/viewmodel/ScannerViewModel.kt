@@ -591,6 +591,7 @@ class ScannerViewModel @Inject constructor(
         is AppError.ApiError -> when (e.status) {
             401 -> "Не авторизован"
             403 -> "Доступ запрещён"
+            409 -> "Редактирование запрещено"
             404 -> e.message ?: "Ресурс не найден"
             else -> "Ошибка сервера: ${e.status}"
         }
