@@ -21,25 +21,28 @@ class QrGenerationFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
 
-    private lateinit var binding: FragmentQrGenerationBinding
+    private var _binding: FragmentQrGenerationBinding? = null
+    private val binding get() = _binding!!
 
     private lateinit var employeesAdapter: EmployeesAdapter
     private var employees: List<EmployeeUi> = emptyList()
     private var selectedIndex: Int? = null
     private var selectedEmployeeId: Int? = null
-    private var isEmployeesReady = false
+
+    private var activeDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        binding = FragmentQrGenerationBinding.inflate(inflater, container, false)
+        _binding = FragmentQrGenerationBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // адаптер как в EditStepFragment
+        super.onViewCreated(view, savedInstanceState)
+
         employeesAdapter = EmployeesAdapter(requireContext())
         binding.actvEmployee.setAdapter(employeesAdapter)
 
@@ -63,69 +66,61 @@ class QrGenerationFragment : Fragment() {
             val employeeId = selectedEmployeeId
 
             if (index == null || employeeId == null) {
-                AlertDialog.Builder(requireContext())
-                    .setMessage("Сотрудник не выбран")
-                    .setPositiveButton("ОК") { dialog, _ -> dialog.dismiss() }
-                    .show()
+                showMessage("Сотрудник не выбран")
                 return@setOnClickListener
             }
 
+            // можно очистить старый qr перед новой генерацией
+            binding.ivQrCode.setImageDrawable(null)
+
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.loadAndGenerateQr(employeeId)
-            }
-        }
-
-        // обработка ошибок
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.errorState.collect { msg ->
-                    AlertDialog.Builder(requireContext())
-                        .setMessage(msg)
-                        .setPositiveButton("ОК") { dialog, _ ->
-                            viewModel.resetIsHandled()
-                            dialog.dismiss()
-                        }
-                        .show()
-                }
             }
         }
     }
 
     private fun observeEmployees() {
         viewModel.employees.observe(viewLifecycleOwner) { list ->
+            val b = _binding ?: return@observe
+
             employees = list
                 ?.map { EmployeeUi(it.id, it.name) }
                 .orEmpty()
 
             employeesAdapter.setItems(employees)
-            isEmployeesReady = true
 
-            // если есть сотрудники — по умолчанию выбираем первого
             if (employees.isNotEmpty()) {
                 val first = employees.first()
                 selectedIndex = 0
                 selectedEmployeeId = first.id
-                binding.actvEmployee.setText(first.name, false)
+                b.actvEmployee.setText(first.name, false)
+            } else {
+                selectedIndex = null
+                selectedEmployeeId = null
+                b.actvEmployee.setText("", false)
             }
         }
     }
 
     private fun observeQrBitmap() {
         viewModel.qrBitmap.observe(viewLifecycleOwner) { bitmap: Bitmap? ->
+            val b = _binding ?: return@observe
             if (bitmap != null) {
-                binding.ivQrCode.setImageBitmap(bitmap)
+                b.ivQrCode.setImageBitmap(bitmap)
+            } else {
+                b.ivQrCode.setImageDrawable(null)
             }
         }
     }
 
     private fun observeUiState() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            val b = _binding ?: return@observe
             val inProgress = state.isActionInProgress || state.isLoading
 
-            binding.btnGenerateQr.isEnabled = !inProgress
-            binding.btnGenerateQr.alpha = if (inProgress) 0.5f else 1f
-
-            binding.progressQrContainer.visibility =
+            b.btnGenerateQr.isEnabled = !inProgress
+            b.btnGenerateQr.alpha = if (inProgress) 0.5f else 1f
+            b.progressQrContainer.visibility =
                 if (inProgress) View.VISIBLE else View.GONE
         }
     }
@@ -134,11 +129,18 @@ class QrGenerationFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    AlertDialog.Builder(requireContext())
+                    if (!isAdded) return@collect
+
+                    activeDialog?.dismiss()
+                    activeDialog = AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
                             viewModel.resetIsHandled()
                             dialog.dismiss()
+                            activeDialog = null
+                        }
+                        .also { builder ->
+                            builder.setOnDismissListener { activeDialog = null }
                         }
                         .show()
                 }
@@ -146,16 +148,26 @@ class QrGenerationFragment : Fragment() {
         }
     }
 
+    private fun showMessage(text: String) {
+        if (!isAdded) return
 
-    private fun selectEmployeeIfPossible(employeeId: Int?) {
-        if (!isEmployeesReady || employeeId == null) return
+        activeDialog?.dismiss()
+        activeDialog = AlertDialog.Builder(requireContext())
+            .setMessage(text)
+            .setPositiveButton("ОК") { dialog, _ ->
+                dialog.dismiss()
+                activeDialog = null
+            }
+            .also { builder ->
+                builder.setOnDismissListener { activeDialog = null }
+            }
+            .show()
+    }
 
-        val selectedEmployee = employees.find { it.id == employeeId }
-        selectedEmployee?.let { emp ->
-            val index = employees.indexOf(emp)
-            selectedIndex = index
-            selectedEmployeeId = emp.id
-            binding.actvEmployee.setText(emp.name, false)
-        }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        activeDialog?.dismiss()
+        activeDialog = null
+        _binding = null
     }
 }

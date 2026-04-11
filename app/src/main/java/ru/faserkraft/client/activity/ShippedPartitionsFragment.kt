@@ -26,15 +26,21 @@ import ru.faserkraft.client.viewmodel.ScannerViewModel
 class ShippedPartitionsFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
-    private lateinit var binding: FragmentShippedPartitionsBinding
+
+    private var _binding: FragmentShippedPartitionsBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var adapter: ShippedPartitionsAdapter
+    private lateinit var emptyObserver: RecyclerView.AdapterDataObserver
+
+    private var activeDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentShippedPartitionsBinding.inflate(inflater, container, false)
+        _binding = FragmentShippedPartitionsBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -43,16 +49,18 @@ class ShippedPartitionsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = ShippedPartitionsAdapter { item ->
+            if (_binding == null) return@ShippedPartitionsAdapter
+
             val bundle = Bundle().apply {
                 putString("shipmentDate", item.shipmentDate)
             }
             findNavController().navigate(R.id.action_global_shippedByDateFragment, bundle)
         }
+
         binding.rvShippedPartitions.layoutManager = LinearLayoutManager(requireContext())
         binding.rvShippedPartitions.adapter = adapter
 
-        // empty view observer
-        val emptyObserver = object : RecyclerView.AdapterDataObserver() {
+        emptyObserver = object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() = checkEmpty()
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = checkEmpty()
             override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = checkEmpty()
@@ -60,12 +68,10 @@ class ShippedPartitionsFragment : Fragment() {
         adapter.registerAdapterDataObserver(emptyObserver)
         emptyObserver.onChanged()
 
-        // первоначальная загрузка
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.getShippedPackaging()
         }
 
-        // данные
         viewModel.shippedPackaging.observe(viewLifecycleOwner) { list ->
             if (list.isNullOrEmpty()) {
                 adapter.submitList(emptyList())
@@ -73,29 +79,24 @@ class ShippedPartitionsFragment : Fragment() {
             }
 
             val uiList = list
-                .groupBy { (it.shipmentAt ?: "").take(10) } // Группируем по дате
+                .groupBy { (it.shipmentAt ?: "").take(10) }
                 .map { (shipmentDate, shipments) ->
-                    // Все продукты за эту дату
                     val allProducts = shipments.flatMap { it.products }
-
-                    // Общее количество упаковок (отгрузок) за дату
                     val packagingCount = shipments.size
-
-                    // Общее количество модулей за дату
                     val moduleCount = allProducts.size
 
-                    // Детализация по процессам (чипам)
+                    // Сначала формируем и сортируем типы модулей
                     val moduleTypes = allProducts
                         .groupBy { it.process.id to it.process.name }
                         .map { (key, products) ->
-                            val (_, processName) = key
                             ModuleTypeDto(
-                                type = processName,
+                                type = key.second, // processName
                                 count = products.size
                             )
                         }
                         .sortedByDescending { it.count }
 
+                    // Затем возвращаем итоговый объект
                     ShippedPartitionsUiItem(
                         shipmentDate = shipmentDate,
                         packagingCount = packagingCount,
@@ -103,34 +104,39 @@ class ShippedPartitionsFragment : Fragment() {
                         moduleTypes = moduleTypes
                     )
                 }
-                .sortedByDescending { it.shipmentDate } // Сортируем по дате (новые сначала)
+                .sortedByDescending { it.shipmentDate } // Сортируем итоговый список по дате
 
             adapter.submitList(uiList)
         }
 
-        // состояние загрузки
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            val b = _binding ?: return@observe
             val isLoading = state.isLoading
-            binding.swipeRefreshShipped.isRefreshing = isLoading
-            binding.swipeRefreshShipped.isEnabled = !isLoading
+            b.swipeRefreshShipped.isRefreshing = isLoading
+            b.swipeRefreshShipped.isEnabled = !isLoading
         }
 
-        // обработка ошибок
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    AlertDialog.Builder(requireContext())
+                    if (!isAdded) return@collect
+
+                    activeDialog?.dismiss()
+                    activeDialog = AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
                             viewModel.resetIsHandled()
                             dialog.dismiss()
+                            activeDialog = null
+                        }
+                        .also { builder ->
+                            builder.setOnDismissListener { activeDialog = null }
                         }
                         .show()
                 }
             }
         }
 
-        // pull-to-refresh
         binding.swipeRefreshShipped.setOnRefreshListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.getShippedPackaging()
@@ -138,9 +144,24 @@ class ShippedPartitionsFragment : Fragment() {
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        activeDialog?.dismiss()
+        activeDialog = null
+
+        if (::emptyObserver.isInitialized) {
+            adapter.unregisterAdapterDataObserver(emptyObserver)
+        }
+
+        binding.rvShippedPartitions.adapter = null
+        _binding = null
+    }
+
     private fun checkEmpty() {
+        val b = _binding ?: return
         val isEmpty = adapter.itemCount == 0
-        binding.tvEmptyShipped.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        binding.rvShippedPartitions.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        b.tvEmptyShipped.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        b.rvShippedPartitions.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 }

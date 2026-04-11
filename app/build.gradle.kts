@@ -53,8 +53,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "BASE_URL", "\"https://product.faserkraft.ru/api/v1/\"")
         }
-        debug { }
+        debug {
+            buildConfigField("String", "BASE_URL", "\"http://192.168.0.102:8000/api/v1/\"")
+        }
     }
 
     compileOptions {

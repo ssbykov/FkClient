@@ -24,14 +24,14 @@ class ProductFullFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
 
-    private lateinit var binding: FragmentProductFullBinding
-
+    private var _binding: FragmentProductFullBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentProductFullBinding.inflate(inflater, container, false)
+        _binding = FragmentProductFullBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -40,10 +40,12 @@ class ProductFullFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         val adapter = StepsAdapter { step ->
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.setEmployees()
+
+                if (_binding == null) return@launch
+
                 findNavController().navigate(
                     ProductFullFragmentDirections
                         .actionProductFullFragmentToEditStepFragment(step.stepDto)
@@ -54,14 +56,12 @@ class ProductFullFragment : Fragment() {
         binding.rvSteps.layoutManager = LinearLayoutManager(requireContext())
         binding.rvSteps.adapter = adapter
 
-
         viewModel.productState.observe(viewLifecycleOwner) { product ->
             product ?: return@observe
 
             binding.tvProductNumber.text = "Модуль: ${product.serialNumber}"
             binding.tvTechProcess.text = "Техпроцесс: ${product.process.name}"
             binding.tvStartAt.text = "Запуск: ${formatIsoToUi(product.createdAt)}"
-
 
             val stepUiItems = product.steps.map { step ->
                 val isEditable =
@@ -72,7 +72,14 @@ class ProductFullFragment : Fragment() {
                 StepUiItem(isEditable, step)
             }
             adapter.submitList(stepUiItems)
-
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Отвязываем адаптер от RecyclerView
+        binding.rvSteps.adapter = null
+        // Уничтожаем binding
+        _binding = null
     }
 }

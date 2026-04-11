@@ -29,6 +29,8 @@ class ProductsInventoryByProcessFragment : Fragment() {
 
     private lateinit var adapter: ProductsInventoryByProcessAdapter
 
+    private var activeDialog: AlertDialog? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -39,18 +41,20 @@ class ProductsInventoryByProcessFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         adapter = ProductsInventoryByProcessAdapter { dto ->
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.handleProductQr(dto)
+
+                if (_binding == null) return@launch
+
                 findNavController().navigate(
                     ProductsInventoryByProcessFragmentDirections
                         .actionProductsInventoryByProcessFragmentToProductFullFragment()
                 )
             }
         }
-
-        super.onViewCreated(view, savedInstanceState)
 
         setupRecycler()
         setupObservers()
@@ -65,7 +69,6 @@ class ProductsInventoryByProcessFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        // Подписка на список элементов для RecyclerView
         viewModel.productsInventoryByProcess.observe(viewLifecycleOwner) { list ->
             val items = list.orEmpty().map {
                 ProductsInventoryByProcessUiItem(
@@ -77,31 +80,34 @@ class ProductsInventoryByProcessFragment : Fragment() {
             adapter.submitList(items)
         }
 
-        // Подписка на состояние загрузки
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            binding.swipeRefreshDetail.isRefreshing = state.isLoading
-            binding.swipeRefreshDetail.isEnabled = !state.isLoading
+            // Защита: observer может сработать в момент уничтожения
+            val b = _binding ?: return@observe
+            b.swipeRefreshDetail.isRefreshing = state.isLoading
+            b.swipeRefreshDetail.isEnabled = !state.isLoading
         }
 
-        // Подписка на ошибки через Flow
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    AlertDialog.Builder(requireContext())
+                    if (!isAdded) return@collect
+
+                    activeDialog?.dismiss()
+                    activeDialog = AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
                             viewModel.resetIsHandled()
                             dialog.dismiss()
+                            activeDialog = null
                         }
+                        .also { it.setOnDismissListener { activeDialog = null } }
                         .show()
                 }
             }
         }
-
     }
 
     private fun renderHeader() {
-        // Заполняем шапку экрана данными из аргументов навигации
         with(args.productsInventoryDto) {
             binding.tvProcessName.text = processName
             binding.tvStageName.text = stepName
@@ -109,9 +115,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
     }
 
     private fun loadData() {
-        // Запрашиваем список по processId и stepDefinitionId
         viewLifecycleOwner.lifecycleScope.launch {
-
             with(args.productsInventoryDto) {
                 viewModel.getProductsByLastCompletedStep(processId, stepDefinitionId)
             }
@@ -119,7 +123,6 @@ class ProductsInventoryByProcessFragment : Fragment() {
     }
 
     private fun setupRefresh() {
-        // Pull-to-refresh
         binding.swipeRefreshDetail.setOnRefreshListener {
             loadData()
         }
@@ -127,6 +130,10 @@ class ProductsInventoryByProcessFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        activeDialog?.dismiss()
+        activeDialog = null
+
+        binding.rvProductsDetail.adapter = null
         _binding = null
     }
 }

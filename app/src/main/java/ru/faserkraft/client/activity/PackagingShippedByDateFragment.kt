@@ -29,11 +29,14 @@ import ru.faserkraft.client.viewmodel.ScannerViewModel
 class ShippedByDateFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
-    private lateinit var binding: FragmentShippedByDateBinding
+
+    private var _binding: FragmentShippedByDateBinding? = null
+    private val binding get() = _binding!!
 
     private val args: ShippedByDateFragmentArgs by navArgs()
-
     private lateinit var adapter: PackagingListAdapter
+
+    private var activeDialog: AlertDialog? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
@@ -41,7 +44,7 @@ class ShippedByDateFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        binding = FragmentShippedByDateBinding.inflate(inflater, container, false)
+        _binding = FragmentShippedByDateBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -59,7 +62,9 @@ class ShippedByDateFragment : Fragment() {
             onItemClick = { item ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     viewModel.handlePackagingSerialQr(item.serialNumber)
-                    // Используем глобальное действие
+
+                    if (_binding == null) return@launch
+
                     findNavController().navigate(R.id.action_global_packagingFragment)
                 }
             }
@@ -69,23 +74,17 @@ class ShippedByDateFragment : Fragment() {
         binding.rvPackagingStats.adapter = adapter
 
         viewModel.shippedPackaging.observe(viewLifecycleOwner) { packagingList ->
-            val uiItems: List<PackagingListUiItem> = packagingList
+            val uiItems = packagingList
                 .orEmpty()
                 .filter { box ->
                     val boxDate = (box.shipmentAt ?: "").take(10)
                     boxDate == shipmentDate
                 }
                 .map { box ->
-                    val groups: Map<String, List<FinishedProductDto>> =
-                        box.products.groupBy { it.process.name }
-
+                    val groups = box.products.groupBy { it.process.name }
                     val types = groups.map { (name, list) ->
-                        ModuleTypeUi(
-                            name = name,
-                            count = list.size
-                        )
+                        ModuleTypeUi(name = name, count = list.size)
                     }
-
                     PackagingListUiItem(
                         id = box.id,
                         serialNumber = box.serialNumber,
@@ -97,7 +96,6 @@ class ShippedByDateFragment : Fragment() {
             adapter.submitList(uiItems)
         }
 
-
         // начальная загрузка
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.getPackagingInStorage()
@@ -107,16 +105,29 @@ class ShippedByDateFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    AlertDialog.Builder(requireContext())
+                    if (!isAdded) return@collect
+                    activeDialog?.dismiss()
+                    activeDialog = AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
                             viewModel.resetIsHandled()
                             dialog.dismiss()
+                            activeDialog = null
+                        }
+                        .also { builder ->
+                            builder.setOnDismissListener { activeDialog = null }
                         }
                         .show()
                 }
             }
         }
+    }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        activeDialog?.dismiss()
+        activeDialog = null
+        binding.rvPackagingStats.adapter = null
+        _binding = null
     }
 }

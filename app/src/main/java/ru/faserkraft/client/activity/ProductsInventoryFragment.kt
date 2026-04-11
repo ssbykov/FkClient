@@ -25,15 +25,22 @@ import ru.faserkraft.client.viewmodel.ScannerViewModel
 class ProductsInventoryFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
-    private lateinit var binding: FragmentProductsInventoryBinding
+
+    private var _binding: FragmentProductsInventoryBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var adapter: ProductsInventoryAdapter
+
+    private lateinit var emptyObserver: RecyclerView.AdapterDataObserver
+
+    private var activeDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentProductsInventoryBinding.inflate(inflater, container, false)
+        _binding = FragmentProductsInventoryBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -42,17 +49,18 @@ class ProductsInventoryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = ProductsInventoryAdapter { dto ->
-            val action =
-                ProductsInventoryFragmentDirections
-                    .actionProductsInventoryFragmentToProductsInventoryByProcessFragment(dto)
+
+            if (_binding == null) return@ProductsInventoryAdapter
+
+            val action = ProductsInventoryFragmentDirections
+                .actionProductsInventoryFragmentToProductsInventoryByProcessFragment(dto)
             findNavController().navigate(action)
         }
 
         binding.rvProductsStats.layoutManager = LinearLayoutManager(requireContext())
         binding.rvProductsStats.adapter = adapter
 
-        // empty view observer
-        val emptyObserver = object : RecyclerView.AdapterDataObserver() {
+        emptyObserver = object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() = checkEmpty()
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = checkEmpty()
             override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = checkEmpty()
@@ -92,21 +100,26 @@ class ProductsInventoryFragment : Fragment() {
 
         // состояние загрузки
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            val isLoading = state.isLoading
-            binding.swipeRefreshStats.isRefreshing = isLoading
-            binding.swipeRefreshStats.isEnabled = !isLoading
+            val b = _binding ?: return@observe
+            b.swipeRefreshStats.isRefreshing = state.isLoading
+            b.swipeRefreshStats.isEnabled = !state.isLoading
         }
 
         // обработка ошибок
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    AlertDialog.Builder(requireContext())
+                    if (!isAdded) return@collect
+
+                    activeDialog?.dismiss()
+                    activeDialog = AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
                             viewModel.resetIsHandled()
                             dialog.dismiss()
+                            activeDialog = null
                         }
+                        .also { it.setOnDismissListener { activeDialog = null } }
                         .show()
                 }
             }
@@ -120,9 +133,23 @@ class ProductsInventoryFragment : Fragment() {
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        activeDialog?.dismiss()
+        activeDialog = null
+
+        if (::emptyObserver.isInitialized) {
+            adapter.unregisterAdapterDataObserver(emptyObserver)
+        }
+
+        binding.rvProductsStats.adapter = null
+        _binding = null
+    }
+
     private fun checkEmpty() {
+        val b = _binding ?: return
         val isEmpty = adapter.itemCount == 0
-        binding.tvEmptyInventory.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        binding.rvProductsStats.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        b.tvEmptyInventory.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        b.rvProductsStats.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 }

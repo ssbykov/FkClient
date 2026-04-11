@@ -29,8 +29,9 @@ class StorageFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var adapter: ProductsStorageAdapter
-
     private lateinit var emptyObserver: RecyclerView.AdapterDataObserver
+
+    private var activeDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,6 +47,8 @@ class StorageFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = ProductsStorageAdapter { item ->
+            if (_binding == null) return@ProductsStorageAdapter
+
             val action = StorageContainerFragmentDirections
                 .actionStorageContainerFragmentToPackagingListFragment(item.process)
             findNavController().navigate(action)
@@ -54,7 +57,6 @@ class StorageFragment : Fragment() {
         binding.rvProductsStats.layoutManager = LinearLayoutManager(requireContext())
         binding.rvProductsStats.adapter = adapter
 
-        // empty view observer — теперь через поле класса
         emptyObserver = object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() = checkEmpty()
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = checkEmpty()
@@ -63,12 +65,10 @@ class StorageFragment : Fragment() {
         adapter.registerAdapterDataObserver(emptyObserver)
         emptyObserver.onChanged()
 
-        // первоначальная загрузка
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.getPackagingInStorage()
         }
 
-        // данные
         viewModel.packagingBoxes.observe(viewLifecycleOwner) { list ->
             if (list.isNullOrEmpty()) {
                 adapter.submitList(emptyList())
@@ -96,29 +96,36 @@ class StorageFragment : Fragment() {
             adapter.submitList(uiList)
         }
 
-        // состояние загрузки
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            // 🟡 ИСПРАВЛЕНИЕ 3: Безопасный доступ к binding
+            val b = _binding ?: return@observe
             val isLoading = state.isLoading
-            binding.swipeRefreshStats.isRefreshing = isLoading
-            binding.swipeRefreshStats.isEnabled = !isLoading
+            b.swipeRefreshStats.isRefreshing = isLoading
+            b.swipeRefreshStats.isEnabled = !isLoading
         }
 
-        // обработка ошибок
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    AlertDialog.Builder(requireContext())
+                    // 🔴 ИСПРАВЛЕНИЕ 1: Защита от вызова requireContext() на detached фрагменте
+                    if (!isAdded) return@collect
+
+                    activeDialog?.dismiss()
+                    activeDialog = AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
                             viewModel.resetIsHandled()
                             dialog.dismiss()
+                            activeDialog = null
+                        }
+                        .also { builder ->
+                            builder.setOnDismissListener { activeDialog = null }
                         }
                         .show()
                 }
             }
         }
 
-        // pull-to-refresh
         binding.swipeRefreshStats.setOnRefreshListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.getPackagingInStorage()
@@ -128,18 +135,18 @@ class StorageFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // отписываемся от observer — предотвращаем утечку через адаптер
+
+        activeDialog?.dismiss()
+        activeDialog = null
+
         if (::emptyObserver.isInitialized) {
             adapter.unregisterAdapterDataObserver(emptyObserver)
         }
-        // обнуляем adapter у RecyclerView — разрываем цикл RV → Adapter → View
         binding.rvProductsStats.adapter = null
-        // обнуляем binding — Fragment живёт дольше своего View
         _binding = null
     }
 
     private fun checkEmpty() {
-        // _binding может быть null если вызывается после onDestroyView
         val b = _binding ?: return
         val isEmpty = adapter.itemCount == 0
         b.tvEmptyStorage.visibility = if (isEmpty) View.VISIBLE else View.GONE

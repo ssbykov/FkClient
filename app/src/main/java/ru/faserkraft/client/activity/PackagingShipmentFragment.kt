@@ -21,17 +21,17 @@ import ru.faserkraft.client.adapter.ModuleTypeUi
 import ru.faserkraft.client.adapter.PackagingShipmentAdapter
 import ru.faserkraft.client.adapter.PackagingShipmentUiItem
 import ru.faserkraft.client.databinding.FragmentPackagingShipmentBinding
-import ru.faserkraft.client.dto.FinishedProductDto
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
 
 class PackagingShipmentFragment : Fragment() {
 
     private val viewModel: ScannerViewModel by activityViewModels()
-    private lateinit var binding: FragmentPackagingShipmentBinding
+
+    private var _binding: FragmentPackagingShipmentBinding? = null
+    private val binding get() = _binding!!
 
     private val args: PackagingShipmentFragmentArgs by navArgs()
-
     private lateinit var adapter: PackagingShipmentAdapter
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -40,7 +40,7 @@ class PackagingShipmentFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        binding = FragmentPackagingShipmentBinding.inflate(inflater, container, false)
+        _binding = FragmentPackagingShipmentBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -67,31 +67,19 @@ class PackagingShipmentFragment : Fragment() {
             }
         }
 
-
         binding.rvProducts.layoutManager = LinearLayoutManager(requireContext())
         binding.rvProducts.adapter = adapter
-
         binding.cbSelectAll.setOnCheckedChangeListener(selectAllListener)
 
         viewModel.packagingBoxes.observe(viewLifecycleOwner) { packaging ->
-
             val uiItems: List<PackagingShipmentUiItem> = packaging
                 .orEmpty()
-                .filter { box ->
-                    box.products.any { it.process.name == process }
-                }
+                .filter { box -> box.products.any { it.process.name == process } }
                 .map { box ->
-                    // группируем продукты по имени процесса
-                    val groups: Map<String, List<FinishedProductDto>> =
-                        box.products.groupBy { it.process.name }
-
+                    val groups = box.products.groupBy { it.process.name }
                     val types = groups.map { (name, list) ->
-                        ModuleTypeUi(
-                            name = name,
-                            count = list.size
-                        )
+                        ModuleTypeUi(name = name, count = list.size)
                     }
-
                     PackagingShipmentUiItem(
                         id = box.id,
                         serialNumber = box.serialNumber,
@@ -109,16 +97,14 @@ class PackagingShipmentFragment : Fragment() {
             binding.cbSelectAll.setOnCheckedChangeListener(selectAllListener)
         }
 
-
-        // начальная загрузка (при необходимости передаём process.id)
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.getPackagingInStorage()
         }
 
-        // обработка ошибок
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
+                    if (!isAdded) return@collect
                     AlertDialog.Builder(requireContext())
                         .setMessage(msg)
                         .setPositiveButton("ОК") { dialog, _ ->
@@ -130,7 +116,6 @@ class PackagingShipmentFragment : Fragment() {
             }
         }
 
-        // кнопка "Сохранить" – проставляет shipmentAt
         binding.btnSave.setOnClickListener {
             val selectedUiItems = adapter.currentList.filter { it.isSelected }
             if (selectedUiItems.isEmpty()) {
@@ -142,65 +127,68 @@ class PackagingShipmentFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            viewLifecycleOwner.lifecycleScope.launch {
-                // suspend-лямбда, которую будем вызывать после подтверждения
-                val confirmAction: suspend () -> Unit = {
-                    val result = viewModel.setPackagingShipment(selectedUiItems.map { it.id })
-
-                    when {
-                        result == null -> {
-                            // Ошибка уже показана в withAction
-                            // Просто выходим из лямбды
-                        }
-
-                        result.updatedIds.size != selectedUiItems.size -> {
-                            AlertDialog.Builder(requireContext())
-                                .setTitle("Частичное обновление")
-                                .setMessage("Обновлено: ${result.updatedIds.size} из ${selectedUiItems.size}")
-                                .setPositiveButton("ОК", null)
-                                .show()
-                            findNavController().navigateUp()
-                        }
-
-                        result.updatedIds.isNotEmpty() -> {
-                            AlertDialog.Builder(requireContext())
-                                .setTitle("Успех")
-                                .setMessage("Отгрузка установлена для ${result.updatedIds.size} упаковок")
-                                .setPositiveButton("ОК", null)
-                                .show()
-                            findNavController().navigateUp()
-                        }
-
-                        else -> {
-                            AlertDialog.Builder(requireContext())
-                                .setTitle("Ошибка")
-                                .setMessage("Не удалось установить отгрузку")
-                                .setPositiveButton("ОК", null)
-                                .show()
-                        }
+            AlertDialog.Builder(requireContext())
+                .setTitle("Подтвердить отгрузку")
+                .setMessage("Подтвердить установку отгрузки для ${selectedUiItems.size} упаковок?")
+                .setNegativeButton("Отмена", null)
+                .setPositiveButton("OK") { _, _ ->
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        performShipment(selectedUiItems)
                     }
                 }
+                .show()
+        }
+    }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // снимаем listener перед уничтожением, чтобы не держал ссылку
+        _binding?.cbSelectAll?.setOnCheckedChangeListener(null)
+        binding.rvProducts.adapter = null
+        _binding = null
+    }
+
+    private suspend fun performShipment(selectedUiItems: List<PackagingShipmentUiItem>) {
+        val result = viewModel.setPackagingShipment(selectedUiItems.map { it.id })
+
+        // фрагмент мог уничтожиться за время сетевого запроса
+        if (!isAdded || _binding == null) return
+
+        when {
+            result == null -> {
+                // ошибка уже показана через errorState
+            }
+
+            result.updatedIds.size != selectedUiItems.size -> {
                 AlertDialog.Builder(requireContext())
-                    .setTitle("Подтвердить отгрузку")
-                    .setMessage("Подтвердить установку отгрузки для ${selectedUiItems.size} упаковок?")
-                    .setNegativeButton("Отмена", null)
-                    .setPositiveButton("OK") { _, _ ->
-                        // запускаем suspend-лямбду в корутине
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            confirmAction()
-                        }
-                    }
+                    .setTitle("Частичное обновление")
+                    .setMessage("Обновлено: ${result.updatedIds.size} из ${selectedUiItems.size}")
+                    .setPositiveButton("ОК", null)
+                    .show()
+                findNavController().navigateUp()
+            }
+
+            result.updatedIds.isNotEmpty() -> {
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Успех")
+                    .setMessage("Отгрузка установлена для ${result.updatedIds.size} упаковок")
+                    .setPositiveButton("ОК", null)
+                    .show()
+                findNavController().navigateUp()
+            }
+
+            else -> {
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Ошибка")
+                    .setMessage("Не удалось установить отгрузку")
+                    .setPositiveButton("ОК", null)
                     .show()
             }
         }
     }
 
-    // "выбрать все" / "снять все"
-    private val selectAllListener =
-        CompoundButton.OnCheckedChangeListener { _, isChecked ->
-            val updated = adapter.currentList.map { it.copy(isSelected = isChecked) }
-            adapter.submitList(updated)
-        }
-
+    private val selectAllListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
+        val updated = adapter.currentList.map { it.copy(isSelected = isChecked) }
+        adapter.submitList(updated)
+    }
 }

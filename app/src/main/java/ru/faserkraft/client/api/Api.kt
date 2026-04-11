@@ -7,6 +7,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import ru.faserkraft.client.BuildConfig
 import ru.faserkraft.client.dto.DailyPlanCopyDto
 import ru.faserkraft.client.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
@@ -25,7 +26,7 @@ import ru.faserkraft.client.dto.ProductsInventoryDto
 import ru.faserkraft.client.dto.QrDataResponseDto
 
 
-const val BASE_URL = "https://product.faserkraft.ru/api/v1/"
+const val BASE_URL = BuildConfig.BASE_URL
 
 interface Api {
     @GET(BASE_URL + "products/by-serial/{serial_number}")
