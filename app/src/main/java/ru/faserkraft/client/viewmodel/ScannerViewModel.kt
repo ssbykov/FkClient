@@ -18,6 +18,11 @@ import ru.faserkraft.client.dto.DayPlansDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.FinishedProductDto
+import ru.faserkraft.client.dto.OrderCloseDto
+import ru.faserkraft.client.dto.OrderCreateDto
+import ru.faserkraft.client.dto.OrderDto
+import ru.faserkraft.client.dto.OrderItemCreateDto
+import ru.faserkraft.client.dto.OrderUpdateDto
 import ru.faserkraft.client.dto.PackagingCreateDto
 import ru.faserkraft.client.dto.PackagingDto
 import ru.faserkraft.client.dto.PackagingShipmentResponse
@@ -90,6 +95,14 @@ class ScannerViewModel @Inject constructor(
     private val _shippedPackaging = MutableLiveData<List<PackagingDto>?>()
     val shippedPackaging: LiveData<List<PackagingDto>?> = _shippedPackaging
 
+    // Состояние списка заказов
+    private val _orders = MutableLiveData<List<OrderDto>?>()
+    val orders: LiveData<List<OrderDto>?> = _orders
+
+    // Состояние конкретного заказа (для экрана деталей)
+    private val _currentOrder = MutableLiveData<OrderDto?>()
+    val currentOrder: LiveData<OrderDto?> = _currentOrder
+
     private val _processes = MutableLiveData<List<ProcessDto>?>()
     val processes: LiveData<List<ProcessDto>?> = _processes
 
@@ -138,6 +151,8 @@ class ScannerViewModel @Inject constructor(
         _newProduct.value = ProductCreateDto(serialNumber = "")
         _packagingBoxes.value = null
         _shippedPackaging.value = null
+        _orders.value = null
+        _currentOrder.value = null
         _processes.value = null
         _employees.value = null
         _dayPlans.value = DayPlansDto(date = getToday(), plans = null)
@@ -252,6 +267,76 @@ class ScannerViewModel @Inject constructor(
         _selectedStep.postValue(initialStep)
         _events.emit(UiEvent.NavigateToProduct)
     }
+
+    // ================== ЗАКАЗЫ (ORDERS) ==================
+
+    fun getOrders() {
+        viewModelScope.launch {
+            withLoading {
+                repository.getAllOrders()
+            }?.let { ordersList ->
+                _orders.postValue(ordersList)
+            }
+        }
+    }
+
+    fun getOrder(orderId: Int) {
+        viewModelScope.launch {
+            withLoading {
+                repository.getOrder(orderId)
+            }?.let { order ->
+                _currentOrder.postValue(order)
+            }
+        }
+    }
+
+    suspend fun createOrder(order: OrderCreateDto): Result<Unit> =
+        withActionAndResult {
+            repository.createOrder(order)?.let { newOrder ->
+                _currentOrder.postValue(newOrder)
+                // Опционально: можно сразу обновить общий список
+                getOrders()
+            }
+        }
+
+    suspend fun updateOrder(order: OrderUpdateDto): Result<Unit> =
+        withActionAndResult {
+            repository.updateOrder(order)?.let { updatedOrder ->
+                _currentOrder.postValue(updatedOrder)
+            }
+        }
+
+    suspend fun updateOrderItems(
+        orderId: Int,
+        items: List<OrderItemCreateDto>
+    ): Result<Unit> =
+        withActionAndResult {
+            repository.updateOrderItems(orderId, items)?.let { updatedOrder ->
+                _currentOrder.postValue(updatedOrder)
+            }
+        }
+
+    suspend fun closeOrder(
+        orderId: Int,
+        closeData: OrderCloseDto
+    ): Result<Unit> =
+        withActionAndResult {
+            repository.closeOrder(orderId, closeData)?.let { closedOrder ->
+                _currentOrder.postValue(closedOrder)
+            }
+        }
+
+    suspend fun deleteOrder(orderId: Int): Result<Unit> =
+        withActionAndResult {
+            repository.deleteOrder(orderId)
+
+            // Если удаленный заказ был открыт на экране деталей, очищаем его
+            if (_currentOrder.value?.id == orderId) {
+                _currentOrder.postValue(null)
+            }
+            // Обновляем список после удаления
+            getOrders()
+        }
 
     // ---------- Packaging ----------
     suspend fun getPackaging(serialNumber: String) {

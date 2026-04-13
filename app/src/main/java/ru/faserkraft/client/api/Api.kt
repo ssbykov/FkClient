@@ -5,9 +5,12 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 import ru.faserkraft.client.BuildConfig
+
+// Импорты существующих DTO
 import ru.faserkraft.client.dto.DailyPlanCopyDto
 import ru.faserkraft.client.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
@@ -25,35 +28,23 @@ import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.ProductsInventoryDto
 import ru.faserkraft.client.dto.QrDataResponseDto
 
+// Импорты DTO для заказов (нужно создать эти классы)
+import ru.faserkraft.client.dto.OrderDto
+import ru.faserkraft.client.dto.OrderCreateDto
+import ru.faserkraft.client.dto.OrderUpdateDto
+import ru.faserkraft.client.dto.OrderItemCreateDto
+import ru.faserkraft.client.dto.OrderCloseDto
 
 const val BASE_URL = BuildConfig.BASE_URL
 
 interface Api {
+
+    // ================== ПРОДУКТЫ (PRODUCTS) ==================
+
     @GET(BASE_URL + "products/by-serial/{serial_number}")
     suspend fun getProduct(
         @Path("serial_number") id: String,
     ): Response<ProductDto>
-
-    @GET(BASE_URL + "packaging/by_serial/{serial_number}")
-    suspend fun getPackaging(
-        @Path("serial_number") serialNumber: String
-    ): Response<PackagingDto>
-
-    @GET(BASE_URL + "packaging/get_all_in_storage")
-    suspend fun getPackagingInStorage(): Response<List<PackagingDto>>
-
-    @GET(BASE_URL + "packaging/get_all_shipped")
-    suspend fun getShippedPackaging(): Response<List<PackagingDto>>
-
-    @POST(BASE_URL + "packaging/shipment")
-    suspend fun setPackagingShipment(
-        @Body packagingIds: List<Int>
-    ): Response<PackagingShipmentResponse>
-
-    @DELETE(BASE_URL + "packaging/{serial_number}")
-    suspend fun deletePackaging(
-        @Path("serial_number") serialNumber: String
-    ): Response<Unit>
 
     @GET("products/by-last-completed-step")
     suspend fun getProductsByLastCompletedStep(
@@ -69,14 +60,111 @@ interface Api {
     ): Response<List<ProductDto>>
 
     @GET(BASE_URL + "products/finished")
-    suspend fun getFinishedProduct(
-    ): Response<List<FinishedProductDto>>
+    suspend fun getFinishedProduct(): Response<List<FinishedProductDto>>
 
-    @GET(BASE_URL + "processes/")
-    suspend fun getProcesses(): Response<List<ProcessDto>>
+    @POST(BASE_URL + "products")
+    suspend fun postProduct(
+        @Body product: ProductCreateDto
+    ): Response<ProductDto>
 
-    @GET(BASE_URL + "employees/")
-    suspend fun getEmployees(): Response<List<EmployeeDto>>
+    @POST(BASE_URL + "products/change_product_process")
+    suspend fun changeProductProcess(
+        @Query("product_id") productId: Long,
+        @Query("new_process_id") newProcessId: Int
+    ): Response<ProductDto>
+
+    @POST(BASE_URL + "products/{product_id}/change_status")
+    suspend fun changeProductStatus(
+        @Path("product_id") productId: Long,
+        @Query("status") status: String
+    ): Response<ProductDto>
+
+    @GET("products/stats/by-last-done-step")
+    suspend fun getProductsInventory(): Response<List<ProductsInventoryDto>>
+
+
+    // ================== ШАГИ ПРОЦЕССА (PRODUCTS STEPS) ==================
+
+    @POST(BASE_URL + "products_steps/")
+    suspend fun postStep(
+        @Query("step_id") stepId: Int
+    ): Response<ProductDto>
+
+    @POST(BASE_URL + "products_steps/change_performer")
+    suspend fun changeStepPerformer(
+        @Query("step_id") stepId: Int,
+        @Query("new_employee_id") newEmployeeId: Int,
+    ): Response<ProductDto>
+
+
+    // ================== УПАКОВКА (PACKAGING) ==================
+
+    @GET(BASE_URL + "packaging/by_serial/{serial_number}")
+    suspend fun getPackaging(
+        @Path("serial_number") serialNumber: String
+    ): Response<PackagingDto>
+
+    @GET(BASE_URL + "packaging/get_all_in_storage")
+    suspend fun getPackagingInStorage(): Response<List<PackagingDto>>
+
+    @GET(BASE_URL + "packaging/get_all_shipped")
+    suspend fun getShippedPackaging(): Response<List<PackagingDto>>
+
+    @POST(BASE_URL + "packaging")
+    suspend fun createPackaging(
+        @Body packaging: PackagingCreateDto
+    ): Response<PackagingDto>
+
+    @POST(BASE_URL + "packaging/shipment")
+    suspend fun setPackagingShipment(
+        @Body packagingIds: List<Int>
+    ): Response<PackagingShipmentResponse>
+
+    @DELETE(BASE_URL + "packaging/{serial_number}")
+    suspend fun deletePackaging(
+        @Path("serial_number") serialNumber: String
+    ): Response<Unit>
+
+
+    // ================== ЗАКАЗЫ (ORDERS) ==================
+
+    @GET(BASE_URL + "orders/get_all_orders")
+    suspend fun getAllOrders(): Response<List<OrderDto>>
+
+    @GET(BASE_URL + "orders/{order_id}")
+    suspend fun getOrder(
+        @Path("order_id") orderId: Int
+    ): Response<OrderDto>
+
+    @POST(BASE_URL + "orders")
+    suspend fun createOrder(
+        @Body order: OrderCreateDto
+    ): Response<OrderDto>
+
+    @PUT(BASE_URL + "orders")
+    suspend fun updateOrder(
+        @Body order: OrderUpdateDto
+    ): Response<OrderDto>
+
+    @PUT(BASE_URL + "orders/{order_id}/items")
+    suspend fun updateOrderItems(
+        @Path("order_id") orderId: Int,
+        @Body items: List<OrderItemCreateDto>
+    ): Response<OrderDto>
+
+    @POST(BASE_URL + "orders/{order_id}/close")
+    suspend fun closeOrder(
+        @Path("order_id") orderId: Int,
+        @Body closeData: OrderCloseDto
+    ): Response<OrderDto>
+
+    @DELETE(BASE_URL + "orders/{order_id}")
+    suspend fun deleteOrder(
+        @Path("order_id") orderId: Int
+    ): Response<Unit>
+
+
+    // ================== ПЛАНЫ НА ДЕНЬ (DAILY PLANS) ==================
 
     @GET(BASE_URL + "daily-plans")
     suspend fun getDayPlans(
@@ -98,45 +186,16 @@ interface Api {
         @Body body: DailyPlanStepUpdateDto
     ): Response<List<DayPlanDto>>
 
-
     @DELETE(BASE_URL + "daily-plans/steps/{id}")
     suspend fun removeStepFromDailyPlan(
         @Path("id") dailyPlanStepId: Int
     ): Response<List<DayPlanDto>>
 
 
-    @POST(BASE_URL + "products")
-    suspend fun postProduct(
-        @Body product: ProductCreateDto
-    ): Response<ProductDto>
+    // ================== ПОЛЬЗОВАТЕЛИ / СОТРУДНИКИ (USERS / EMPLOYEES) ==================
 
-    @POST(BASE_URL + "packaging")
-    suspend fun createPackaging(
-        @Body packaging: PackagingCreateDto
-    ): Response<PackagingDto>
-
-    @POST(BASE_URL + "products_steps/")
-    suspend fun postStep(
-        @Query("step_id") stepId: Int
-    ): Response<ProductDto>
-
-    @POST(BASE_URL + "products_steps/change_performer")
-    suspend fun changeStepPerformer(
-        @Query("step_id") stepId: Int,
-        @Query("new_employee_id") newEmployeeId: Int,
-    ): Response<ProductDto>
-
-    @POST(BASE_URL + "products/change_product_process")
-    suspend fun changeProductProcess(
-        @Query("product_id") productId: Long,
-        @Query("new_process_id") newProcessId: Int
-    ): Response<ProductDto>
-
-    @POST(BASE_URL + "products/{product_id}/change_status")
-    suspend fun changeProductStatus(
-        @Path("product_id") productId: Long,
-        @Query("status") status: String
-    ): Response<ProductDto>
+    @GET(BASE_URL + "employees/")
+    suspend fun getEmployees(): Response<List<EmployeeDto>>
 
     @POST(BASE_URL + "users/new-device")
     suspend fun postDevice(
@@ -148,7 +207,10 @@ interface Api {
         @Query("employee_id") employeeId: Int
     ): Response<QrDataResponseDto>
 
-    @GET("products/stats/by-last-done-step")
-    suspend fun getProductsInventory(
-    ): Response<List<ProductsInventoryDto>>
+
+    // ================== СПРАВОЧНИКИ (REFERENCE DATA) ==================
+
+    @GET(BASE_URL + "processes/")
+    suspend fun getProcesses(): Response<List<ProcessDto>>
+
 }
