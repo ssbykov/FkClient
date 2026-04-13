@@ -99,4 +99,14 @@
     <string name="order_header_active">В работе</string>
     <string name="order_header_completed">Завершенные</string>
     <string name="packaging_title_format">Упаковки: Договор № %1$s</string>
+    <string name="add_order">Добавить заказ</string>
+    <string name="order_params">Основные параметры</string>
+    <string name="contract_number">Номер договора</string>
+    <string name="contract_date">Дата договора</string>
+    <string name="plan_shipment_date">Плановая дата отгрузки</string>
+    <string name="order_items">Состав заказа</string>
+    <string name="add_item">Добавить позицию</string>
+    <string name="order_creation">Создание заказа</string>
+    <string name="unit_count">Количество (шт.)</string>
+    <string name="delete_item">Удалить позицию</string>
 </resources>

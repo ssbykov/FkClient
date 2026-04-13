@@ -42,6 +42,17 @@
         <action
             android:id="@+id/action_storageContainerFragment_to_packagingListFragment"
             app:destination="@id/packagingListFragment" />
+        <action
+            android:id="@+id/action_storageContainerFragment_to_ordersFragment"
+            app:destination="@id/ordersFragment" />
+
+        <action
+            android:id="@+id/action_storageContainerFragment_to_orderPackagingFragment"
+            app:destination="@id/orderPackagingFragment" />
+
+        <action
+            android:id="@+id/action_storageContainerFragment_to_newOrderFragment"
+            app:destination="@id/newOrderFragment" />
 
     </fragment>
 
@@ -252,27 +263,9 @@
             app:destination="@id/productFullFragment" />
     </fragment>
 
-    <fragment
-        android:id="@+id/shippedByDateFragment"
-        android:name="ru.faserkraft.client.activity.ShippedByDateFragment"
-        android:label="fragment_shipped_by_date"
-        tools:layout="@layout/fragment_shipped_by_date">
-        <argument
-            android:name="shipmentDate"
-            app:argType="string" />
-    </fragment>
-
-    <action
-        android:id="@+id/action_global_packagingFragment"
-        app:destination="@id/packagingFragment" />
-
     <action
         android:id="@+id/action_global_productFullFragment"
         app:destination="@id/productFullFragment" />
-
-    <action
-        android:id="@+id/action_global_shippedByDateFragment"
-        app:destination="@id/shippedByDateFragment" />
 
     <fragment
         android:id="@+id/orderPackagingFragment"
@@ -282,10 +275,21 @@
         <argument
             android:name="orderId"
             app:argType="integer" />
+        <action
+            android:id="@+id/action_orderPackagingFragment_to_packagingFragment"
+            app:destination="@id/packagingFragment" />
     </fragment>
 
-    <action
-        android:id="@+id/action_global_orderPackagingFragment"
-        app:destination="@id/orderPackagingFragment" />
+
+    <fragment
+        android:id="@+id/newOrderFragment"
+        android:name="ru.faserkraft.client.activity.NewOrderFragment"
+        android:label="fragment_new_order"
+        tools:layout="@layout/fragment_new_order" />
+    <fragment
+        android:id="@+id/ordersFragment"
+        android:name="ru.faserkraft.client.activity.OrdersFragment"
+        android:label="OrdersFragment"
+        tools:layout="@layout/fragment_orders" />
 
 </navigation>
