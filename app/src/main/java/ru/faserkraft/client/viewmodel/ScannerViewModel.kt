@@ -290,14 +290,28 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
-    suspend fun createOrder(order: OrderCreateDto): Result<Unit> =
-        withActionAndResult {
-            repository.createOrder(order)?.let { newOrder ->
+    suspend fun createOrder(order: OrderCreateDto): Result<OrderDto> {
+        updateUiState { it.copy(isActionInProgress = true) }
+        return try {
+            val newOrder = repository.createOrder(order)
+            if (newOrder != null) {
                 _currentOrder.postValue(newOrder)
-                // Опционально: можно сразу обновить общий список
-                getOrders()
+                getOrders() // Сразу обновляем общий список
+                Result.success(newOrder)
+            } else {
+                _errorState.emit(EMPTY_SERVER_RESPONSE)
+                Result.failure(Exception("Пустой ответ от сервера"))
             }
+        } catch (e: AppError) {
+            _errorState.emit(appErrorToMessage(e))
+            Result.failure(e)
+        } catch (e: Exception) {
+            _errorState.emit(UNKNOWN_ERROR)
+            Result.failure(e)
+        } finally {
+            updateUiState { it.copy(isActionInProgress = false) }
         }
+    }
 
     suspend fun updateOrder(order: OrderUpdateDto): Result<Unit> =
         withActionAndResult {
