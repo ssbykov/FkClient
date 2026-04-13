@@ -274,4 +274,18 @@
         android:id="@+id/action_global_shippedByDateFragment"
         app:destination="@id/shippedByDateFragment" />
 
+    <fragment
+        android:id="@+id/orderPackagingFragment"
+        android:name="ru.faserkraft.client.activity.OrderPackagingFragment"
+        android:label="Упаковки заказа"
+        tools:layout="@layout/fragment_order_packaging">
+        <argument
+            android:name="orderId"
+            app:argType="integer" />
+    </fragment>
+
+    <action
+        android:id="@+id/action_global_orderPackagingFragment"
+        app:destination="@id/orderPackagingFragment" />
+
 </navigation>
