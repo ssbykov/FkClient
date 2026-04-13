@@ -85,4 +85,18 @@
     <string name="account_access_denied">У вашей учетной записи нет прав для просмотра этого раздела</string>
     <string name="next_day">Следующий день</string>
     <string name="previous_day">Предыдущий день</string>
+    <string name="orders_manage">Управление заказами</string>
+    <string name="order_stats_format">Упаковок: %1$d • Модулей: %2$d</string>
+    <string name="empty_orders">Список заказов пуст</string>
+    <string name="added_modules">Собрано модулей:</string>
+    <string name="no_packaging_in_order">Нет упаковок в заказе</string>
+    <string name="order_progress_format">%1$d / %2$d шт.</string>
+    <string name="packaging_count_format">Упаковок сформировано: %1$d</string>
+    <string name="chip_progress_format">%1$s: %2$d / %3$d шт.</string>
+    <string name="contract_info_format">Договор № %1$s от %2$s</string>
+    <string name="planned_shipment_format">План отгрузки: %1$s</string>
+    <string name="shipment_status_format">Отгружен: %1$s</string>
+    <string name="order_header_active">В работе</string>
+    <string name="order_header_completed">Завершенные</string>
+    <string name="packaging_title_format">Упаковки: Договор № %1$s</string>
 </resources>
