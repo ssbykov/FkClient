@@ -1,7 +1,7 @@
 package ru.faserkraft.client.dto
 
 import com.google.gson.annotations.SerializedName
-import java.io.Serializable
+
 
 // === Модели для чтения данных (ответов) ===
 
