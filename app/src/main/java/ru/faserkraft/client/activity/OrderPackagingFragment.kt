@@ -48,7 +48,7 @@ class OrderPackagingFragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.handlePackagingSerialQr(item.serialNumber)
                 if (_binding == null) return@launch
-                findNavController().navigate(R.id.action_global_packagingFragment)
+                findNavController().navigate(R.id.action_orderPackagingFragment_to_packagingFragment)
             }
         }
 

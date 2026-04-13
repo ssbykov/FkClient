@@ -51,10 +51,14 @@ class OrdersFragment : Fragment() {
         adapter = OrdersAdapter { item ->
             if (_binding == null) return@OrdersAdapter
 
-            val bundle = Bundle().apply {
-                putInt("orderId", item.orderId)
+            val navController = findNavController()
+            // Проверяем, что NavController находится на родительском экране
+            if (navController.currentDestination?.id == R.id.storageContainerFragment) {
+                val bundle = Bundle().apply {
+                    putInt("orderId", item.orderId)
+                }
+                navController.navigate(R.id.action_storageContainerFragment_to_orderPackagingFragment, bundle)
             }
-            findNavController().navigate(R.id.action_global_orderPackagingFragment, bundle)
         }
 
         binding.rvOrders.layoutManager = LinearLayoutManager(requireContext())
@@ -118,7 +122,8 @@ class OrdersFragment : Fragment() {
 
             // Разделяем списки
             val activeOrders = allOrders.filter { !it.isShipped }.sortedByDescending { it.orderId }
-            val completedOrders = allOrders.filter { it.isShipped }.sortedByDescending { it.orderId }
+            val completedOrders =
+                allOrders.filter { it.isShipped }.sortedByDescending { it.orderId }
 
             // Формируем итоговый список с заголовками
             val finalList = mutableListOf<OrderListItem>()
@@ -166,6 +171,10 @@ class OrdersFragment : Fragment() {
                         .show()
                 }
             }
+        }
+
+        binding.fabAddOrder.setOnClickListener {
+            findNavController().navigate(R.id.action_storageContainerFragment_to_newOrderFragment)
         }
 
         binding.swipeRefresh.setOnRefreshListener {

@@ -109,4 +109,5 @@
     <string name="order_creation">Создание заказа</string>
     <string name="unit_count">Количество (шт.)</string>
     <string name="delete_item">Удалить позицию</string>
+    <string name="module_quantity_format">Количество: %1$d шт.</string>
 </resources>
