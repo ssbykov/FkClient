@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -121,6 +122,16 @@ class NewPackagingFragment : Fragment() {
 
             val uiItems = (base + extra).sortedBy { it.serialNumber }
             adapter.submitList(uiItems)
+
+            binding.tvPackagingSerial.setOnEditorActionListener { v, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_NEXT) {
+                    hideKeyboard()
+                    v.clearFocus()
+                    true
+                } else {
+                    false
+                }
+            }
 
             binding.cbSelectAll.setOnCheckedChangeListener(null)
             val allSelected = uiItems.isNotEmpty() && uiItems.all { it.isSelected }
