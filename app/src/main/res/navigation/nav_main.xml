@@ -54,6 +54,10 @@
             android:id="@+id/action_storageContainerFragment_to_newOrderFragment"
             app:destination="@id/newOrderFragment" />
 
+        <action
+            android:id="@+id/action_storageContainerFragment_to_orderAddPackagingFragment"
+            app:destination="@id/orderAddPackagingFragment" />
+
     </fragment>
 
     <fragment
@@ -216,22 +220,20 @@
         android:name="ru.faserkraft.client.activity.StorageFragment"
         android:label="fragment_products_storage"
         tools:layout="@layout/fragment_products_storage">
-        <action
-            android:id="@+id/action_productsStorageFragment_to_packagingShipmentFragment"
-            app:destination="@id/packagingShipmentFragment" />
+
         <action
             android:id="@+id/action_productsStorageFragment_to_packagingListFragment"
             app:destination="@id/packagingListFragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/packagingShipmentFragment"
-        android:name="ru.faserkraft.client.activity.PackagingShipmentFragment"
-        android:label="PackagingShipmentFragment"
-        tools:layout="@layout/fragment_packaging_shipment">
+        android:id="@+id/orderAddPackagingFragment"
+        android:name="ru.faserkraft.client.activity.OrderAddPackagingFragment"
+        android:label="Добавление в заказ"
+        tools:layout="@layout/fragment_order_add_packaging">
         <argument
-            android:name="process"
-            app:argType="string" />
+            android:name="orderId"
+            app:argType="integer" />
     </fragment>
 
     <fragment
@@ -242,9 +244,7 @@
         <argument
             android:name="process"
             app:argType="string" />
-        <action
-            android:id="@+id/action_packagingListFragment_to_packagingShipmentFragment"
-            app:destination="@id/packagingShipmentFragment" />
+
         <action
             android:id="@+id/action_packagingListFragment_to_packagingFragment"
             app:destination="@id/packagingFragment" />
