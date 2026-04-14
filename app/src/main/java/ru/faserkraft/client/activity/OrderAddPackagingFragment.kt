@@ -140,7 +140,7 @@ class OrderAddPackagingFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    if (!isAdded || msg.isNullOrBlank()) return@collect
+                    if (!isAdded || msg.isBlank()) return@collect
 
                     activeDialog?.dismiss()
                     activeDialog = AlertDialog.Builder(requireContext())
