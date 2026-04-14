@@ -1,5 +1,6 @@
 package ru.faserkraft.client.activity
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -51,6 +52,7 @@ class EditOrderFragment : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
