@@ -33,7 +33,6 @@ import ru.faserkraft.client.dto.OrderDto
 import ru.faserkraft.client.dto.OrderCreateDto
 import ru.faserkraft.client.dto.OrderUpdateDto
 import ru.faserkraft.client.dto.OrderItemCreateDto
-import ru.faserkraft.client.dto.OrderCloseDto
 
 const val BASE_URL = BuildConfig.BASE_URL
 
@@ -155,7 +154,6 @@ interface Api {
     @POST(BASE_URL + "orders/{order_id}/close")
     suspend fun closeOrder(
         @Path("order_id") orderId: Int,
-        @Body closeData: OrderCloseDto
     ): Response<OrderDto>
 
     @DELETE(BASE_URL + "orders/{order_id}")

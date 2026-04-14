@@ -9,7 +9,6 @@ import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
 import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.FinishedProductDto
-import ru.faserkraft.client.dto.OrderCloseDto
 import ru.faserkraft.client.dto.OrderCreateDto
 import ru.faserkraft.client.dto.OrderDto
 import ru.faserkraft.client.dto.OrderItemCreateDto
@@ -118,7 +117,6 @@ interface ApiRepository {
 
     suspend fun closeOrder(
         orderId: Int,
-        closeData: OrderCloseDto
     ): OrderDto?
 
     suspend fun deleteOrder(orderId: Int)

@@ -11,7 +11,6 @@ import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
 import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.FinishedProductDto
-import ru.faserkraft.client.dto.OrderCloseDto
 import ru.faserkraft.client.dto.OrderCreateDto
 import ru.faserkraft.client.dto.OrderDto
 import ru.faserkraft.client.dto.OrderItemCreateDto
@@ -157,8 +156,7 @@ class ApiRepositoryImpl @Inject constructor(
 
     override suspend fun closeOrder(
         orderId: Int,
-        closeData: OrderCloseDto
-    ): OrderDto? = callApi { api.closeOrder(orderId, closeData) }
+    ): OrderDto? = callApi { api.closeOrder(orderId) }
 
     override suspend fun deleteOrder(orderId: Int) =
         callApiNoBody { api.deleteOrder(orderId) }
