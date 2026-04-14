@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_edit"
+        android:title="@string/edit_order" />
+
+    <item
+        android:id="@+id/action_add_packaging"
+        android:title="@string/add_packaging" />
+
+    <item
+        android:id="@+id/action_close_order"
+        android:title="@string/close_order" />
+</menu>

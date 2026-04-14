@@ -21,15 +21,30 @@
         android:paddingHorizontal="16dp"
         android:paddingVertical="12dp">
 
+        <!-- Кнопка редактирования заказа (Используем вашу кастомную иконку) -->
+        <ImageButton
+            android:id="@+id/btnOrderMenu"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/order_menu"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_more_vert"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#757575" />
+
         <!-- Номер и дата договора -->
         <TextView
             android:id="@+id/tvContractInfo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
             android:textColor="@color/black"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnOrderMenu"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Договор № 123-А от 20.03.2026" />
@@ -40,8 +55,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
             android:textSize="14sp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnOrderMenu"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvContractInfo"
             tools:text="План отгрузки: 30.03.2026" />
@@ -52,23 +68,24 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
+            android:layout_marginEnd="8dp"
             android:textSize="14sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnOrderMenu"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvPlannedShipmentDate"
             tools:text="Отгружен: 27.03.2026"
             tools:textColor="@color/brand_blue" />
 
-        <!-- === НОВЫЙ БЛОК ПРОГРЕССА СБОРКИ === -->
+        <!-- === БЛОК ПРОГРЕССА СБОРКИ === -->
         <TextView
             android:id="@+id/tvProgressLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/added_modules"
-            android:textSize="14sp"
             android:textColor="@color/black"
+            android:textSize="14sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvShipmentStatus" />
 
@@ -104,8 +121,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textSize="13sp"
             android:textColor="#666666"
+            android:textSize="13sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/pbAssemblyProgress"
             tools:text="Упаковок сформировано: 12" />
