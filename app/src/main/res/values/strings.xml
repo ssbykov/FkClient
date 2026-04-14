@@ -115,4 +115,5 @@
     <string name="add_packaging">Добавить упаковки</string>
     <string name="close_order">Закрыть заказ</string>
     <string name="selected_order">Выбранный заказ</string>
+    <string name="add_to_order">Добавление в заказ</string>
 </resources>

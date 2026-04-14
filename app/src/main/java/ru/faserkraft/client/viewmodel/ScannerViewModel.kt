@@ -25,7 +25,6 @@ import ru.faserkraft.client.dto.OrderItemCreateDto
 import ru.faserkraft.client.dto.OrderUpdateDto
 import ru.faserkraft.client.dto.PackagingCreateDto
 import ru.faserkraft.client.dto.PackagingDto
-import ru.faserkraft.client.dto.PackagingShipmentResponse
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
@@ -362,6 +361,30 @@ class ScannerViewModel @Inject constructor(
             getOrders()
         }
 
+    suspend fun addPackagingToOrder(orderId: Int, packagingIds: List<Int>): Result<Unit> =
+        withActionAndResult {
+            repository.addPackagingToOrder(orderId, packagingIds) // Вернет true, всё ок
+
+            getOrders()
+            getPackagingInStorage()
+
+            if (_currentOrder.value?.id == orderId) {
+                getOrder(orderId)
+            }
+        }
+
+    suspend fun detachPackagingFromOrder(orderId: Int, packagingIds: List<Int>): Result<Unit> =
+        withActionAndResult {
+            repository.detachPackagingFromOrder(packagingIds)
+
+            getOrders()
+            getPackagingInStorage()
+
+            if (_currentOrder.value?.id == orderId) {
+                getOrder(orderId)
+            }
+        }
+
     // ---------- Packaging ----------
     suspend fun getPackaging(serialNumber: String) {
         updateUiState { it.copy(isLoading = true) }
@@ -511,10 +534,6 @@ class ScannerViewModel @Inject constructor(
             _packagingState.postValue(null)
         }
 
-    suspend fun setPackagingShipment(packagingIds: List<Int>): PackagingShipmentResponse? =
-        withAction {
-            repository.setPackagingShipment(packagingIds)
-        }
 
     // ---------- Step operations ----------
     suspend fun closeStep(step: StepDto) {
