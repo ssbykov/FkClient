@@ -9,9 +9,7 @@ import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -104,27 +102,6 @@ class StorageFragment : Fragment() {
             b.swipeRefreshStats.isEnabled = !isLoading
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.errorState.collect { msg ->
-                    // 🔴 ИСПРАВЛЕНИЕ 1: Защита от вызова requireContext() на detached фрагменте
-                    if (!isAdded) return@collect
-
-                    activeDialog?.dismiss()
-                    activeDialog = AlertDialog.Builder(requireContext())
-                        .setMessage(msg)
-                        .setPositiveButton("ОК") { dialog, _ ->
-                            viewModel.resetIsHandled()
-                            dialog.dismiss()
-                            activeDialog = null
-                        }
-                        .also { builder ->
-                            builder.setOnDismissListener { activeDialog = null }
-                        }
-                        .show()
-                }
-            }
-        }
 
         binding.swipeRefreshStats.setOnRefreshListener {
             viewLifecycleOwner.lifecycleScope.launch {

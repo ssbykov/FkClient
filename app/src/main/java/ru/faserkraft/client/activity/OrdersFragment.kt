@@ -5,12 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -78,12 +75,17 @@ class OrdersFragment : Fragment() {
             onAddPackagingClick = { item ->
                 if (_binding == null) return@OrdersAdapter
 
-                // TODO: Реализовать переход на экран сканирования/добавления упаковок к заказу
-                Toast.makeText(
-                    requireContext(),
-                    "Добавление упаковок к заказу №${item.contractNumber}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                val navController = findNavController()
+                if (navController.currentDestination?.id == R.id.storageContainerFragment) {
+                    val bundle = Bundle().apply {
+                        putInt("orderId", item.orderId)
+                    }
+
+                    navController.navigate(
+                        R.id.action_storageContainerFragment_to_orderAddPackagingFragment,
+                        bundle
+                    )
+                }
             },
             onCloseOrderClick = { item ->
                 if (_binding == null) return@OrdersAdapter
@@ -194,27 +196,6 @@ class OrdersFragment : Fragment() {
             b.swipeRefresh.isEnabled = !isLoading
         }
 
-        // Ошибки
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.errorState.collect { msg ->
-                    if (!isAdded) return@collect
-
-                    activeDialog?.dismiss()
-                    activeDialog = AlertDialog.Builder(requireContext())
-                        .setMessage(msg)
-                        .setPositiveButton("ОК") { dialog, _ ->
-                            viewModel.resetIsHandled()
-                            dialog.dismiss()
-                            activeDialog = null
-                        }
-                        .also { builder ->
-                            builder.setOnDismissListener { activeDialog = null }
-                        }
-                        .show()
-                }
-            }
-        }
 
         binding.fabAddOrder.setOnClickListener {
             findNavController().navigate(R.id.action_storageContainerFragment_to_newOrderFragment)

@@ -1,11 +1,16 @@
 package ru.faserkraft.client.activity
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.tabs.TabLayoutMediator
+import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.StoragePageAdapter
 import ru.faserkraft.client.databinding.FragmentStorageContainerBinding
@@ -20,6 +25,7 @@ class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
     private val binding get() = _binding!!
 
     private var tabLayoutMediator: TabLayoutMediator? = null
+    private var activeDialog: AlertDialog? = null // Добавлено для диалога
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -35,6 +41,30 @@ class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
 
             if (hasAccess && binding.viewPagerStorage.adapter == null) {
                 setupViewPager()
+            }
+        }
+
+        // Централизованная обработка ошибок для всех вкладок ViewPager
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.errorState.collect { msg ->
+                    // Проверка на isAdded и пустую строку обязательна
+                    if (!isAdded || msg.isBlank()) return@collect
+
+                    activeDialog?.dismiss()
+                    activeDialog = AlertDialog.Builder(requireContext())
+                        .setMessage(msg)
+                        .setPositiveButton("ОК") { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                        .also { builder ->
+                            builder.setOnDismissListener {
+                                viewModel.resetIsHandled()
+                                activeDialog = null
+                            }
+                        }
+                        .show()
+                }
             }
         }
     }
@@ -55,6 +85,9 @@ class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
 
     override fun onDestroyView() {
         super.onDestroyView()
+
+        activeDialog?.dismiss()
+        activeDialog = null
 
         tabLayoutMediator?.detach()
         tabLayoutMediator = null
