@@ -117,4 +117,5 @@
     <string name="selected_order">Выбранный заказ</string>
     <string name="add_to_order">Добавление в заказ</string>
     <string name="order_details_format">Заказ ID: %d</string>
+    <string name="uf_0000000">uf-0000000</string>
 </resources>

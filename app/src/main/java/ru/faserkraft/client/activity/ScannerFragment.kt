@@ -4,6 +4,8 @@ import android.Manifest
 import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,7 +32,6 @@ class ScannerFragment : Fragment() {
     private var _binding: FragmentScannerBinding? = null
     private val binding get() = _binding!!
 
-    // 🔴 ИСПРАВЛЕНИЕ 1: переменная для контроля диалогов
     private var activeDialog: AlertDialog? = null
 
     private val cameraPermissionLauncher = registerForActivityResult(
@@ -71,10 +72,24 @@ class ScannerFragment : Fragment() {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
 
+        setupManualInputMask()
+
+        // Пример обработки нажатия на иконку отправки:
+        binding.tilManualInput.setEndIconOnClickListener {
+            val currentNumber = binding.etManualInput.text.toString()
+            if (currentNumber != "uf-0000000") {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewModel.decodeQrCode(currentNumber)
+                }
+                binding.etManualInput.setText(R.string.uf_0000000)
+                binding.etManualInput.clearFocus()
+            }
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    // 🔴 ИСПРАВЛЕНИЕ 1: защита от крэша и накопления
+
                     if (!isAdded) return@collect
 
                     activeDialog?.dismiss()
@@ -94,7 +109,7 @@ class ScannerFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.events.collect { event ->
-                    // 🔴 ИСПРАВЛЕНИЕ 2: защита навигации
+
                     if (_binding == null || !isAdded) return@collect
 
                     when (event) {
@@ -145,9 +160,10 @@ class ScannerFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // onResume гарантирует, что View существует, поэтому здесь binding безопасен
         binding.zxingBarcodeScanner.resume()
         viewModel.resetIsHandled()
+        binding.etManualInput.setText(R.string.uf_0000000)
+        binding.etManualInput.clearFocus()
     }
 
     override fun onPause() {
@@ -156,12 +172,52 @@ class ScannerFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        // 🔴 ИСПРАВЛЕНИЕ 1: закрываем диалог при уничтожении
         activeDialog?.dismiss()
         activeDialog = null
 
         binding.zxingBarcodeScanner.pause()
         _binding = null
         super.onDestroyView()
+    }
+
+    private fun setupManualInputMask() {
+        val editText = binding.etManualInput
+
+        editText.setOnClickListener {
+            editText.setSelection(editText.text?.length ?: 0)
+        }
+        editText.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) editText.setSelection(editText.text?.length ?: 0)
+        }
+
+        editText.addTextChangedListener(object : TextWatcher {
+            private var isFormatting = false
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                if (isFormatting || s == null) return
+                isFormatting = true
+
+                // 1. Извлекаем из текущего ввода абсолютно все цифры
+                val digits = s.toString().replace("\\D".toRegex(), "")
+
+                // 2. Ограничиваем длину 7 символами (берем последние 7, если ввели больше)
+                val limitedDigits =
+                    if (digits.length > 7) digits.substring(digits.length - 7) else digits
+
+                // 3. Добиваем нулями слева до 7 символов
+                val padded = limitedDigits.padStart(7, '0')
+                val formatted = "uf-$padded"
+
+                // 4. Если текст отличается от нужного формата — подменяем его
+                if (s.toString() != formatted) {
+                    s.replace(0, s.length, formatted)
+                }
+
+                isFormatting = false
+            }
+        })
     }
 }
