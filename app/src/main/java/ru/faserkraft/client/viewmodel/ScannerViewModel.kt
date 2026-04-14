@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
@@ -18,7 +19,6 @@ import ru.faserkraft.client.dto.DayPlansDto
 import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.FinishedProductDto
-import ru.faserkraft.client.dto.OrderCloseDto
 import ru.faserkraft.client.dto.OrderCreateDto
 import ru.faserkraft.client.dto.OrderDto
 import ru.faserkraft.client.dto.OrderItemCreateDto
@@ -62,7 +62,9 @@ class ScannerViewModel @Inject constructor(
     val uiState: LiveData<ScannerUiState> = _uiState
 
     private fun updateUiState(reducer: (ScannerUiState) -> ScannerUiState) {
-        _uiState.postValue(reducer(_uiState.value ?: ScannerUiState()))
+        viewModelScope.launch(Dispatchers.Main.immediate) {
+            _uiState.value = reducer(_uiState.value ?: ScannerUiState())
+        }
     }
 
     // ---------- Data state ----------
@@ -99,6 +101,10 @@ class ScannerViewModel @Inject constructor(
     // Состояние конкретного заказа (для экрана деталей)
     private val _currentOrder = MutableLiveData<OrderDto?>()
     val currentOrder: LiveData<OrderDto?> = _currentOrder
+
+    fun clearCurrentOrder() {
+        _currentOrder.postValue(null)
+    }
 
     private val _processes = MutableLiveData<List<ProcessDto>?>()
     val processes: LiveData<List<ProcessDto>?> = _processes
@@ -328,13 +334,21 @@ class ScannerViewModel @Inject constructor(
 
     suspend fun closeOrder(
         orderId: Int,
-        closeData: OrderCloseDto
     ): Result<Unit> =
         withActionAndResult {
-            repository.closeOrder(orderId, closeData)?.let { closedOrder ->
+            repository.closeOrder(orderId)?.let { closedOrder ->
                 _currentOrder.postValue(closedOrder)
             }
         }
+
+    fun closeOrderFromUi(orderId: Int) {
+        viewModelScope.launch {
+            val result = closeOrder(orderId)
+            if (result.isSuccess) {
+                getOrders()
+            }
+        }
+    }
 
     suspend fun deleteOrder(orderId: Int): Result<Unit> =
         withActionAndResult {
@@ -682,6 +696,7 @@ class ScannerViewModel @Inject constructor(
             403 -> "Доступ запрещён"
             409 -> "Редактирование запрещено"
             404 -> e.message ?: "Ресурс не найден"
+            400 -> e.message ?: "Ошибка запроса"
             else -> "Ошибка сервера: ${e.status}"
         }
 

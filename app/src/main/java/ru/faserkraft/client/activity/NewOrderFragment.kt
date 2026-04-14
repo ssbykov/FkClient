@@ -18,10 +18,10 @@ import ru.faserkraft.client.adapter.OrderItemsAdapter
 import ru.faserkraft.client.databinding.FragmentNewOrderBinding
 import ru.faserkraft.client.dto.OrderCreateDto
 import ru.faserkraft.client.dto.OrderItemCreateDto
+import ru.faserkraft.client.utils.apiFormat
+import ru.faserkraft.client.utils.formatPlanDate
 import ru.faserkraft.client.viewmodel.ScannerViewModel
-import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Locale
 
 class NewOrderFragment : Fragment() {
 
@@ -155,14 +155,14 @@ class NewOrderFragment : Fragment() {
 
     private fun setupDatePickers() {
         binding.etContractDate.setOnClickListener {
-            showDatePicker { displayDate, serverDate ->
+            showDatePicker(selectedContractDate) { displayDate, serverDate ->
                 binding.etContractDate.setText(displayDate)
                 selectedContractDate = serverDate
             }
         }
 
         binding.etPlannedDate.setOnClickListener {
-            showDatePicker { displayDate, serverDate ->
+            showDatePicker(selectedPlannedDate) { displayDate, serverDate ->
                 binding.etPlannedDate.setText(displayDate)
                 selectedPlannedDate = serverDate
             }
@@ -195,25 +195,39 @@ class NewOrderFragment : Fragment() {
         }
     }
 
-    private fun showDatePicker(onDateSelected: (displayDate: String, serverDate: String) -> Unit) {
+    private fun showDatePicker(
+        currentApiDate: String?,
+        onDateSelected: (displayDate: String, serverDate: String) -> Unit
+    ) {
         val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-        DatePickerDialog(requireContext(), { _, selectedYear, selectedMonth, selectedDay ->
-            val selectedCalendar = Calendar.getInstance().apply {
-                set(selectedYear, selectedMonth, selectedDay)
+        // Если дата уже была выбрана, устанавливаем её в календарь
+        if (!currentApiDate.isNullOrEmpty()) {
+            try {
+                calendar.time = apiFormat.parse(currentApiDate)!!
+            } catch (e: Exception) {
+                // Игнорируем ошибку парсинга, останется сегодняшняя дата
             }
+        }
 
-            val displayFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-            val serverFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        DatePickerDialog(
+            requireContext(),
+            { _, year, month, day ->
+                val selectedCalendar = Calendar.getInstance().apply {
+                    set(year, month, day)
+                }
 
-            onDateSelected(
-                displayFormat.format(selectedCalendar.time),
-                serverFormat.format(selectedCalendar.time)
-            )
-        }, year, month, day).show()
+                // Используем вашу утилиту: она возвращает Pair(apiDate, uiDate)
+                val (serverDate, displayDate) = formatPlanDate(selectedCalendar.timeInMillis)
+
+                // Возвращаем в callback (сначала для экрана, потом для сервера)
+                onDateSelected(displayDate, serverDate)
+
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 
     override fun onDestroyView() {

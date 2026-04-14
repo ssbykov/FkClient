@@ -292,4 +292,19 @@
         android:label="OrdersFragment"
         tools:layout="@layout/fragment_orders" />
 
+    <fragment
+        android:id="@+id/editOrderFragment"
+        android:name="ru.faserkraft.client.activity.EditOrderFragment"
+        android:label="Редактирование заказа"
+        tools:layout="@layout/fragment_new_order">
+        <argument
+            android:name="orderId"
+            app:argType="integer" />
+    </fragment>
+
+    <!-- Глобальный экшен для перехода к редактированию -->
+    <action
+        android:id="@+id/action_global_editOrderFragment"
+        app:destination="@id/editOrderFragment" />
+
 </navigation>
