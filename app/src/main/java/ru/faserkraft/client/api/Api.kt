@@ -103,21 +103,27 @@ interface Api {
         @Path("serial_number") serialNumber: String
     ): Response<PackagingDto>
 
-    @GET(BASE_URL + "packaging/get_all_in_storage")
+    @GET(BASE_URL + "packaging/get_in_storage")
     suspend fun getPackagingInStorage(): Response<List<PackagingDto>>
 
     @GET(BASE_URL + "packaging/get_all_shipped")
     suspend fun getShippedPackaging(): Response<List<PackagingDto>>
 
+    @POST("packaging/attach_to_order/{order_id}")
+    suspend fun addPackagingToOrder(
+        @Path("order_id") orderId: Int,
+        @Body packagingIds: List<Int>
+    ): Response<Boolean>
+
+    @POST("packaging/detach_from_order")
+    suspend fun detachPackagingFromOrder(
+        @Body packagingIds: List<Int>
+    ): Response<Boolean>
+
     @POST(BASE_URL + "packaging")
     suspend fun createPackaging(
         @Body packaging: PackagingCreateDto
     ): Response<PackagingDto>
-
-    @POST(BASE_URL + "packaging/shipment")
-    suspend fun setPackagingShipment(
-        @Body packagingIds: List<Int>
-    ): Response<PackagingShipmentResponse>
 
     @DELETE(BASE_URL + "packaging/{serial_number}")
     suspend fun deletePackaging(

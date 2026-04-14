@@ -68,11 +68,11 @@ interface ApiRepository {
 
     suspend fun getPackagingInStorage(): List<PackagingDto>?
 
-    suspend fun getShippedPackaging(): List<PackagingDto>?
+    suspend fun addPackagingToOrder(orderId: Int, packagingIds: List<Int>): Boolean?
+
+    suspend fun detachPackagingFromOrder(packagingIds: List<Int>): Boolean?
 
     suspend fun createPackaging(packaging: PackagingCreateDto): PackagingDto?
-
-    suspend fun setPackagingShipment(packagingIds: List<Int>): PackagingShipmentResponse?
 
     suspend fun deletePackaging(serialNumber: String)
 
