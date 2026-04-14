@@ -9,9 +9,9 @@ import com.google.android.material.chip.Chip
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemPackagingShipmentBinding
 
-class PackagingShipmentAdapter(
+class AddPackagingAdapter(
     private val onItemCheckedChange: (item: PackagingShipmentUiItem, isChecked: Boolean) -> Unit
-) : ListAdapter<PackagingShipmentUiItem, PackagingShipmentAdapter.PackagingVH>(PackagingDiff()) {
+) : ListAdapter<PackagingShipmentUiItem, AddPackagingAdapter.PackagingVH>(PackagingDiff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PackagingVH {
         val binding = ItemPackagingShipmentBinding.inflate(
