@@ -1,10 +1,12 @@
 package ru.faserkraft.client.adapter
 
 import android.content.res.ColorStateList
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -15,6 +17,7 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemOrderBinding
 import ru.faserkraft.client.databinding.ItemOrderHeaderBinding
 import ru.faserkraft.client.dto.ModuleTypeDto
+import ru.faserkraft.client.utils.formatIsoToUi
 
 // 1. Модели данных для списка
 sealed class OrderListItem {
@@ -81,6 +84,7 @@ class OrdersAdapter(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = getItem(position)) {
             is OrderHeader -> (holder as HeaderVH).bind(item)
@@ -103,6 +107,7 @@ class OrdersAdapter(
         private val onCloseOrderClick: ((OrderUiItem) -> Unit)
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        @RequiresApi(Build.VERSION_CODES.O)
         fun bind(item: OrderUiItem) = with(binding) {
             val context = itemView.context
 
@@ -121,18 +126,18 @@ class OrdersAdapter(
             // Статус отгрузки
             if (item.isShipped && item.shipmentDateStr != null) {
                 tvShipmentStatus.visibility = View.VISIBLE
+                val shipmentDateStr = formatIsoToUi(item.shipmentDateStr)
                 tvShipmentStatus.text = context.getString(
                     R.string.shipment_status_format,
-                    item.shipmentDateStr
+                    shipmentDateStr
                 )
                 tvShipmentStatus.setTextColor(
                     ContextCompat.getColor(context, R.color.brand_blue)
                 )
-                // Опционально: можно скрыть кнопку меню, если заказ отгружен
-                // btnOrderMenu.visibility = View.GONE
+                btnOrderMenu.visibility = View.GONE
             } else {
                 tvShipmentStatus.visibility = View.GONE
-                // btnOrderMenu.visibility = View.VISIBLE
+                 btnOrderMenu.visibility = View.VISIBLE
             }
 
             // Общий прогресс заказа
