@@ -123,11 +123,6 @@ class PackagingListFragment : Fragment() {
             }
         }
 
-        binding.fabAdd.setOnClickListener {
-            val action = PackagingListFragmentDirections
-                .actionPackagingListFragmentToPackagingShipmentFragment(process)
-            findNavController().navigate(action)
-        }
     }
 
     override fun onDestroyView() {
