@@ -141,9 +141,7 @@ class PackagingFragment : Fragment() {
         val userEmail = currentUser?.email
         val packagingEmail = currentPackaging?.performedBy?.user?.email
         val packagingDate = currentPackaging?.performedAt
-        val shipmentAt = currentPackaging?.shipmentAt
-
-        val isNotShipped = shipmentAt.isNullOrBlank()
+        val orderId = currentPackaging?.orderId
 
         val isCreatedToday = runCatching {
             packagingDate?.let {
@@ -153,7 +151,7 @@ class PackagingFragment : Fragment() {
             } ?: false
         }.getOrDefault(false)
 
-        val canEdit = isNotShipped && (
+        val canEdit = orderId == null && (
                 role == UserRole.ADMIN ||
                         role == UserRole.MASTER ||
                         (packagingEmail == userEmail && isCreatedToday)
