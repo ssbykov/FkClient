@@ -1,5 +1,8 @@
 package ru.faserkraft.client.api
 
+// Импорты существующих DTO
+
+// Импорты DTO для заказов (нужно создать эти классы)
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -9,8 +12,6 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 import ru.faserkraft.client.BuildConfig
-
-// Импорты существующих DTO
 import ru.faserkraft.client.dto.DailyPlanCopyDto
 import ru.faserkraft.client.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
@@ -19,20 +20,17 @@ import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
 import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.FinishedProductDto
+import ru.faserkraft.client.dto.OrderCreateDto
+import ru.faserkraft.client.dto.OrderDto
+import ru.faserkraft.client.dto.OrderItemCreateDto
+import ru.faserkraft.client.dto.OrderUpdateDto
 import ru.faserkraft.client.dto.PackagingCreateDto
 import ru.faserkraft.client.dto.PackagingDto
-import ru.faserkraft.client.dto.PackagingShipmentResponse
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.ProductsInventoryDto
 import ru.faserkraft.client.dto.QrDataResponseDto
-
-// Импорты DTO для заказов (нужно создать эти классы)
-import ru.faserkraft.client.dto.OrderDto
-import ru.faserkraft.client.dto.OrderCreateDto
-import ru.faserkraft.client.dto.OrderUpdateDto
-import ru.faserkraft.client.dto.OrderItemCreateDto
 
 const val BASE_URL = BuildConfig.BASE_URL
 
@@ -105,9 +103,6 @@ interface Api {
 
     @GET(BASE_URL + "packaging/get_in_storage")
     suspend fun getPackagingInStorage(): Response<List<PackagingDto>>
-
-    @GET(BASE_URL + "packaging/get_all_shipped")
-    suspend fun getShippedPackaging(): Response<List<PackagingDto>>
 
     @POST("packaging/attach_to_order/{order_id}")
     suspend fun addPackagingToOrder(
