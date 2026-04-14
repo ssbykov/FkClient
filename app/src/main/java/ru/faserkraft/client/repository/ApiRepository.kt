@@ -15,7 +15,6 @@ import ru.faserkraft.client.dto.OrderItemCreateDto
 import ru.faserkraft.client.dto.OrderUpdateDto
 import ru.faserkraft.client.dto.PackagingCreateDto
 import ru.faserkraft.client.dto.PackagingDto
-import ru.faserkraft.client.dto.PackagingShipmentResponse
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
