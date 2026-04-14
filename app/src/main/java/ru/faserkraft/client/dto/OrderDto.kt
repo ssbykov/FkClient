@@ -55,10 +55,3 @@ data class OrderItemCreateDto(
     val processId: Int,
     val quantity: Int
 )
-
-data class OrderCloseDto(
-    @SerializedName("shipment_date")
-    val shipmentDate: String,
-    @SerializedName("shipment_by_id")
-    val shipmentById: Int
-)
