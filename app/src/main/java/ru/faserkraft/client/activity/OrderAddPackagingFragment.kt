@@ -17,6 +17,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
+import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.AddPackagingAdapter
 import ru.faserkraft.client.adapter.ModuleTypeUi
 import ru.faserkraft.client.adapter.PackagingShipmentUiItem
@@ -51,7 +52,7 @@ class OrderAddPackagingFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val orderId = args.orderId
-        binding.tvOrderDetails.text = "Заказ ID: $orderId"
+        binding.tvOrderDetails.text = getString(R.string.order_details_format, orderId)
 
         adapter = AddPackagingAdapter { item, isChecked ->
             val current = adapter.currentList.toMutableList()

@@ -116,4 +116,5 @@
     <string name="close_order">Закрыть заказ</string>
     <string name="selected_order">Выбранный заказ</string>
     <string name="add_to_order">Добавление в заказ</string>
+    <string name="order_details_format">Заказ ID: %d</string>
 </resources>
