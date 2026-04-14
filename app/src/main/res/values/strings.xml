@@ -60,7 +60,7 @@
     <string name="new_packaging">Новая упаковка</string>
     <string name="packaging_number">Номер упаковки</string>
     <string name="create_packaging">Создать упаковку</string>
-    <string name="select_all_products">Выбрать все</string>
+    <string name="select_all">Выбрать все</string>
     <string name="packaging_contents">Модули в упаковке</string>
     <string name="close">Закрыть</string>
     <string name="products_in_production">Модули в производстве</string>
@@ -114,4 +114,5 @@
     <string name="edit_order">Редактировать заказ</string>
     <string name="add_packaging">Добавить упаковки</string>
     <string name="close_order">Закрыть заказ</string>
+    <string name="selected_order">Выбранный заказ</string>
 </resources>
