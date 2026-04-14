@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -20,12 +21,10 @@ sealed class OrderListItem {
     abstract val itemId: String
 }
 
-// Теперь заголовок принимает ID ресурса (R.string...)
 data class OrderHeader(@StringRes val titleResId: Int) : OrderListItem() {
     override val itemId: String = "header_$titleResId"
 }
 
-// UI-модель очищена от форматирования
 data class OrderUiItem(
     val orderId: Int,
     val contractNumber: String,
@@ -43,7 +42,10 @@ data class OrderUiItem(
 
 // 2. Сам адаптер
 class OrdersAdapter(
-    private val onItemClick: ((OrderUiItem) -> Unit)
+    private val onItemClick: ((OrderUiItem) -> Unit),
+    private val onEditClick: ((OrderUiItem) -> Unit),
+    private val onAddPackagingClick: ((OrderUiItem) -> Unit),
+    private val onCloseOrderClick: ((OrderUiItem) -> Unit)
 ) : ListAdapter<OrderListItem, RecyclerView.ViewHolder>(OrderDiff()) {
 
     companion object {
@@ -67,7 +69,13 @@ class OrdersAdapter(
             }
             TYPE_ORDER -> {
                 val binding = ItemOrderBinding.inflate(inflater, parent, false)
-                OrderVH(binding, onItemClick)
+                OrderVH(
+                    binding,
+                    onItemClick,
+                    onEditClick,
+                    onAddPackagingClick,
+                    onCloseOrderClick
+                )
             }
             else -> throw IllegalArgumentException("Unknown view type")
         }
@@ -83,20 +91,22 @@ class OrdersAdapter(
     class HeaderVH(private val binding: ItemOrderHeaderBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: OrderHeader) {
-            // Устанавливаем текст напрямую из ресурса
             binding.tvHeaderTitle.setText(item.titleResId)
         }
     }
 
     class OrderVH(
         private val binding: ItemOrderBinding,
-        private val onItemClick: ((OrderUiItem) -> Unit)
+        private val onItemClick: ((OrderUiItem) -> Unit),
+        private val onEditClick: ((OrderUiItem) -> Unit),
+        private val onAddPackagingClick: ((OrderUiItem) -> Unit),
+        private val onCloseOrderClick: ((OrderUiItem) -> Unit)
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: OrderUiItem) = with(binding) {
             val context = itemView.context
 
-            // Форматируем строки здесь, на стороне UI
+            // Форматируем строки
             tvContractInfo.text = context.getString(
                 R.string.contract_info_format,
                 item.contractNumber,
@@ -118,8 +128,11 @@ class OrdersAdapter(
                 tvShipmentStatus.setTextColor(
                     ContextCompat.getColor(context, R.color.brand_blue)
                 )
+                // Опционально: можно скрыть кнопку меню, если заказ отгружен
+                // btnOrderMenu.visibility = View.GONE
             } else {
                 tvShipmentStatus.visibility = View.GONE
+                // btnOrderMenu.visibility = View.VISIBLE
             }
 
             // Общий прогресс заказа
@@ -177,7 +190,40 @@ class OrdersAdapter(
                 chipGroupTypes.addView(chip)
             }
 
+            // ВЕШАЕМ СЛУШАТЕЛИ КЛИКОВ
             root.setOnClickListener { onItemClick(item) }
+
+            // ВЕШАЕМ POPUP MENU НА КНОПКУ
+            btnOrderMenu.setOnClickListener { view ->
+                val popup = PopupMenu(context, view)
+                popup.inflate(R.menu.menu_order_actions)
+
+                // Если заказ закрыт/отгружен, скрываем пункт редактирования (Опционально)
+                if (item.isShipped) {
+                    popup.menu.findItem(R.id.action_edit)?.isVisible = false
+                    popup.menu.findItem(R.id.action_add_packaging)?.isVisible = false
+                    popup.menu.findItem(R.id.action_close_order)?.isVisible = false
+                }
+
+                popup.setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.itemId) {
+                        R.id.action_edit -> {
+                            onEditClick(item)
+                            true
+                        }
+                        R.id.action_add_packaging -> {
+                            onAddPackagingClick(item)
+                            true
+                        }
+                        R.id.action_close_order -> {
+                            onCloseOrderClick(item)
+                            true
+                        }
+                        else -> false
+                    }
+                }
+                popup.show()
+            }
         }
     }
 

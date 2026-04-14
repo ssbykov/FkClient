@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -21,7 +22,7 @@ import ru.faserkraft.client.adapter.OrderUiItem
 import ru.faserkraft.client.adapter.OrdersAdapter
 import ru.faserkraft.client.databinding.FragmentOrdersBinding
 import ru.faserkraft.client.dto.ModuleTypeDto
-import ru.faserkraft.client.utils.convertDate // Ваша утилита
+import ru.faserkraft.client.utils.convertDate
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
 class OrdersFragment : Fragment() {
@@ -48,18 +49,60 @@ class OrdersFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = OrdersAdapter { item ->
-            if (_binding == null) return@OrdersAdapter
+        adapter = OrdersAdapter(
+            onItemClick = { item ->
+                if (_binding == null) return@OrdersAdapter
 
-            val navController = findNavController()
-            // Проверяем, что NavController находится на родительском экране
-            if (navController.currentDestination?.id == R.id.storageContainerFragment) {
+                val navController = findNavController()
+                // Проверяем, что NavController находится на родительском экране
+                if (navController.currentDestination?.id == R.id.storageContainerFragment) {
+                    val bundle = Bundle().apply {
+                        putInt("orderId", item.orderId)
+                    }
+                    navController.navigate(
+                        R.id.action_storageContainerFragment_to_orderPackagingFragment,
+                        bundle
+                    )
+                }
+            },
+            onEditClick = { item ->
+                if (_binding == null) return@OrdersAdapter
+
+                val navController = findNavController()
+                // Вызываем глобальный экшен для перехода в фрагмент редактирования
                 val bundle = Bundle().apply {
                     putInt("orderId", item.orderId)
                 }
-                navController.navigate(R.id.action_storageContainerFragment_to_orderPackagingFragment, bundle)
+                navController.navigate(R.id.action_global_editOrderFragment, bundle)
+            },
+            onAddPackagingClick = { item ->
+                if (_binding == null) return@OrdersAdapter
+
+                // TODO: Реализовать переход на экран сканирования/добавления упаковок к заказу
+                Toast.makeText(
+                    requireContext(),
+                    "Добавление упаковок к заказу №${item.contractNumber}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+            onCloseOrderClick = { item ->
+                if (_binding == null) return@OrdersAdapter
+
+                // Диалог подтверждения перед закрытием заказа
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Закрытие заказа")
+                    .setMessage("Вы уверены, что хотите закрыть заказ по договору №${item.contractNumber}?")
+                    .setPositiveButton("Закрыть") { dialog, _ ->
+                        dialog.dismiss()
+
+                        viewModel.closeOrderFromUi(item.orderId)
+                    }
+                    .setNegativeButton("Отмена") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .show()
             }
-        }
+        )
 
         binding.rvOrders.layoutManager = LinearLayoutManager(requireContext())
         binding.rvOrders.adapter = adapter
