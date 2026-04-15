@@ -66,7 +66,7 @@ class NewPackagingFragment : Fragment() {
                 adapter.submitList(current)
             }
 
-            // ✅ проверяем по локальному current, а не по adapter.currentList
+            // ✅ проверяем по-локальному current, а не по adapter.currentList
             val allSelected = current.isNotEmpty() && current.all { it.isSelected }
             if (binding.cbSelectAll.isChecked != allSelected) {
                 binding.cbSelectAll.setOnCheckedChangeListener(null)

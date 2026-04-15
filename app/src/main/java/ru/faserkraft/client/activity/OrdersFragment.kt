@@ -66,7 +66,7 @@ class OrdersFragment : Fragment() {
                 if (_binding == null) return@OrdersAdapter
 
                 val navController = findNavController()
-                // Вызываем глобальный экшен для перехода в фрагмент редактирования
+                // Вызываем глобальный экшен для перехода во фрагмент редактирования
                 val bundle = Bundle().apply {
                     putInt("orderId", item.orderId)
                 }

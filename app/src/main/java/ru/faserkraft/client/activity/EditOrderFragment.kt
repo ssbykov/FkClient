@@ -72,7 +72,6 @@ class EditOrderFragment : Fragment() {
 
         // Подписка на данные
         viewModel.currentOrder.observe(viewLifecycleOwner) { order ->
-            // Проверяем, что это нужный заказ и мы еще не предзаполняли форму
             if (order != null && order.id == args.orderId && !isDataLoaded) {
 
                 binding.etContractNumber.setText(order.contractNumber)
