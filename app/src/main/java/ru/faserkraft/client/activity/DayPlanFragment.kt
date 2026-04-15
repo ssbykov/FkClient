@@ -104,7 +104,8 @@ class DayPlanFragment : Fragment() {
             ) = false
 
             override fun getSwipeDirs(rv: RecyclerView, vh: RecyclerView.ViewHolder): Int {
-                if (!canEdit) return 0
+                if (!canEdit || isPastDate) return 0
+
                 val position = vh.bindingAdapterPosition
                 val item = adapter.currentList.getOrNull(position)
                 return if (item is EmployeePlanUiItem.Header) 0
@@ -288,12 +289,24 @@ class DayPlanFragment : Fragment() {
             .setTitle("Скопировать план?")
             .setMessage("План будет скопирован на текущую дату.")
             .setPositiveButton("Да") { dialog, _ ->
-                val planDate = convertDate(binding.etDate.text?.toString().orEmpty())
-                viewLifecycleOwner.lifecycleScope.launch {
-                    val planDate = DailyPlanCopyDto(planDate)
-                    viewModel.copyDailyPlan(planDate)
-                }
                 dialog.dismiss()
+
+                val sourcePlanDate = convertDate(binding.etDate.text?.toString().orEmpty())
+
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val result = viewModel.copyDailyPlan(DailyPlanCopyDto(sourcePlanDate))
+
+                    result.onSuccess {
+                        val todayApiDate = LocalDate.now().toString()
+                        val todayUiDate = convertDate(todayApiDate)
+
+                        binding.etDate.setText(todayUiDate)
+                        recomputeCanEdit(todayApiDate)
+                        viewModel.getDayPlans(todayApiDate)
+                    }.onFailure {
+                        // Ошибка уже попадёт в errorState
+                    }
+                }
             }
             .setNegativeButton("Отмена") { dialog, _ ->
                 dialog.dismiss()
