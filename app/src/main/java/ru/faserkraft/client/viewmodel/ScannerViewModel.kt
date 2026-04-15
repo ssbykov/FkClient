@@ -349,17 +349,19 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
-    suspend fun deleteOrder(orderId: Int): Result<Unit> =
-        withActionAndResult {
-            repository.deleteOrder(orderId)
+    fun deleteOrderFromUi(orderId: Int) {
+        viewModelScope.launch {
+            withActionAndResult {
+                repository.deleteOrder(orderId)
 
-            // Если удаленный заказ был открыт на экране деталей, очищаем его
-            if (_currentOrder.value?.id == orderId) {
-                _currentOrder.postValue(null)
+                if (_currentOrder.value?.id == orderId) {
+                    _currentOrder.postValue(null)
+                }
+
+                getOrders()
             }
-            // Обновляем список после удаления
-            getOrders()
         }
+    }
 
     suspend fun addPackagingToOrder(orderId: Int, packagingIds: List<Int>): Result<Unit> =
         withActionAndResult {

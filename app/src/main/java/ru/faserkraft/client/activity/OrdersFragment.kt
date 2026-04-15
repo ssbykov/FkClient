@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
+import ru.faserkraft.client.adapter.OrderActionsListener
 import ru.faserkraft.client.adapter.OrderHeader
 import ru.faserkraft.client.adapter.OrderListItem
 import ru.faserkraft.client.adapter.OrderUiItem
@@ -46,12 +47,13 @@ class OrdersFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = OrdersAdapter(
-            onItemClick = { item ->
-                if (_binding == null) return@OrdersAdapter
+        // ИСПРАВЛЕНО 1: Инициализируем классовую переменную adapter без private и by lazy
+        adapter = OrdersAdapter(object : OrderActionsListener {
+
+            override fun onOrderClick(item: OrderUiItem) {
+                if (_binding == null) return
 
                 val navController = findNavController()
-                // Проверяем, что NavController находится на родительском экране
                 if (navController.currentDestination?.id == R.id.storageContainerFragment) {
                     val bundle = Bundle().apply {
                         putInt("orderId", item.orderId)
@@ -61,42 +63,41 @@ class OrdersFragment : Fragment() {
                         bundle
                     )
                 }
-            },
-            onEditClick = { item ->
-                if (_binding == null) return@OrdersAdapter
+            }
 
-                val navController = findNavController()
-                // Вызываем глобальный экшен для перехода во фрагмент редактирования
+            override fun onEditOrderClick(item: OrderUiItem) {
+                if (_binding == null) return
+
                 val bundle = Bundle().apply {
                     putInt("orderId", item.orderId)
                 }
-                navController.navigate(R.id.action_global_editOrderFragment, bundle)
-            },
-            onAddPackagingClick = { item ->
-                if (_binding == null) return@OrdersAdapter
+                findNavController().navigate(R.id.action_global_editOrderFragment, bundle)
+            }
+
+            override fun onAddPackagingClick(item: OrderUiItem) {
+                if (_binding == null) return
 
                 val navController = findNavController()
                 if (navController.currentDestination?.id == R.id.storageContainerFragment) {
                     val bundle = Bundle().apply {
                         putInt("orderId", item.orderId)
                     }
-
                     navController.navigate(
                         R.id.action_storageContainerFragment_to_orderAddPackagingFragment,
                         bundle
                     )
                 }
-            },
-            onCloseOrderClick = { item ->
-                if (_binding == null) return@OrdersAdapter
+            }
 
-                // Диалог подтверждения перед закрытием заказа
-                AlertDialog.Builder(requireContext())
+            override fun onCloseOrderClick(item: OrderUiItem) {
+                if (_binding == null) return
+
+                // ИСПРАВЛЕНО 2: Сохраняем ссылку на диалог в activeDialog
+                activeDialog = AlertDialog.Builder(requireContext())
                     .setTitle("Закрытие заказа")
                     .setMessage("Вы уверены, что хотите закрыть заказ по договору №${item.contractNumber}?")
                     .setPositiveButton("Закрыть") { dialog, _ ->
                         dialog.dismiss()
-
                         viewModel.closeOrderFromUi(item.orderId)
                     }
                     .setNegativeButton("Отмена") { dialog, _ ->
@@ -104,7 +105,24 @@ class OrdersFragment : Fragment() {
                     }
                     .show()
             }
-        )
+
+            override fun onDeleteOrderClick(item: OrderUiItem) {
+                if (_binding == null) return
+
+                // ИСПРАВЛЕНО 2: Сохраняем ссылку на диалог в activeDialog
+                activeDialog = AlertDialog.Builder(requireContext())
+                    .setTitle("Удаление заказа")
+                    .setMessage("Вы уверены, что хотите удалить заказ по договору №${item.contractNumber}?")
+                    .setPositiveButton("Удалить") { dialog, _ ->
+                        dialog.dismiss()
+                        viewModel.deleteOrderFromUi(item.orderId)
+                    }
+                    .setNegativeButton("Отмена") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .show()
+            }
+        })
 
         binding.rvOrders.layoutManager = LinearLayoutManager(requireContext())
         binding.rvOrders.adapter = adapter
@@ -125,6 +143,7 @@ class OrdersFragment : Fragment() {
         viewModel.orders.observe(viewLifecycleOwner) { list ->
             if (list.isNullOrEmpty()) {
                 adapter.submitList(emptyList())
+                checkEmpty()
                 return@observe
             }
 
@@ -174,18 +193,19 @@ class OrdersFragment : Fragment() {
             val finalList = mutableListOf<OrderListItem>()
 
             if (activeOrders.isNotEmpty()) {
-                // Используем R.string для заголовка
                 finalList.add(OrderHeader(R.string.order_header_active))
                 finalList.addAll(activeOrders)
             }
 
             if (completedOrders.isNotEmpty()) {
-                // Используем R.string для заголовка
                 finalList.add(OrderHeader(R.string.order_header_completed))
                 finalList.addAll(completedOrders)
             }
 
-            adapter.submitList(finalList)
+            // Передаем callback в submitList для надежного обновления пустого состояния
+            adapter.submitList(finalList) {
+                checkEmpty()
+            }
         }
 
         // Состояние загрузки

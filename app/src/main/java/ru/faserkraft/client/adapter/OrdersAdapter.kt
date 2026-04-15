@@ -19,7 +19,6 @@ import ru.faserkraft.client.databinding.ItemOrderHeaderBinding
 import ru.faserkraft.client.dto.ModuleTypeDto
 import ru.faserkraft.client.utils.formatIsoToUi
 
-// 1. Модели данных для списка
 sealed class OrderListItem {
     abstract val itemId: String
 }
@@ -43,12 +42,16 @@ data class OrderUiItem(
     override val itemId: String = "order_$orderId"
 }
 
-// 2. Сам адаптер
+interface OrderActionsListener {
+    fun onOrderClick(item: OrderUiItem)
+    fun onEditOrderClick(item: OrderUiItem)
+    fun onAddPackagingClick(item: OrderUiItem)
+    fun onCloseOrderClick(item: OrderUiItem)
+    fun onDeleteOrderClick(item: OrderUiItem)
+}
+
 class OrdersAdapter(
-    private val onItemClick: ((OrderUiItem) -> Unit),
-    private val onEditClick: ((OrderUiItem) -> Unit),
-    private val onAddPackagingClick: ((OrderUiItem) -> Unit),
-    private val onCloseOrderClick: ((OrderUiItem) -> Unit)
+    private val listener: OrderActionsListener
 ) : ListAdapter<OrderListItem, RecyclerView.ViewHolder>(OrderDiff()) {
 
     companion object {
@@ -72,13 +75,7 @@ class OrdersAdapter(
             }
             TYPE_ORDER -> {
                 val binding = ItemOrderBinding.inflate(inflater, parent, false)
-                OrderVH(
-                    binding,
-                    onItemClick,
-                    onEditClick,
-                    onAddPackagingClick,
-                    onCloseOrderClick
-                )
+                OrderVH(binding, listener)
             }
             else -> throw IllegalArgumentException("Unknown view type")
         }
@@ -101,17 +98,13 @@ class OrdersAdapter(
 
     class OrderVH(
         private val binding: ItemOrderBinding,
-        private val onItemClick: ((OrderUiItem) -> Unit),
-        private val onEditClick: ((OrderUiItem) -> Unit),
-        private val onAddPackagingClick: ((OrderUiItem) -> Unit),
-        private val onCloseOrderClick: ((OrderUiItem) -> Unit)
+        private val listener: OrderActionsListener
     ) : RecyclerView.ViewHolder(binding.root) {
 
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(item: OrderUiItem) = with(binding) {
             val context = itemView.context
 
-            // Форматируем строки
             tvContractInfo.text = context.getString(
                 R.string.contract_info_format,
                 item.contractNumber,
@@ -123,7 +116,6 @@ class OrdersAdapter(
                 item.plannedShipmentDateStr
             )
 
-            // Статус отгрузки
             if (item.isShipped && item.shipmentDateStr != null) {
                 tvShipmentStatus.visibility = View.VISIBLE
                 val shipmentDateStr = formatIsoToUi(item.shipmentDateStr)
@@ -137,10 +129,9 @@ class OrdersAdapter(
                 btnOrderMenu.visibility = View.GONE
             } else {
                 tvShipmentStatus.visibility = View.GONE
-                 btnOrderMenu.visibility = View.VISIBLE
+                btnOrderMenu.visibility = View.VISIBLE
             }
 
-            // Общий прогресс заказа
             val required = item.requiredModulesCount
             val packed = item.packedModulesCount
 
@@ -158,7 +149,6 @@ class OrdersAdapter(
                 item.packagingCount
             )
 
-            // Подкрашиваем текст общего прогресса
             val isOrderFullyPacked = required in 1..packed
             if (isOrderFullyPacked && !item.isShipped) {
                 tvProgressValue.setTextColor(ContextCompat.getColor(context, R.color.brand_blue))
@@ -166,7 +156,6 @@ class OrdersAdapter(
                 tvProgressValue.setTextColor(ContextCompat.getColor(context, R.color.black))
             }
 
-            // Детализация по типам модулей (Чипы)
             chipGroupTypes.removeAllViews()
             item.moduleTypes.forEach { moduleType ->
                 val chip = Chip(chipGroupTypes.context).apply {
@@ -179,7 +168,9 @@ class OrdersAdapter(
                     isCloseIconVisible = false
                     isClickable = false
 
-                    val isModuleFullyPacked = moduleType.packedCount >= moduleType.requiredCount && moduleType.requiredCount > 0
+                    val isModuleFullyPacked =
+                        moduleType.packedCount >= moduleType.requiredCount &&
+                                moduleType.requiredCount > 0
 
                     if (isModuleFullyPacked) {
                         setTextColor(ContextCompat.getColor(context, R.color.brand_blue))
@@ -195,33 +186,37 @@ class OrdersAdapter(
                 chipGroupTypes.addView(chip)
             }
 
-            // ВЕШАЕМ СЛУШАТЕЛИ КЛИКОВ
-            root.setOnClickListener { onItemClick(item) }
+            root.setOnClickListener {
+                listener.onOrderClick(item)
+            }
 
-            // ВЕШАЕМ POPUP MENU НА КНОПКУ
             btnOrderMenu.setOnClickListener { view ->
                 val popup = PopupMenu(context, view)
                 popup.inflate(R.menu.menu_order_actions)
 
-                // Если заказ закрыт/отгружен, скрываем пункт редактирования (Опционально)
                 if (item.isShipped) {
                     popup.menu.findItem(R.id.action_edit)?.isVisible = false
                     popup.menu.findItem(R.id.action_add_packaging)?.isVisible = false
                     popup.menu.findItem(R.id.action_close_order)?.isVisible = false
+                    popup.menu.findItem(R.id.action_delete_order)?.isVisible = false
                 }
 
                 popup.setOnMenuItemClickListener { menuItem ->
                     when (menuItem.itemId) {
                         R.id.action_edit -> {
-                            onEditClick(item)
+                            listener.onEditOrderClick(item)
                             true
                         }
                         R.id.action_add_packaging -> {
-                            onAddPackagingClick(item)
+                            listener.onAddPackagingClick(item)
                             true
                         }
                         R.id.action_close_order -> {
-                            onCloseOrderClick(item)
+                            listener.onCloseOrderClick(item)
+                            true
+                        }
+                        R.id.action_delete_order -> {
+                            listener.onDeleteOrderClick(item)
                             true
                         }
                         else -> false
