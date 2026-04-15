@@ -75,8 +75,8 @@ class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
 
         tabLayoutMediator = TabLayoutMediator(binding.tabLayoutStorage, binding.viewPagerStorage) { tab, position ->
             tab.text = when (position) {
-                0 -> getString(R.string.storage)
-                1 -> getString(R.string.shipped)
+                0 -> getString(R.string.orders)
+                1 -> getString(R.string.storage)
                 else -> null
             }
         }

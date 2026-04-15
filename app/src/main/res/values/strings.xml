@@ -111,6 +111,7 @@
     <string name="delete_item">Удалить позицию</string>
     <string name="module_quantity_format">Количество: %1$d шт.</string>
     <string name="order_menu">Меню заказа</string>
+    <string name="orders">Заказы</string>
     <string name="edit_order">Редактировать заказ</string>
     <string name="add_packaging">Добавить упаковки</string>
     <string name="close_order">Закрыть заказ</string>

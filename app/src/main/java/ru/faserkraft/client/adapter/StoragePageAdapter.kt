@@ -11,8 +11,8 @@ class StoragePageAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
-            0 -> StorageFragment()
-            1 -> OrdersFragment()
+            0 -> OrdersFragment()
+            1 -> StorageFragment()
             else -> throw IllegalStateException("Invalid position: $position")
         }
     }
