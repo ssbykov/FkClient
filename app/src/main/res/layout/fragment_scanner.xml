@@ -37,7 +37,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="16dp"
-        android:hint="@string/packaging_number"
+        android:hint="@string/serial_number"
         app:endIconMode="custom"
         app:endIconDrawable="@android:drawable/ic_menu_send"
         app:endIconContentDescription="Подтвердить ввод"
