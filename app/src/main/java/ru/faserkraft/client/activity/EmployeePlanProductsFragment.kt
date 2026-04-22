@@ -21,7 +21,6 @@ import ru.faserkraft.client.adapter.ProductsInventoryByProcessAdapter
 import ru.faserkraft.client.adapter.ProductsInventoryByProcessUiItem
 import ru.faserkraft.client.databinding.FragmentEmployeePlanProductsBinding
 import ru.faserkraft.client.utils.convertDate
-import ru.faserkraft.client.utils.formatIsoToUi
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
 class EmployeePlanProductsFragment : Fragment() {
@@ -84,7 +83,6 @@ class EmployeePlanProductsFragment : Fragment() {
         binding.rvProductsDetail.adapter = adapter
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun setupObservers() {
         viewModel.productsInventoryByProcess.observe(viewLifecycleOwner) { list ->
             val items = list.orEmpty().map {
