@@ -39,7 +39,7 @@ class ProductsInventoryByProcessAdapter (
         fun bind(item: ProductsInventoryByProcessUiItem) = with(binding) {
             tvProductSerial.text = item.serialNumber
             tvCreated.text = binding.root.context.getString(
-                R.string.created_at,
+                R.string.closed_at,
                 formatIsoToUi(item.createdAt)
             )
             binding.root.setOnClickListener {

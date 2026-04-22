@@ -431,6 +431,8 @@ class ScannerViewModel @Inject constructor(
         processId: Int,
         stepDefinitionId: Int
     ) {
+        _productsInventoryByProcess.value = emptyList()
+
         withLoading {
             repository.getProductsByLastCompletedStep(
                 processId = processId,
@@ -446,6 +448,8 @@ class ScannerViewModel @Inject constructor(
         day: String,
         employeeId: Int,
     ) {
+        _productsInventoryByProcess.value = emptyList()
+
         withLoading {
             repository.getProductsByStepEmployeeDay(
                 stepDefinitionId = stepDefinitionId,

@@ -66,7 +66,7 @@
     <string name="products_in_production">Модули в производстве</string>
     <string name="stage">Этап</string>
     <string name="status">Статус</string>
-    <string name="created_at">Создан: %1$s</string>
+    <string name="closed_at">Этап закрыт: %1$s</string>
     <string name="storage">Склад</string>
     <string name="shipped">Отгрузки</string>
     <string name="products_storage">Продукция на складе</string>

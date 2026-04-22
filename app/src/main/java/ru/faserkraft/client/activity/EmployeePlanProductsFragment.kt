@@ -1,10 +1,12 @@
 package ru.faserkraft.client.activity
 
 import android.app.AlertDialog
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -19,6 +21,7 @@ import ru.faserkraft.client.adapter.ProductsInventoryByProcessAdapter
 import ru.faserkraft.client.adapter.ProductsInventoryByProcessUiItem
 import ru.faserkraft.client.databinding.FragmentEmployeePlanProductsBinding
 import ru.faserkraft.client.utils.convertDate
+import ru.faserkraft.client.utils.formatIsoToUi
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
 class EmployeePlanProductsFragment : Fragment() {
@@ -81,13 +84,17 @@ class EmployeePlanProductsFragment : Fragment() {
         binding.rvProductsDetail.adapter = adapter
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun setupObservers() {
         viewModel.productsInventoryByProcess.observe(viewLifecycleOwner) { list ->
             val items = list.orEmpty().map {
+                val stepId = args.employeePlanDto.stepDefinition.id
+                val step = it.steps.find { step -> step.stepDefinition.id == stepId }
+
                 ProductsInventoryByProcessUiItem(
                     id = it.id,
                     serialNumber = it.serialNumber,
-                    createdAt = it.createdAt
+                    createdAt = step?.performedAt.toString()
                 )
             }
             adapter.submitList(items)
@@ -101,7 +108,6 @@ class EmployeePlanProductsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.errorState.collect { msg ->
-                    // 🟡 ИСПРАВЛЕНИЕ 4: закрываем предыдущий перед показом нового
                     activeDialog?.dismiss()
                     activeDialog = AlertDialog.Builder(requireContext())
                         .setMessage(msg)
@@ -128,6 +134,8 @@ class EmployeePlanProductsFragment : Fragment() {
     }
 
     private fun loadData() {
+        adapter.submitList(emptyList())
+
         viewLifecycleOwner.lifecycleScope.launch {
             with(args.employeePlanDto) {
                 viewModel.getProductsByStepEmployeeDay(

@@ -71,10 +71,13 @@ class ProductsInventoryByProcessFragment : Fragment() {
     private fun setupObservers() {
         viewModel.productsInventoryByProcess.observe(viewLifecycleOwner) { list ->
             val items = list.orEmpty().map {
+                val stepId = args.productsInventoryDto.stepDefinitionId
+                val step = it.steps.find { step -> step.stepDefinition.id == stepId }
+
                 ProductsInventoryByProcessUiItem(
                     id = it.id,
                     serialNumber = it.serialNumber,
-                    createdAt = it.createdAt
+                    createdAt = step?.performedAt.toString()
                 )
             }
             adapter.submitList(items)
@@ -115,6 +118,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
     }
 
     private fun loadData() {
+        adapter.submitList(emptyList())
         viewLifecycleOwner.lifecycleScope.launch {
             with(args.productsInventoryDto) {
                 viewModel.getProductsByLastCompletedStep(processId, stepDefinitionId)
