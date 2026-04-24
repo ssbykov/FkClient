@@ -8,9 +8,9 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import ru.faserkraft.client.BuildConfig
 import javax.inject.Named
 import javax.inject.Singleton
-import ru.faserkraft.client.BuildConfig
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -55,6 +55,11 @@ object ApiModule {
     @Singleton
     fun provideApi(@Named("mainRetrofit") retrofit: Retrofit): Api =
         retrofit.create(Api::class.java)
+
+    @Provides
+    @Singleton
+    fun provideUpdateApi(@Named("mainRetrofit") retrofit: Retrofit): UpdateApi =
+        retrofit.create(UpdateApi::class.java)
 
     // --- отдельный OkHttp/Retrofit для AuthApi (БЕЗ TokenAuthenticator) ---
     @Provides
