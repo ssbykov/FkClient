@@ -31,7 +31,7 @@ android {
         minSdk = 24
         targetSdk = 36
         versionCode = 1
-        versionName = "1.1"
+        versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -56,7 +56,7 @@ android {
             buildConfigField("String", "BASE_URL", "\"https://product.faserkraft.ru/api/v1/\"")
         }
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://192.168.0.102:8000/api/v1/\"")
+            buildConfigField("String", "BASE_URL", "\"http://10.1.30.110:8000/api/v1/\"")
         }
     }
 
