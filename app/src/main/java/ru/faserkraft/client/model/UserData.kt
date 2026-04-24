@@ -1,5 +1,7 @@
 package ru.faserkraft.client.model
 
+import com.google.gson.annotations.SerializedName
+
 data class UserData(
     val email: String,
     val password: String,
@@ -8,8 +10,11 @@ data class UserData(
 )
 
 enum class UserRole(val value: String) {
+    @SerializedName("admin")
     ADMIN("admin"),
+    @SerializedName("master")
     MASTER("master"),
+    @SerializedName("worker")
     WORKER("worker");
 
     companion object {
