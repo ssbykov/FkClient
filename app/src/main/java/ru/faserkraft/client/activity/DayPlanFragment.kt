@@ -18,23 +18,38 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.datepicker.MaterialDatePicker
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.EmployeePlanUiItem
 import ru.faserkraft.client.adapter.PlansAdapter
 import ru.faserkraft.client.databinding.FragmentDayPlanBinding
-import ru.faserkraft.client.dto.DailyPlanCopyDto
-import ru.faserkraft.client.dto.EmployeePlanDto
+import ru.faserkraft.client.domain.model.DailyPlan
+import ru.faserkraft.client.domain.model.UiState
 import ru.faserkraft.client.model.UserRole
-import ru.faserkraft.client.utils.apiPattern
+import ru.faserkraft.client.ui.base.BaseFragment
+import ru.faserkraft.client.ui.common.SharedUiViewModel
+import ru.faserkraft.client.ui.dailyplan.DailyPlanViewModel
+import ru.faserkraft.client.utils.collectIn
+import ru.faserkraft.client.utils.collectEventsIn
 import ru.faserkraft.client.utils.convertDate
 import ru.faserkraft.client.utils.formatPlanDate
-import ru.faserkraft.client.viewmodel.ScannerViewModel
 import java.time.LocalDate
 
-class DayPlanFragment : Fragment() {
 
-    private val viewModel: ScannerViewModel by activityViewModels()
+/**
+ * МИГРИРОВАННЫЙ DayPlanFragment с новой архитектурой
+ *
+ * НОВОЕ: Использует DailyPlanViewModel вместо ScannerViewModel
+ * НОВОЕ: Использует StateFlow вместо LiveData
+ * НОВОЕ: Работает с Domain Models вместо DTOs
+ * НОВОЕ: Наследуется от BaseFragment для общей логики
+ */
+@AndroidEntryPoint
+class DayPlanFragment : BaseFragment<DailyPlanViewModel>() {
+
+    override val viewModel: DailyPlanViewModel by activityViewModels()
+    private val sharedUiViewModel: SharedUiViewModel by activityViewModels()
 
     private var _binding: FragmentDayPlanBinding? = null
     private val binding get() = _binding!!
@@ -60,28 +75,31 @@ class DayPlanFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.etDate.setOnClickListener {
-            it.clearFocus()
-            showDatePicker()
-        }
+        setupRecyclerView()
+        observeViewModel()
+        observeSharedViewModel()
+        setupClickListeners()
 
+        // Загружаем планы на текущую дату при старте
+        val today = LocalDate.now().toString()
+        val todayUi = convertDate(today)
+        binding.etDate.setText(todayUi)
+        viewModel.getDayPlans(today)
+    }
+
+    /**
+     * Настроить RecyclerView
+     */
+    private fun setupRecyclerView() {
         adapter = PlansAdapter(
             canEdit,
             onEditPlanClick = { employeePlan ->
-                viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.setEmployees()
-                    viewModel.setProcesses()
-                    val bundle = bundleOf("plan" to employeePlan)
-                    findNavController().navigate(
-                        R.id.action_dayPlanFragment_to_addDayPlanFragment,
-                        bundle
-                    )
-                }
+                // TODO: Implement navigation to edit plan
+                showDialog("Редактирование плана пока не реализовано в новой архитектуре")
             },
             onEmployeeProductsClick = { employeePlan ->
-                val action = DayPlanFragmentDirections
-                    .actionDayPlanFragmentToEmployeePlanProductsFragment(employeePlan)
-                findNavController().navigate(action)
+                // TODO: Implement navigation to employee products
+                showDialog("Навигация к продуктам сотрудника пока не реализована")
             }
         )
 
@@ -96,111 +114,103 @@ class DayPlanFragment : Fragment() {
         adapter.registerAdapterDataObserver(emptyObserver)
         emptyObserver.onChanged()
 
-        val swipeCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.END) {
-            override fun onMove(
-                rv: RecyclerView,
-                vh: RecyclerView.ViewHolder,
-                t: RecyclerView.ViewHolder
-            ) = false
+        // TODO: Implement swipe to delete
+        // val swipeCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.END) {
+        //     // Implementation
+        // }
+        // ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.rvPlans)
+    }
 
-            override fun getSwipeDirs(rv: RecyclerView, vh: RecyclerView.ViewHolder): Int {
-                if (!canEdit || isPastDate) return 0
-
-                val position = vh.bindingAdapterPosition
-                val item = adapter.currentList.getOrNull(position)
-                return if (item is EmployeePlanUiItem.Header) 0
-                else super.getSwipeDirs(rv, vh)
-            }
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val position = viewHolder.bindingAdapterPosition
-                val item = adapter.currentList.getOrNull(position)
-
-                // Сразу откатываем визуально — удалять будем только после подтверждения
-                adapter.notifyItemChanged(position)
-
-                if (item !is EmployeePlanUiItem.Step) return
-
-                if (!isAdded) return
-
-                AlertDialog.Builder(requireContext())
-                    .setTitle("Удалить план?")
-                    .setMessage("Вы уверены, что хотите удалить этот шаг плана?")
-                    .setPositiveButton("Да") { dialog, _ ->
-                        dialog.dismiss()
-                        val planId = item.plan.id
-
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            val result = viewModel.removeStepFromDailyPlan(planId)
-                            result.onSuccess {
-                                // Обновление придёт через dayPlans observer автоматически
-                            }.onFailure {
-                                // Ошибка уйдёт в errorState — список не трогаем
-                            }
-                        }
-                    }
-                    .setNegativeButton("Отмена") { dialog, _ -> dialog.dismiss() }
-                    .show()
-            }
-        }
-
-        ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.rvPlans)
-
-        viewModel.dayPlans.observe(viewLifecycleOwner) { dayPlans ->
-            val planDate = dayPlans.date
-            val planDateUi = convertDate(dayPlans.date)
-            binding.etDate.setText(planDateUi)
-
-            if (dayPlans.plans.isNullOrEmpty()) {
-                adapter.submitList(emptyList())
-                recomputeCanEdit(planDateApi = null)
-                return@observe
-            }
-
-            recomputeCanEdit(planDate)
-
-            val uiItems = mutableListOf<EmployeePlanUiItem>()
-            dayPlans.plans.forEach { plan ->
-                val steps = plan.steps
-                if (steps.isEmpty()) return@forEach
-                uiItems += EmployeePlanUiItem.Header(plan.employee.name)
-                steps.forEach { step ->
-                    val employeePlan = EmployeePlanDto(
-                        id = step.id,
-                        date = planDate,
-                        employee = plan.employee,
-                        stepDefinition = step.stepDefinition,
-                        workProcess = step.workProcess,
-                        plannedQuantity = step.plannedQuantity,
-                        actualQuantity = step.actualQuantity
-                    )
-                    uiItems += EmployeePlanUiItem.Step(employeePlan)
+    /**
+     * Наблюдать за состоянием ViewModel
+     */
+    private fun observeViewModel() {
+        // Состояние планов
+        viewModel.dayPlansState.collectIn(viewLifecycleOwner) { state ->
+            when (state) {
+                is UiState.Idle -> {
+                    hideLoadingIndicator()
+                }
+                is UiState.Loading -> {
+                    showLoadingIndicator()
+                }
+                is UiState.Success -> {
+                    hideLoadingIndicator()
+                    updatePlansList(state.data)
+                }
+                is UiState.Error -> {
+                    hideLoadingIndicator()
+                    showErrorDialog(state.exception)
                 }
             }
-            adapter.submitList(uiItems)
+        }
+    }
+
+    /**
+     * Наблюдать за общими событиями
+     */
+    private fun observeSharedViewModel() {
+        // TODO: Implement user data observation when available
+        sharedUiViewModel.errorMessages.collectEventsIn(viewLifecycleOwner) { message ->
+            showDialog(message)
+        }
+    }
+
+    /**
+     * Обновить список планов
+     */
+    private fun updatePlansList(plans: List<DailyPlan>) {
+        if (plans.isEmpty()) {
+            adapter.submitList(emptyList())
+            checkEmpty()
+            return
         }
 
-        viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            val isLoading = state.isLoading
-            binding.swipeRefresh.isRefreshing = isLoading
-            binding.swipeRefresh.isEnabled = !isLoading
-            binding.etDate.isEnabled = !isLoading
-            binding.fabAddPlan.isEnabled = !isLoading
-        }
+        // Маппим данные с бэкенда в UI модели
+        val uiItems = mutableListOf<EmployeePlanUiItem>()
+        plans.forEach { plan ->
+            val steps = plan.steps
+            if (steps.isEmpty()) return@forEach
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.errorState.collect { msg ->
-                    if (!isAdded) return@collect
-                    AlertDialog.Builder(requireContext())
-                        .setMessage(msg)
-                        .setPositiveButton("ОК") { dialog, _ ->
-                            viewModel.resetIsHandled()
-                            dialog.dismiss()
-                        }
-                        .show()
-                }
+            uiItems += EmployeePlanUiItem.Header(plan.employee.name)
+            steps.forEach { step ->
+                // TODO: Create proper EmployeePlanDto from domain model
+                val employeePlan = ru.faserkraft.client.dto.EmployeePlanDto(
+                    id = step.id,
+                    date = plan.date,
+                    employee = ru.faserkraft.client.dto.EmployeeDto(
+                        id = plan.employee.id,
+                        name = plan.employee.name,
+                        user = ru.faserkraft.client.dto.UserDto(
+                            id = 0, // TODO: Add proper user ID
+                            email = "" // TODO: Add proper email
+                        )
+                    ),
+                    stepDefinition = ru.faserkraft.client.dto.StepDefinitionDto(
+                        id = step.stepDefinition.id,
+                        order = step.stepDefinition.order,
+                        template = ru.faserkraft.client.dto.TemplateDto(
+                            name = step.stepDefinition.name, // Use name as template name
+                            nameGenitive = step.stepDefinition.name // TODO: Add proper genitive
+                        )
+                    ),
+                    workProcess = step.workProcess.name, // workProcess is String in DTO
+                    plannedQuantity = step.plannedQuantity,
+                    actualQuantity = step.actualQuantity ?: 0 // actualQuantity is Int in DTO
+                )
+                uiItems += EmployeePlanUiItem.Step(employeePlan)
             }
+        }
+        adapter.submitList(uiItems)
+    }
+
+    /**
+     * Настроить обработчики клика
+     */
+    private fun setupClickListeners() {
+        binding.etDate.setOnClickListener {
+            it.clearFocus()
+            showDatePicker()
         }
 
         binding.swipeRefresh.setOnRefreshListener {
@@ -208,36 +218,14 @@ class DayPlanFragment : Fragment() {
             viewModel.getDayPlans(planDate)
         }
 
-        viewModel.userData.observe(viewLifecycleOwner) { user ->
-            currentUserRole = user?.role
-            recomputeCanEdit()
-        }
-
-        binding.fabAddPlan.setOnClickListener {
-            if (currentUserRole != UserRole.MASTER) return@setOnClickListener
-            if (isPastDate) showCopyPlanDialog() else openAddPlanScreen()
-        }
+        // TODO: Implement user role checking
+        // binding.fabAddPlan.setOnClickListener {
+        //     if (currentUserRole != UserRole.MASTER) return@setOnClickListener
+        //     if (isPastDate) showCopyPlanDialog() else openAddPlanScreen()
+        // }
 
         binding.btnPrevDate.setOnClickListener { shiftDate(-1) }
         binding.btnNextDate.setOnClickListener { shiftDate(1) }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        if (::emptyObserver.isInitialized) {
-            adapter.unregisterAdapterDataObserver(emptyObserver)
-        }
-        binding.rvPlans.adapter = null
-        datePicker?.dismiss()
-        datePicker = null
-        _binding = null
-    }
-
-    private fun checkEmpty() {
-        val b = _binding ?: return
-        val isEmpty = adapter.itemCount == 0
-        b.tvEmptyPlans.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        b.rvPlans.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 
     private fun showDatePicker() {
@@ -265,63 +253,31 @@ class DayPlanFragment : Fragment() {
         picker.show(parentFragmentManager, "day_plan_date_picker")
     }
 
-
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun openAddPlanScreen() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.setEmployees()
-            viewModel.setProcesses()
+    private fun shiftDate(days: Long) {
+        val currentText = binding.etDate.text?.toString().orEmpty()
+        val apiDate = convertDate(currentText)
 
-            val action =
-                DayPlanFragmentDirections
-                    .actionDayPlanFragmentToAddDayPlanFragment(
-                        plan = null,
-                        planDate = binding.etDate.text?.toString().orEmpty()
-                    )
+        if (!apiDate.matches(Regex("\\d{4}-\\d{2}-\\d{2}"))) return
 
-            findNavController().navigate(action)
-        }
-    }
+        val newDate = LocalDate.parse(apiDate).plusDays(days)
+        val newApiDate = newDate.toString()
+        val newUiDate = convertDate(newApiDate)
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun showCopyPlanDialog() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Скопировать план?")
-            .setMessage("План будет скопирован на текущую дату.")
-            .setPositiveButton("Да") { dialog, _ ->
-                dialog.dismiss()
-
-                val sourcePlanDate = convertDate(binding.etDate.text?.toString().orEmpty())
-
-                viewLifecycleOwner.lifecycleScope.launch {
-                    val result = viewModel.copyDailyPlan(DailyPlanCopyDto(sourcePlanDate))
-
-                    result.onSuccess {
-                        val todayApiDate = LocalDate.now().toString()
-                        val todayUiDate = convertDate(todayApiDate)
-
-                        binding.etDate.setText(todayUiDate)
-                        recomputeCanEdit(todayApiDate)
-                        viewModel.getDayPlans(todayApiDate)
-                    }.onFailure {
-                        // Ошибка уже попадёт в errorState
-                    }
-                }
-            }
-            .setNegativeButton("Отмена") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
+        binding.etDate.setText(newUiDate)
+        recomputeCanEdit(newApiDate)
+        viewModel.getDayPlans(newApiDate)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun recomputeCanEdit(planDateApi: String? = null) {
+        // TODO: Implement proper user role checking
         val isMaster = currentUserRole == UserRole.MASTER
 
         val effectiveDateApi = planDateApi ?: run {
             val text = binding.etDate.text?.toString().orEmpty()
             val api = convertDate(text)
-            api.takeIf { apiPattern.matches(it) }
+            api.takeIf { it.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) }
         }
 
         val selectedDate = effectiveDateApi?.let { LocalDate.parse(it) }
@@ -348,20 +304,30 @@ class DayPlanFragment : Fragment() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun shiftDate(days: Long) {
-        val currentText = binding.etDate.text?.toString().orEmpty()
-        val apiDate = convertDate(currentText)
+    private fun showLoadingIndicator() {
+        binding.swipeRefresh.isRefreshing = true
+    }
 
-        if (!apiPattern.matches(apiDate)) return
+    private fun hideLoadingIndicator() {
+        binding.swipeRefresh.isRefreshing = false
+    }
 
-        val newDate = LocalDate.parse(apiDate).plusDays(days)
-        val newApiDate = newDate.toString()
-        val newUiDate = convertDate(newApiDate)
+    private fun checkEmpty() {
+        val b = _binding ?: return
+        val isEmpty = adapter.itemCount == 0
+        b.tvEmptyPlans.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        b.rvPlans.visibility = if (isEmpty) View.GONE else View.VISIBLE
+    }
 
-        binding.etDate.setText(newUiDate)
-        recomputeCanEdit(newApiDate)
-        viewModel.getDayPlans(newApiDate)
+    override fun onDestroyView() {
+        super.onDestroyView()
+        if (::emptyObserver.isInitialized) {
+            adapter.unregisterAdapterDataObserver(emptyObserver)
+        }
+        binding.rvPlans.adapter = null
+        datePicker?.dismiss()
+        datePicker = null
+        _binding = null
     }
 
 }

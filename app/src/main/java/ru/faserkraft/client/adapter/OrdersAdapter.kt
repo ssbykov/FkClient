@@ -16,7 +16,7 @@ import com.google.android.material.chip.Chip
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemOrderBinding
 import ru.faserkraft.client.databinding.ItemOrderHeaderBinding
-import ru.faserkraft.client.dto.ModuleTypeDto
+import ru.faserkraft.client.model.ModuleTypeDto
 import ru.faserkraft.client.utils.formatIsoToUi
 
 sealed class OrderListItem {

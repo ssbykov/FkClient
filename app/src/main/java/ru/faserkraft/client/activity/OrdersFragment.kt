@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.OrderActionsListener
@@ -19,21 +20,35 @@ import ru.faserkraft.client.adapter.OrderListItem
 import ru.faserkraft.client.adapter.OrderUiItem
 import ru.faserkraft.client.adapter.OrdersAdapter
 import ru.faserkraft.client.databinding.FragmentOrdersBinding
-import ru.faserkraft.client.dto.ModuleTypeDto
+import ru.faserkraft.client.domain.model.Order
+import ru.faserkraft.client.domain.model.UiState
+import ru.faserkraft.client.model.ModuleTypeDto
+import ru.faserkraft.client.ui.base.BaseFragment
+import ru.faserkraft.client.ui.common.SharedUiViewModel
+import ru.faserkraft.client.ui.order.OrderViewModel
+import ru.faserkraft.client.utils.collectEventsIn
+import ru.faserkraft.client.utils.collectIn
 import ru.faserkraft.client.utils.convertDate
-import ru.faserkraft.client.viewmodel.ScannerViewModel
 
-class OrdersFragment : Fragment() {
+/**
+ * МИГРИРОВАННЫЙ OrdersFragment с новой архитектурой
+ *
+ * НОВОЕ: Использует OrderViewModel вместо ScannerViewModel
+ * НОВОЕ: Использует StateFlow вместо LiveData
+ * НОВОЕ: Работает с Domain Models вместо DTOs
+ * НОВОЕ: Наследуется от BaseFragment для общей логики
+ */
+@AndroidEntryPoint
+class OrdersFragment : BaseFragment<OrderViewModel>() {
 
-    private val viewModel: ScannerViewModel by activityViewModels()
+    override val viewModel: OrderViewModel by activityViewModels()
+    private val sharedUiViewModel: SharedUiViewModel by activityViewModels()
 
     private var _binding: FragmentOrdersBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var adapter: OrdersAdapter
     private lateinit var emptyObserver: RecyclerView.AdapterDataObserver
-
-    private var activeDialog: AlertDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,9 +62,20 @@ class OrdersFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ИСПРАВЛЕНО 1: Инициализируем классовую переменную adapter без private и by lazy
-        adapter = OrdersAdapter(object : OrderActionsListener {
+        setupRecyclerView()
+        observeViewModel()
+        observeSharedViewModel()
+        setupClickListeners()
 
+        // Загружаем заказы при старте
+        viewModel.getOrders()
+    }
+
+    /**
+     * Настраиваем RecyclerView и адаптер
+     */
+    private fun setupRecyclerView() {
+        adapter = OrdersAdapter(object : OrderActionsListener {
             override fun onOrderClick(item: OrderUiItem) {
                 if (_binding == null) return
 
@@ -90,37 +116,25 @@ class OrdersFragment : Fragment() {
             }
 
             override fun onCloseOrderClick(item: OrderUiItem) {
-                if (_binding == null) return
+                showConfirmDialog(
+                    "Закрытие заказа",
+                    "Вы уверены, что хотите закрыть заказ по договору №${item.contractNumber}?",
 
-                // ИСПРАВЛЕНО 2: Сохраняем ссылку на диалог в activeDialog
-                activeDialog = AlertDialog.Builder(requireContext())
-                    .setTitle("Закрытие заказа")
-                    .setMessage("Вы уверены, что хотите закрыть заказ по договору №${item.contractNumber}?")
-                    .setPositiveButton("Закрыть") { dialog, _ ->
-                        dialog.dismiss()
-                        viewModel.closeOrderFromUi(item.orderId)
+                    onConfirm = {
+                        viewModel.closeOrder(item.orderId)
                     }
-                    .setNegativeButton("Отмена") { dialog, _ ->
-                        dialog.dismiss()
-                    }
-                    .show()
+                )
             }
 
             override fun onDeleteOrderClick(item: OrderUiItem) {
-                if (_binding == null) return
-
-                // ИСПРАВЛЕНО 2: Сохраняем ссылку на диалог в activeDialog
-                activeDialog = AlertDialog.Builder(requireContext())
-                    .setTitle("Удаление заказа")
-                    .setMessage("Вы уверены, что хотите удалить заказ по договору №${item.contractNumber}?")
-                    .setPositiveButton("Удалить") { dialog, _ ->
-                        dialog.dismiss()
-                        viewModel.deleteOrderFromUi(item.orderId)
+                showConfirmDialog(
+                    "Удаление заказа",
+                    "Вы уверены, что хотите удалить заказ по договору №${item.contractNumber}?",
+                    onConfirm = {
+                        // TODO: Implement delete order in new architecture
+                        showDialog("Удаление заказа пока не реализовано в новой архитектуре")
                     }
-                    .setNegativeButton("Отмена") { dialog, _ ->
-                        dialog.dismiss()
-                    }
-                    .show()
+                )
             }
         })
 
@@ -134,112 +148,152 @@ class OrdersFragment : Fragment() {
         }
         adapter.registerAdapterDataObserver(emptyObserver)
         emptyObserver.onChanged()
+    }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.getOrders()
+    /**
+     * Наблюдать за состоянием заказов
+     */
+    private fun observeViewModel() {
+        // Состояние списка заказов
+        viewModel.ordersState.collectIn(viewLifecycleOwner) { state ->
+            when (state) {
+                is UiState.Idle -> {
+                    hideLoadingIndicator()
+                }
+                is UiState.Loading -> {
+                    showLoadingIndicator()
+                }
+                is UiState.Success -> {
+                    hideLoadingIndicator()
+                    updateOrdersList(state.data)
+                }
+                is UiState.Error -> {
+                    hideLoadingIndicator()
+                    showErrorDialog(state.exception)
+                }
+            }
         }
 
-        // Обработка данных
-        viewModel.orders.observe(viewLifecycleOwner) { list ->
-            if (list.isNullOrEmpty()) {
-                adapter.submitList(emptyList())
-                checkEmpty()
-                return@observe
-            }
-
-            // Маппим данные с бэкенда в UI модели
-            val allOrders = list.map { order ->
-                val totalRequired = order.items.sumOf { it.quantity }
-                val totalPacked = order.packaging.sumOf { pkg -> pkg.products.size }
-                val isShipped = order.shipmentDate != null
-
-                val packedProductsByType = order.packaging
-                    .flatMap { it.products }
-                    .groupingBy { product -> product.process.name }
-                    .eachCount()
-
-                val moduleTypes = order.items.map { item ->
-                    val typeName = item.workProcess.name
-                    val required = item.quantity
-                    val packed = packedProductsByType[typeName] ?: 0
-
-                    ModuleTypeDto(
-                        type = typeName,
-                        requiredCount = required,
-                        packedCount = packed
-                    )
+        // Состояние действий (создание, закрытие заказа)
+        viewModel.actionState.collectIn(viewLifecycleOwner) { state ->
+            when (state) {
+                is OrderViewModel.ActionState.Idle -> {
+                    // Ничего не делаем
                 }
+                is OrderViewModel.ActionState.InProgress -> {
+                    showLoadingIndicator()
+                }
+                is OrderViewModel.ActionState.Success -> {
+                    hideLoadingIndicator()
+                    showDialog(state.message)
+                    // Обновляем список после успешного действия
+                    viewModel.getOrders()
+                }
+                is OrderViewModel.ActionState.Error -> {
+                    hideLoadingIndicator()
+                    showErrorDialog(state.exception)
+                }
+            }
+        }
+    }
 
-                OrderUiItem(
-                    orderId = order.id,
-                    contractNumber = order.contractNumber,
-                    contractDateStr = convertDate(order.contractDate),
-                    plannedShipmentDateStr = convertDate(order.plannedShipmentDate),
-                    shipmentDateStr = order.shipmentDate?.let { convertDate(it) },
-                    isShipped = isShipped,
-                    requiredModulesCount = totalRequired,
-                    packedModulesCount = totalPacked,
-                    packagingCount = order.packaging.size,
-                    moduleTypes = moduleTypes
+    /**
+     * Наблюдать за общими событиями
+     */
+    private fun observeSharedViewModel() {
+        sharedUiViewModel.errorMessages.collectEventsIn(viewLifecycleOwner) { message: String ->
+            showDialog(message)
+        }
+    }
+
+    /**
+     * Обновить список заказов
+     */
+    private fun updateOrdersList(orders: List<Order>) {
+        if (orders.isEmpty()) {
+            adapter.submitList(emptyList())
+            checkEmpty()
+            return
+        }
+
+        // Маппим данные с бэкенда в UI модели
+        val allOrders = orders.map { order ->
+            val totalRequired = order.items.sumOf { it.quantity }
+            val totalPacked = order.packaging.sumOf { pkg -> pkg.products.size }
+
+            val packedProductsByType = order.packaging
+                .flatMap { it.products }
+                .groupingBy { product -> "Process ${product.processId}" } // TODO: Get actual process name
+                .eachCount()
+
+            val moduleTypes = order.items.map { item ->
+                val typeName = item.workProcess.name
+                val required = item.quantity
+                val packed = packedProductsByType[typeName] ?: 0
+
+                ModuleTypeDto(
+                    type = typeName,
+                    requiredCount = required,
+                    packedCount = packed
                 )
             }
 
-            // Разделяем списки
-            val activeOrders = allOrders.filter { !it.isShipped }.sortedByDescending { it.orderId }
-            val completedOrders =
-                allOrders.filter { it.isShipped }.sortedByDescending { it.orderId }
-
-            // Формируем итоговый список с заголовками
-            val finalList = mutableListOf<OrderListItem>()
-
-            if (activeOrders.isNotEmpty()) {
-                finalList.add(OrderHeader(R.string.order_header_active))
-                finalList.addAll(activeOrders)
-            }
-
-            if (completedOrders.isNotEmpty()) {
-                finalList.add(OrderHeader(R.string.order_header_completed))
-                finalList.addAll(completedOrders)
-            }
-
-            // Передаем callback в submitList для надежного обновления пустого состояния
-            adapter.submitList(finalList) {
-                checkEmpty()
-            }
+            OrderUiItem(
+                orderId = order.id,
+                contractNumber = order.contractNumber,
+                contractDateStr = convertDate(order.contractDate),
+                plannedShipmentDateStr = convertDate(order.plannedShipmentDate),
+                shipmentDateStr = order.shipmentDate?.let { convertDate(it) },
+                isShipped = order.shipmentDate != null,
+                requiredModulesCount = totalRequired,
+                packedModulesCount = totalPacked,
+                packagingCount = order.packaging.size,
+                moduleTypes = moduleTypes
+            )
         }
 
-        // Состояние загрузки
-        viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            val b = _binding ?: return@observe
-            val isLoading = state.isLoading
-            b.swipeRefresh.isRefreshing = isLoading
-            b.swipeRefresh.isEnabled = !isLoading
+        // Разделяем списки
+        val activeOrders = allOrders.filter { !it.isShipped }.sortedByDescending { it.orderId }
+        val completedOrders = allOrders.filter { it.isShipped }.sortedByDescending { it.orderId }
+
+        // Формируем итоговый список с заголовками
+        val finalList = mutableListOf<OrderListItem>()
+
+        if (activeOrders.isNotEmpty()) {
+            finalList.add(OrderHeader(R.string.order_header_active))
+            finalList.addAll(activeOrders)
         }
 
+        if (completedOrders.isNotEmpty()) {
+            finalList.add(OrderHeader(R.string.order_header_completed))
+            finalList.addAll(completedOrders)
+        }
 
+        // Передаем callback в submitList для надежного обновления пустого состояния
+        adapter.submitList(finalList) {
+            checkEmpty()
+        }
+    }
+
+    /**
+     * Настроить обработчики клика
+     */
+    private fun setupClickListeners() {
         binding.fabAddOrder.setOnClickListener {
             findNavController().navigate(R.id.action_storageContainerFragment_to_newOrderFragment)
         }
 
         binding.swipeRefresh.setOnRefreshListener {
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.getOrders()
-            }
+            viewModel.getOrders()
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    private fun showLoadingIndicator() {
+        binding.swipeRefresh.isRefreshing = true
+    }
 
-        activeDialog?.dismiss()
-        activeDialog = null
-
-        if (::emptyObserver.isInitialized) {
-            adapter.unregisterAdapterDataObserver(emptyObserver)
-        }
-
-        binding.rvOrders.adapter = null
-        _binding = null
+    private fun hideLoadingIndicator() {
+        binding.swipeRefresh.isRefreshing = false
     }
 
     private fun checkEmpty() {
@@ -247,5 +301,16 @@ class OrdersFragment : Fragment() {
         val isEmpty = adapter.itemCount == 0
         b.tvEmpty.visibility = if (isEmpty) View.VISIBLE else View.GONE
         b.rvOrders.visibility = if (isEmpty) View.GONE else View.VISIBLE
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        if (::emptyObserver.isInitialized) {
+            adapter.unregisterAdapterDataObserver(emptyObserver)
+        }
+
+        binding.rvOrders.adapter = null
+        _binding = null
     }
 }
