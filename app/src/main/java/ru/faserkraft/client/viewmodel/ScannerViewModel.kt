@@ -28,7 +28,7 @@ import ru.faserkraft.client.dto.PackagingDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
-import ru.faserkraft.client.dto.ProductStatus
+import ru.faserkraft.client.dto.ProductStatusDto
 import ru.faserkraft.client.dto.ProductsInventoryDto
 import ru.faserkraft.client.dto.StepDto
 import ru.faserkraft.client.dto.emptyStep
@@ -513,7 +513,7 @@ class ScannerViewModel @Inject constructor(
             repository.changeProductProcess(productId, newProcessId)?.let { setProduct(it) }
         }
 
-    suspend fun setProductStatus(productId: Long, status: ProductStatus): Result<Unit> =
+    suspend fun setProductStatus(productId: Long, status: ProductStatusDto): Result<Unit> =
         withActionAndResult {
             repository.changeProductStatus(productId, status)?.let { setProduct(it) }
         }

@@ -24,7 +24,7 @@ data class ProductDto(
     val createdAt: String,
     @SerializedName("packaging_id")
     val packagingId: Int?,
-    val status: ProductStatus,
+    val status: ProductStatusDto,
     val steps: List<StepDto>
 ) : ItemDto()
 
@@ -37,7 +37,7 @@ data class FinishedProductDto(
 ) : ItemDto()
 
 
-enum class ProductStatus(
+enum class ProductStatusDto(
     val titleRes: Int,
     val bgColorRes: Int,
     val textColorRes: Int,
@@ -65,17 +65,17 @@ enum class ProductStatus(
 }
 
 
-fun ProductStatus.toUiProductStatus(): ProductStatus = when (name) {
-    "NORMAL" -> ProductStatus.NORMAL
-    "REWORK" -> ProductStatus.REWORK
-    "SCRAP" -> ProductStatus.SCRAP
-    else -> ProductStatus.NORMAL
+fun ProductStatusDto.toUiProductStatus(): ProductStatusDto = when (name) {
+    "NORMAL" -> ProductStatusDto.NORMAL
+    "REWORK" -> ProductStatusDto.REWORK
+    "SCRAP" -> ProductStatusDto.SCRAP
+    else -> ProductStatusDto.NORMAL
 }
 
-fun ProductStatus.toBackendValue(): String = when (this) {
-    ProductStatus.NORMAL -> "normal"
-    ProductStatus.REWORK -> "rework"
-    ProductStatus.SCRAP -> "scrap"
+fun ProductStatusDto.toBackendValue(): String = when (this) {
+    ProductStatusDto.NORMAL -> "normal"
+    ProductStatusDto.REWORK -> "rework"
+    ProductStatusDto.SCRAP -> "scrap"
 }
 
 data class ProductsInventoryDto(

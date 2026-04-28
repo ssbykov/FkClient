@@ -20,7 +20,7 @@ import ru.faserkraft.client.dto.PackagingDto
 import ru.faserkraft.client.dto.ProcessDto
 import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
-import ru.faserkraft.client.dto.ProductStatus
+import ru.faserkraft.client.dto.ProductStatusDto
 import ru.faserkraft.client.dto.ProductsInventoryDto
 import ru.faserkraft.client.dto.QrDataResponseDto
 import ru.faserkraft.client.dto.toBackendValue
@@ -65,7 +65,7 @@ class ApiRepositoryImpl @Inject constructor(
 
     override suspend fun changeProductStatus(
         productId: Long,
-        status: ProductStatus,
+        status: ProductStatusDto,
     ): ProductDto? = callApi { api.changeProductStatus(productId, status.toBackendValue()) }
 
     override suspend fun postStep(stepId: Int): ProductDto? =

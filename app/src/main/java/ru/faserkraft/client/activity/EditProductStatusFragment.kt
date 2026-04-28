@@ -13,7 +13,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.databinding.FragmentEditStatusProductBinding
-import ru.faserkraft.client.dto.ProductStatus
+import ru.faserkraft.client.dto.ProductStatusDto
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
 
@@ -94,13 +94,13 @@ class EditProductStatusFragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 val result = when (checkedId) {
                     binding.rbNormal.id -> viewModel.setProductStatus(
-                        product.id, ProductStatus.NORMAL
+                        product.id, ProductStatusDto.NORMAL
                     )
                     binding.rbRestore.id -> viewModel.setProductStatus(
-                        product.id, ProductStatus.REWORK
+                        product.id, ProductStatusDto.REWORK
                     )
                     binding.rbScrap.id -> viewModel.setProductStatus(
-                        product.id, ProductStatus.SCRAP
+                        product.id, ProductStatusDto.SCRAP
                     )
                     else -> null
                 }

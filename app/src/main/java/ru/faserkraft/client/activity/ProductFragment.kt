@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductBinding
 import ru.faserkraft.client.dto.ProductDto
-import ru.faserkraft.client.dto.ProductStatus
+import ru.faserkraft.client.dto.ProductStatusDto
 import ru.faserkraft.client.dto.StepStatusBackend
 import ru.faserkraft.client.dto.emptyStep
 import ru.faserkraft.client.dto.toUiProductStatus
@@ -141,8 +141,8 @@ class ProductFragment : Fragment() {
 
             if (lastStep.id == 0) return@setOnClickListener
 
-            if (currentProduct.status == ProductStatus.REWORK ||
-                currentProduct.status == ProductStatus.SCRAP
+            if (currentProduct.status == ProductStatusDto.REWORK ||
+                currentProduct.status == ProductStatusDto.SCRAP
             ) {
                 showDialog("Нельзя закрыть этап: продукт в статусе РЕМОНТ или БРАК")
                 return@setOnClickListener
