@@ -1,9 +1,11 @@
 package ru.faserkraft.client.presentation.plan
 
 import ru.faserkraft.client.domain.model.DailyPlan
+import ru.faserkraft.client.domain.model.DailyPlanStep
 import ru.faserkraft.client.domain.model.Employee
 import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.domain.model.Product
+import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.utils.getToday
 
 data class PlanUiState(
@@ -14,4 +16,9 @@ data class PlanUiState(
     val employees: List<Employee> = emptyList(),
     val processes: List<Process> = emptyList(),
     val filteredProducts: List<Product> = emptyList(),
+    val userRole: UserRole? = null,
+    val canEdit: Boolean = false,
+    val isPastDate: Boolean = false,
+    val selectedPlan: DailyPlan? = null,
+    val selectedStep: DailyPlanStep? = null,
 )

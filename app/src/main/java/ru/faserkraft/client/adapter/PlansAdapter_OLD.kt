@@ -13,7 +13,7 @@ import ru.faserkraft.client.databinding.ItemEmployeeHeaderBinding
 import ru.faserkraft.client.databinding.ItemPlanBinding
 import ru.faserkraft.client.dto.EmployeePlanDto
 
-class PlansAdapter(
+class PlansAdapter_OLD(
     private var canEdit: Boolean,
     private val onEditPlanClick: (EmployeePlanDto) -> Unit,
     private val onEmployeeProductsClick: (EmployeePlanDto) -> Unit,
