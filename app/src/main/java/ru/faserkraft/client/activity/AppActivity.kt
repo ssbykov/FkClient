@@ -16,19 +16,30 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.AppActivityBinding
-import ru.faserkraft.client.model.UserData
 import ru.faserkraft.client.model.VersionInfo
+import ru.faserkraft.client.presentation.order.OrderViewModel
+import ru.faserkraft.client.presentation.packaging.PackagingViewModel
+import ru.faserkraft.client.presentation.plan.PlanViewModel
+import ru.faserkraft.client.presentation.product.ProductViewModel
+import ru.faserkraft.client.presentation.scanner.ScannerViewModel
 import ru.faserkraft.client.update.AppUpdateManager
 import ru.faserkraft.client.utils.getToday
-import ru.faserkraft.client.viewmodel.ScannerViewModel
 import ru.faserkraft.client.viewmodel.UpdateViewModel
+import androidx.core.net.toUri
 
 @AndroidEntryPoint
 class AppActivity : AppCompatActivity() {
 
     private lateinit var navController: NavController
 
-    private val viewModel: ScannerViewModel by viewModels()
+    // Новые feature-ViewModels — инстанцируются на уровне Activity,
+    // чтобы фрагменты могли получить их через activityViewModels()
+    val scannerViewModel: ScannerViewModel by viewModels()
+    val productViewModel: ProductViewModel by viewModels()
+    val packagingViewModel: PackagingViewModel by viewModels()
+    val orderViewModel: OrderViewModel by viewModels()
+    val planViewModel: PlanViewModel by viewModels()
+
     private val updateViewModel: UpdateViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,92 +60,35 @@ class AppActivity : AppCompatActivity() {
                 }
                 launchSingleTop = true
             }
-
-            when (item.itemId) {
-                R.id.registrationFragment -> {
-                    navController.navigate(R.id.registrationFragment, null, options)
-                    true
-                }
-
-                R.id.scannerFragment -> {
-                    navController.navigate(R.id.scannerFragment, null, options)
-                    true
-                }
-
-                R.id.dayPlanFragment -> {
-                    viewModel.getDayPlans(getToday())
-                    val currentId = navController.currentDestination?.id
-                    if (currentId != R.id.dayPlanFragment) {
-                        navController.navigate(R.id.dayPlanFragment, null, options)
-                    }
-                    true
-                }
-
-                R.id.inventoryFragment -> {
-                    val currentId = navController.currentDestination?.id
-                    if (currentId != R.id.productsInventoryFragment) {
-                        navController.navigate(R.id.productsInventoryFragment, null, options)
-                    }
-                    true
-                }
-
-                R.id.storageFragment -> {
-                    val currentId = navController.currentDestination?.id
-                    if (currentId != R.id.storageContainerFragment) {
-                        navController.navigate(R.id.storageContainerFragment, null, options)
-                    }
-                    true
-                }
-
-                else -> false
-            }
+            navController.navigate(item.itemId, null, options)
+            true
         }
 
-        viewModel.userData.observe(this) { user ->
-            if (user != null) {
-                checkForUpdates(user)
-            }
-        }
-
+        observeUpdateViewModel()
     }
 
-    private fun checkForUpdates(user: UserData) {
-        updateViewModel.checkForUpdates(user)
-
+    private fun observeUpdateViewModel() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                updateViewModel.updateAvailable.collect { version ->
-                    version ?: return@collect
-                    showUpdateDialog(version)
+                updateViewModel.updateAvailable.collect { versionInfo ->
+                    versionInfo ?: return@collect
+                    showUpdateDialog(versionInfo)
                 }
             }
         }
     }
 
-
-    private fun showUpdateDialog(version: VersionInfo) {
-        val status = updateViewModel.status.value
-        if (status is AppUpdateManager.UpdateStatus.Downloading ||
-            status is AppUpdateManager.UpdateStatus.Installing
-        ) return
-
+    private fun showUpdateDialog(versionInfo: VersionInfo) {
         MaterialAlertDialogBuilder(this)
-            .setTitle("Доступно обновление ${version.versionName}")
-            .setMessage(version.changelog)
-            .setCancelable(!version.forceUpdate)
+            .setTitle("Доступно обновление")
+            .setMessage("Версия ${versionInfo.versionName}")
             .setPositiveButton("Обновить") { _, _ ->
-                updateViewModel.startUpdate(version)
-            }
-            .apply {
-                if (!version.forceUpdate) {
-                    setNegativeButton("Позже") { dialog, _ -> dialog.dismiss() }
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    data = versionInfo.apkFile.toUri()
                 }
+                startActivity(intent)
             }
+            .setNegativeButton("Позже", null)
             .show()
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        navController.navigate(R.id.scannerFragment)
     }
 }
