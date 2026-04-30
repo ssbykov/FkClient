@@ -19,5 +19,6 @@ data class ProductUiState(
     val productsInventory: List<ProductsInventory> = emptyList(),
     val productsInventoryByProcess: List<Product> = emptyList(),
     val availableProductsForPackaging: List<FinishedProduct> = emptyList(),
-    val userRole: UserRole? = null,   // ← добавлено
+    val userRole: UserRole? = null,
+    val selectedInventoryItem: ProductsInventory? = null,
 )

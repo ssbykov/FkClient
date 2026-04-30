@@ -5,6 +5,10 @@
     android:id="@+id/nav_main"
     app:startDestination="@id/scannerFragment">
 
+    <action
+        android:id="@+id/action_global_editOrderFragment"
+        app:destination="@id/editOrderFragment" />
+
     <fragment
         android:id="@+id/scannerFragment"
         android:name="ru.faserkraft.client.presentation.scanner.ScannerFragment"
@@ -20,17 +24,11 @@
             android:id="@+id/action_scannerFragment_to_newProductFragment"
             app:destination="@id/newProductFragment" />
         <action
-            android:id="@+id/action_scannerFragment_to_productsInventoryFragment"
-            app:destination="@id/productsInventoryFragment" />
-        <action
             android:id="@+id/action_scannerFragment_to_newPackagingFragment"
             app:destination="@id/newPackagingFragment" />
         <action
             android:id="@+id/action_scannerFragment_to_packagingFragment"
             app:destination="@id/packagingFragment" />
-        <action
-            android:id="@+id/action_scannerFragment_to_storageContainerFragment"
-            app:destination="@id/storageContainerFragment" />
     </fragment>
 
     <fragment
@@ -38,26 +36,21 @@
         android:name="ru.faserkraft.client.activity.StorageContainerFragment"
         android:label="Склад"
         tools:layout="@layout/fragment_storage_container">
-
         <action
             android:id="@+id/action_storageContainerFragment_to_packagingListFragment"
             app:destination="@id/packagingListFragment" />
         <action
             android:id="@+id/action_storageContainerFragment_to_ordersFragment"
             app:destination="@id/ordersFragment" />
-
         <action
             android:id="@+id/action_storageContainerFragment_to_orderPackagingFragment"
             app:destination="@id/orderPackagingFragment" />
-
         <action
             android:id="@+id/action_storageContainerFragment_to_newOrderFragment"
             app:destination="@id/newOrderFragment" />
-
         <action
             android:id="@+id/action_storageContainerFragment_to_orderAddPackagingFragment"
             app:destination="@id/orderAddPackagingFragment" />
-
     </fragment>
 
     <fragment
@@ -135,8 +128,7 @@
         android:id="@+id/editStepFragment"
         android:name="ru.faserkraft.client.presentation.product.EditStepFragment"
         android:label="EditStepFragment"
-        tools:layout="@layout/fragment_edit_step">
-    </fragment>
+        tools:layout="@layout/fragment_edit_step" />
 
     <fragment
         android:id="@+id/addDayPlanFragment"
@@ -163,12 +155,22 @@
 
     <fragment
         android:id="@+id/productsInventoryFragment"
-        android:name="ru.faserkraft.client.activity.ProductsInventoryFragment"
+        android:name="ru.faserkraft.client.presentation.product.ProductsInventoryFragment"
         android:label="fragment_products_inventory"
         tools:layout="@layout/fragment_products_inventory">
         <action
             android:id="@+id/action_productsInventoryFragment_to_productsInventoryByProcessFragment"
             app:destination="@id/productsInventoryByProcessFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/productsInventoryByProcessFragment"
+        android:name="ru.faserkraft.client.presentation.product.ProductsInventoryByProcessFragment"
+        android:label="fragment_products_inventory_by_process"
+        tools:layout="@layout/fragment_products_inventory_by_process">
+        <action
+            android:id="@+id/action_productsInventoryByProcessFragment_to_productFullFragment"
+            app:destination="@id/productFullFragment" />
     </fragment>
 
     <fragment
@@ -200,24 +202,10 @@
     </fragment>
 
     <fragment
-        android:id="@+id/productsInventoryByProcessFragment"
-        android:name="ru.faserkraft.client.activity.ProductsInventoryByProcessFragment"
-        android:label="fragment_products_inventory_by_process"
-        tools:layout="@layout/fragment_products_inventory_by_process">
-        <argument
-            android:name="productsInventoryDto"
-            app:argType="ru.faserkraft.client.dto.ProductsInventoryDto" />
-        <action
-            android:id="@+id/action_productsInventoryByProcessFragment_to_productFullFragment"
-            app:destination="@id/productFullFragment" />
-    </fragment>
-
-    <fragment
         android:id="@+id/productsStorageFragment"
         android:name="ru.faserkraft.client.activity.StorageFragment"
         android:label="fragment_products_storage"
         tools:layout="@layout/fragment_products_storage">
-
         <action
             android:id="@+id/action_productsStorageFragment_to_packagingListFragment"
             app:destination="@id/packagingListFragment" />
@@ -241,7 +229,6 @@
         <argument
             android:name="process"
             app:argType="string" />
-
         <action
             android:id="@+id/action_packagingListFragment_to_packagingFragment"
             app:destination="@id/packagingFragment" />
@@ -260,10 +247,6 @@
             app:destination="@id/productFullFragment" />
     </fragment>
 
-    <action
-        android:id="@+id/action_global_productFullFragment"
-        app:destination="@id/productFullFragment" />
-
     <fragment
         android:id="@+id/orderPackagingFragment"
         android:name="ru.faserkraft.client.activity.OrderPackagingFragment"
@@ -277,12 +260,12 @@
             app:destination="@id/packagingFragment" />
     </fragment>
 
-
     <fragment
         android:id="@+id/newOrderFragment"
         android:name="ru.faserkraft.client.activity.NewOrderFragment"
         android:label="fragment_new_order"
         tools:layout="@layout/fragment_new_order" />
+
     <fragment
         android:id="@+id/ordersFragment"
         android:name="ru.faserkraft.client.activity.OrdersFragment"
@@ -298,10 +281,5 @@
             android:name="orderId"
             app:argType="integer" />
     </fragment>
-
-    <!-- Глобальный экшен для перехода к редактированию -->
-    <action
-        android:id="@+id/action_global_editOrderFragment"
-        app:destination="@id/editOrderFragment" />
 
 </navigation>

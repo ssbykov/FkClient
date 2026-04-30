@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductStatus
+import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.domain.model.Step
 import ru.faserkraft.client.domain.model.StepStatus
 import ru.faserkraft.client.domain.usecase.employee.GetEmployeesUseCase
@@ -89,6 +90,10 @@ class ProductViewModel @Inject constructor(
 
     fun selectStep(step: Step) {
         _uiState.update { it.copy(selectedStep = step) }
+    }
+
+    fun selectInventoryItem(item: ProductsInventory) {               // ← добавить
+        _uiState.update { it.copy(selectedInventoryItem = item) }
     }
 
     // ---------- Создание нового продукта ----------

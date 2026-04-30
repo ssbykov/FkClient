@@ -4,12 +4,12 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.navOptions
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -22,10 +22,7 @@ import ru.faserkraft.client.presentation.packaging.PackagingViewModel
 import ru.faserkraft.client.presentation.plan.PlanViewModel
 import ru.faserkraft.client.presentation.product.ProductViewModel
 import ru.faserkraft.client.presentation.scanner.ScannerViewModel
-import ru.faserkraft.client.update.AppUpdateManager
-import ru.faserkraft.client.utils.getToday
 import ru.faserkraft.client.viewmodel.UpdateViewModel
-import androidx.core.net.toUri
 
 @AndroidEntryPoint
 class AppActivity : AppCompatActivity() {
@@ -52,17 +49,6 @@ class AppActivity : AppCompatActivity() {
         navController = navHostFragment.navController
 
         binding.bottomNav.setupWithNavController(navController)
-
-        binding.bottomNav.setOnItemSelectedListener { item ->
-            val options = navOptions {
-                popUpTo(navController.graph.startDestinationId) {
-                    inclusive = true
-                }
-                launchSingleTop = true
-            }
-            navController.navigate(item.itemId, null, options)
-            true
-        }
 
         observeUpdateViewModel()
     }
