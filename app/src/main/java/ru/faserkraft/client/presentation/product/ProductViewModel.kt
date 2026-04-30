@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.model.Step
@@ -41,6 +42,7 @@ class ProductViewModel @Inject constructor(
     private val getFinishedProductsUseCase: GetFinishedProductsUseCase,
     private val getProductsByLastStepUseCase: GetProductsByLastStepUseCase,
     private val getProductsByStepEmployeeDayUseCase: GetProductsByStepEmployeeDayUseCase,
+    private val appAuth: AppAuth,                                          // ← добавлено
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProductUiState())
@@ -48,6 +50,10 @@ class ProductViewModel @Inject constructor(
 
     private val _events = MutableSharedFlow<ProductEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<ProductEvent> = _events
+
+    init {
+        _uiState.update { it.copy(userRole = appAuth.getRegistrationData()?.role) }  // ← добавлено
+    }
 
     // ---------- Загрузка продукта по серийному номеру (вход из QR) ----------
 
@@ -58,6 +64,7 @@ class ProductViewModel @Inject constructor(
                 .onSuccess { product ->
                     if (product == null) {
                         loadProcesses()
+                        _uiState.update { it.copy(pendingSerialNumber = serialNumber) }
                         _events.emit(ProductEvent.NavigateToNewProduct)
                     } else {
                         setProduct(product)
@@ -71,7 +78,6 @@ class ProductViewModel @Inject constructor(
     fun setProduct(product: Product) {
         val selected = product.steps.firstOrNull { it.status != StepStatus.DONE }
             ?: product.steps.lastOrNull()
-
         _uiState.update {
             it.copy(
                 product = product,
@@ -147,7 +153,7 @@ class ProductViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isActionInProgress = true) }
             runCatching { changeStepPerformerUseCase(stepId, newEmployeeId) }
-                .onSuccess { _uiState.update { state -> state.copy(product = it) } }
+                .onSuccess { product -> _uiState.update { it.copy(product = product) } }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }
         }
@@ -158,7 +164,7 @@ class ProductViewModel @Inject constructor(
     fun loadProcesses() {
         viewModelScope.launch {
             runCatching { getProcessesUseCase() }
-                .onSuccess { _uiState.update { state -> state.copy(processes = it) } }
+                .onSuccess { processes -> _uiState.update { it.copy(processes = processes) } }
                 .onFailure { emitError(it) }
         }
     }
@@ -166,7 +172,7 @@ class ProductViewModel @Inject constructor(
     fun loadEmployees() {
         viewModelScope.launch {
             runCatching { getEmployeesUseCase() }
-                .onSuccess { _uiState.update { state -> state.copy(employees = it) } }
+                .onSuccess { employees -> _uiState.update { it.copy(employees = employees) } }
                 .onFailure { emitError(it) }
         }
     }
@@ -175,7 +181,7 @@ class ProductViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             runCatching { getProductsInventoryUseCase() }
-                .onSuccess { _uiState.update { state -> state.copy(productsInventory = it) } }
+                .onSuccess { list -> _uiState.update { it.copy(productsInventory = list) } }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isLoading = false) }
         }
@@ -185,10 +191,8 @@ class ProductViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             runCatching { getFinishedProductsUseCase() }
-                .onSuccess {
-                    _uiState.update { state ->
-                        state.copy(availableProductsForPackaging = it)
-                    }
+                .onSuccess { list ->
+                    _uiState.update { it.copy(availableProductsForPackaging = list) }
                 }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isLoading = false) }
@@ -199,8 +203,8 @@ class ProductViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, productsInventoryByProcess = emptyList()) }
             runCatching { getProductsByLastStepUseCase(processId, stepDefinitionId) }
-                .onSuccess {
-                    _uiState.update { state -> state.copy(productsInventoryByProcess = it) }
+                .onSuccess { list ->
+                    _uiState.update { it.copy(productsInventoryByProcess = list) }
                 }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isLoading = false) }
@@ -217,8 +221,8 @@ class ProductViewModel @Inject constructor(
             runCatching {
                 getProductsByStepEmployeeDayUseCase(stepDefinitionId, day, employeeId)
             }
-                .onSuccess {
-                    _uiState.update { state -> state.copy(productsInventoryByProcess = it) }
+                .onSuccess { list ->
+                    _uiState.update { it.copy(productsInventoryByProcess = list) }
                 }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isLoading = false) }

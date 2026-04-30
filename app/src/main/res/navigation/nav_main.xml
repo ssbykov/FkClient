@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/scannerFragment"
-        android:name="ru.faserkraft.client.activity.ScannerFragment"
+        android:name="ru.faserkraft.client.presentation.scanner.ScannerFragment"
         android:label="fragment_scanner"
         tools:layout="@layout/fragment_scanner">
         <action
@@ -72,7 +72,7 @@
 
     <fragment
         android:id="@+id/productFragment"
-        android:name="ru.faserkraft.client.activity.ProductFragment"
+        android:name="ru.faserkraft.client.presentation.product.ProductFragment"
         android:label="fragment_product"
         tools:layout="@layout/fragment_product">
         <action
@@ -88,7 +88,7 @@
 
     <fragment
         android:id="@+id/productFullFragment"
-        android:name="ru.faserkraft.client.activity.ProductFullFragment"
+        android:name="ru.faserkraft.client.presentation.product.ProductFullFragment"
         android:label="ProductFullFragment"
         tools:layout="@layout/fragment_product_full">
         <action
@@ -98,7 +98,7 @@
 
     <fragment
         android:id="@+id/newProductFragment"
-        android:name="ru.faserkraft.client.activity.NewProductFragment"
+        android:name="ru.faserkraft.client.presentation.product.NewProductFragment"
         android:label="fragment_new_product"
         tools:layout="@layout/fragment_new_product">
         <action
@@ -108,7 +108,7 @@
 
     <fragment
         android:id="@+id/dayPlanFragment"
-        android:name="ru.faserkraft.client.activity.DayPlanFragment"
+        android:name="ru.faserkraft.client.presentation.plan.DayPlanFragment"
         android:label="fragment_day_plan"
         tools:layout="@layout/fragment_day_plan">
         <action
@@ -121,29 +121,26 @@
 
     <fragment
         android:id="@+id/editProductFragment"
-        android:name="ru.faserkraft.client.activity.EditProductFragment"
+        android:name="ru.faserkraft.client.presentation.product.EditProductFragment"
         android:label="fragment_edit_product"
         tools:layout="@layout/fragment_edit_product" />
 
     <fragment
         android:id="@+id/editProductStatusFragment"
-        android:name="ru.faserkraft.client.activity.EditProductStatusFragment"
+        android:name="ru.faserkraft.client.presentation.product.EditProductStatusFragment"
         android:label="fragment_edit_status_product"
         tools:layout="@layout/fragment_edit_status_product" />
 
     <fragment
         android:id="@+id/editStepFragment"
-        android:name="ru.faserkraft.client.activity.EditStepFragment"
+        android:name="ru.faserkraft.client.presentation.product.EditStepFragment"
         android:label="EditStepFragment"
         tools:layout="@layout/fragment_edit_step">
-        <argument
-            android:name="step"
-            app:argType="ru.faserkraft.client.dto.StepDto" />
     </fragment>
 
     <fragment
         android:id="@+id/addDayPlanFragment"
-        android:name="ru.faserkraft.client.activity.AddDayPlanFragment"
+        android:name="ru.faserkraft.client.presentation.plan.AddDayPlanFragment"
         android:label="fragment_add_day_plan"
         tools:layout="@layout/fragment_add_day_plan">
         <argument
@@ -252,7 +249,7 @@
 
     <fragment
         android:id="@+id/employeePlanProductsFragment"
-        android:name="ru.faserkraft.client.activity.EmployeePlanProductsFragment"
+        android:name="ru.faserkraft.client.presentation.plan.EmployeePlanProductsFragment"
         android:label="fragment_employee_plan_products"
         tools:layout="@layout/fragment_employee_plan_products">
         <argument

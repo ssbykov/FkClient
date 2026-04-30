@@ -121,4 +121,7 @@
     <string name="uf_0000000">uf-0000000</string>
     <string name="delete">Удалить</string>
     <string name="copy_plan">копирование плана</string>
+    <string name="product_serial_number">Модуль: %s</string>
+    <string name="product_tech_process">Техпроцесс: %s</string>
+    <string name="product_start_at">Запуск: %s</string>
 </resources>

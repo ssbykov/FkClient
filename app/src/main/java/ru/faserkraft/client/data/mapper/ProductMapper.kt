@@ -66,3 +66,14 @@ fun Product.toCreateDto(processId: Int): ProductCreateDto = ProductCreateDto(
     processId = processId,
     serialNumber = serialNumber,
 )
+
+fun String.toStepStatus(): StepStatus = when (lowercase()) {
+    "done" -> StepStatus.DONE
+    else -> StepStatus.PENDING
+}
+
+fun ProductStatus.toDisplayString(): String = when (this) {
+    ProductStatus.NORMAL -> "Норма"
+    ProductStatus.REWORK -> "Ремонт"
+    ProductStatus.SCRAP -> "Брак"
+}

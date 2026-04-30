@@ -113,6 +113,7 @@ class ScannerFragment : Fragment() {
         collectFlow(productViewModel.events) { event ->
             if (_binding == null || !isAdded) return@collectFlow
             when (event) {
+
                 is ProductEvent.NavigateToProduct ->
                     findNavController().navigate(
                         R.id.action_scannerFragment_to_productFragment

@@ -7,7 +7,10 @@ import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.domain.repository.ProductRepository
+import ru.faserkraft.client.dto.ProductCreateDto
+import ru.faserkraft.client.error.AppError
 import ru.faserkraft.client.repository.ApiRepository
+import ru.faserkraft.client.utils.nowIsoUtc
 import javax.inject.Inject
 
 class ProductRepositoryImpl @Inject constructor(
@@ -15,14 +18,19 @@ class ProductRepositoryImpl @Inject constructor(
 ) : ProductRepository {
 
     override suspend fun getProduct(serialNumber: String): Product? =
-        apiRepository.getProduct(serialNumber)?.toDomain()
+        try {
+            apiRepository.getProduct(serialNumber)?.toDomain()
+        } catch (e: AppError.ApiError) {
+            if (e.status == 404) null else throw e
+        }
 
     override suspend fun createProduct(serialNumber: String, processId: Int): Product =
         requireNotNull(
             apiRepository.postProduct(
-                ru.faserkraft.client.dto.ProductCreateDto(
+                ProductCreateDto(
                     processId = processId,
                     serialNumber = serialNumber,
+                    createdAt = nowIsoUtc()
                 )
             )
         ).toDomain()
