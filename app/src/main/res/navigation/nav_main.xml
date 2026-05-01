@@ -203,7 +203,7 @@
 
     <fragment
         android:id="@+id/productsStorageFragment"
-        android:name="ru.faserkraft.client.activity.StorageFragment"
+        android:name="ru.faserkraft.client.presentation.packaging.StorageFragment"
         android:label="fragment_products_storage"
         tools:layout="@layout/fragment_products_storage">
         <action
@@ -213,7 +213,7 @@
 
     <fragment
         android:id="@+id/orderAddPackagingFragment"
-        android:name="ru.faserkraft.client.activity.OrderAddPackagingFragment"
+        android:name="ru.faserkraft.client.presentation.order.OrderAddPackagingFragment"
         android:label="Добавление в заказ"
         tools:layout="@layout/fragment_order_add_packaging">
         <argument
@@ -249,7 +249,7 @@
 
     <fragment
         android:id="@+id/orderPackagingFragment"
-        android:name="ru.faserkraft.client.activity.OrderPackagingFragment"
+        android:name="ru.faserkraft.client.presentation.order.OrderPackagingFragment"
         android:label="Упаковки заказа"
         tools:layout="@layout/fragment_order_packaging">
         <argument
@@ -262,24 +262,21 @@
 
     <fragment
         android:id="@+id/newOrderFragment"
-        android:name="ru.faserkraft.client.activity.NewOrderFragment"
+        android:name="ru.faserkraft.client.presentation.order.NewOrderFragment"
         android:label="fragment_new_order"
         tools:layout="@layout/fragment_new_order" />
 
     <fragment
         android:id="@+id/ordersFragment"
-        android:name="ru.faserkraft.client.activity.OrdersFragment"
+        android:name="ru.faserkraft.client.presentation.order.OrdersFragment"
         android:label="OrdersFragment"
         tools:layout="@layout/fragment_orders" />
 
     <fragment
         android:id="@+id/editOrderFragment"
-        android:name="ru.faserkraft.client.activity.EditOrderFragment"
+        android:name="ru.faserkraft.client.presentation.order.EditOrderFragment"
         android:label="Редактирование заказа"
         tools:layout="@layout/fragment_new_order">
-        <argument
-            android:name="orderId"
-            app:argType="integer" />
-    </fragment>
+        </fragment>
 
 </navigation>

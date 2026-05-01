@@ -1,4 +1,4 @@
-package ru.faserkraft.client.adapter
+package ru.faserkraft.client.presentation.order
 
 import android.content.res.ColorStateList
 import android.os.Build

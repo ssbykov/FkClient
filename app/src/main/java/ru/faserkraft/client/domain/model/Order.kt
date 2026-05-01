@@ -7,8 +7,8 @@ data class Order(
     val plannedShipmentDate: String,
     val shipmentDate: String?,
     val shipmentBy: Employee?,
-    val items: List<OrderItem>,
-    val packaging: List<Packaging>,
+    val items: List<OrderItem> = emptyList(),
+    val packaging: List<Packaging> = emptyList(),
 )
 
 data class OrderItem(

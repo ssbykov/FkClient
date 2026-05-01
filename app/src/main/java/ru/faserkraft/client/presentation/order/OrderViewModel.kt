@@ -1,5 +1,6 @@
 package ru.faserkraft.client.presentation.order
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +20,7 @@ import ru.faserkraft.client.domain.usecase.order.GetOrderUseCase
 import ru.faserkraft.client.domain.usecase.order.GetOrdersUseCase
 import ru.faserkraft.client.domain.usecase.order.UpdateOrderItemsUseCase
 import ru.faserkraft.client.domain.usecase.order.UpdateOrderUseCase
+import ru.faserkraft.client.domain.usecase.process.GetProcessesUseCase
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,6 +34,7 @@ class OrderViewModel @Inject constructor(
     private val deleteOrderUseCase: DeleteOrderUseCase,
     private val addPackagingToOrderUseCase: AddPackagingToOrderUseCase,
     private val detachPackagingFromOrderUseCase: DetachPackagingFromOrderUseCase,
+    private val getProcessesUseCase: GetProcessesUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OrderUiState())
@@ -70,17 +73,29 @@ class OrderViewModel @Inject constructor(
 
     // ---------- Создание ----------
 
-    fun createOrder(
+    fun loadProcesses() {
+        viewModelScope.launch {
+            runCatching { getProcessesUseCase() }
+                .onSuccess { _uiState.update { state -> state.copy(processes = it) } }
+                .onFailure { emitError(it) }
+        }
+    }
+
+    fun createOrderFull(
         contractNumber: String,
         contractDate: String,
         plannedShipmentDate: String,
+        items: List<OrderItem>
     ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isActionInProgress = true) }
-            runCatching { createOrderUseCase(contractNumber, contractDate, plannedShipmentDate) }
-                .onSuccess { order ->
-                    _uiState.update { it.copy(currentOrder = order) }
+            runCatching {
+                val order = createOrderUseCase(contractNumber, contractDate, plannedShipmentDate)
+                updateOrderItemsUseCase(order.id, items)
+            }
+                .onSuccess {
                     loadOrders()
+                    _events.emit(OrderEvent.OrderCreated)
                 }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }
@@ -89,18 +104,24 @@ class OrderViewModel @Inject constructor(
 
     // ---------- Обновление ----------
 
-    fun updateOrder(
+    fun updateOrderFull(
         orderId: Int,
         contractNumber: String,
         contractDate: String,
         plannedShipmentDate: String,
+        items: List<OrderItem>
     ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isActionInProgress = true) }
             runCatching {
                 updateOrderUseCase(orderId, contractNumber, contractDate, plannedShipmentDate)
+                updateOrderItemsUseCase(orderId, items)
             }
-                .onSuccess { _uiState.update { state -> state.copy(currentOrder = it) } }
+                .onSuccess { updatedOrder ->
+                    _uiState.update { state -> state.copy(currentOrder = updatedOrder) }
+                    loadOrders()
+                    _events.emit(OrderEvent.OrderUpdated)
+                }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }
         }
@@ -110,7 +131,11 @@ class OrderViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isActionInProgress = true) }
             runCatching { updateOrderItemsUseCase(orderId, items) }
-                .onSuccess { _uiState.update { state -> state.copy(currentOrder = it) } }
+                .onSuccess {
+                    _uiState.update { state -> state.copy(currentOrder = it) }
+                    loadOrders()
+                    _events.emit(OrderEvent.OrderUpdated)
+                }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }
         }
@@ -162,6 +187,7 @@ class OrderViewModel @Inject constructor(
                 .onSuccess {
                     loadOrders()
                     loadOrder(orderId)
+                    _events.emit(OrderEvent.PackagingAdded)
                 }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }
@@ -184,6 +210,8 @@ class OrderViewModel @Inject constructor(
     // ---------- Вспомогательное ----------
 
     private suspend fun emitError(e: Throwable) {
+        // временно для диагностики
+        Log.e("OrderViewModel", "Full error", e)
         _events.emit(OrderEvent.ShowError(e.message ?: UNKNOWN_ERROR))
     }
 

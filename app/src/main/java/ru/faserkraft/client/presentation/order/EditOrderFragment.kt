@@ -1,4 +1,4 @@
-package ru.faserkraft.client.activity
+package ru.faserkraft.client.presentation.order
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
@@ -6,42 +6,39 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.adapter.LocalOrderItem
 import ru.faserkraft.client.adapter.OrderItemsAdapter
 import ru.faserkraft.client.databinding.FragmentNewOrderBinding
-import ru.faserkraft.client.dto.OrderItemCreateDto
-import ru.faserkraft.client.dto.OrderUpdateDto
+import ru.faserkraft.client.domain.model.OrderItem
+import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.utils.apiFormat
 import ru.faserkraft.client.utils.convertDate
 import ru.faserkraft.client.utils.formatPlanDate
-import ru.faserkraft.client.viewmodel.ScannerViewModel
+import ru.faserkraft.client.utils.showErrorSnackbar
 import java.util.Calendar
 
 class EditOrderFragment : Fragment() {
 
-    private val viewModel: ScannerViewModel by activityViewModels()
-    private val args: EditOrderFragmentArgs by navArgs()
+    private val viewModel: OrderViewModel by activityViewModels()
 
     private var _binding: FragmentNewOrderBinding? = null
     private val binding get() = _binding!!
 
-    // Сохраняем даты в формате yyyy-MM-dd
     private var selectedContractDate: String? = null
     private var selectedPlannedDate: String? = null
 
     private val orderItemsList = mutableListOf<LocalOrderItem>()
     private lateinit var itemsAdapter: OrderItemsAdapter
 
-    // Флаг, чтобы заполнять данные заказа с сервера только один раз
     private var isDataLoaded = false
 
     override fun onCreateView(
@@ -52,7 +49,6 @@ class EditOrderFragment : Fragment() {
         return binding.root
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -60,58 +56,17 @@ class EditOrderFragment : Fragment() {
         setupRecyclerView()
         setupDatePickers()
         setupBottomSheetListener()
+        observeState()
+        observeEvents()
 
-        if (viewModel.processes.value.isNullOrEmpty()) {
-            viewLifecycleOwner.lifecycleScope.launch { viewModel.setProcesses() }
-        }
-
-        // Если данные еще не загружались, запрашиваем их у бэкенда
-        if (!isDataLoaded) {
-            viewModel.getOrder(args.orderId)
-        }
-
-        // Подписка на данные
-        viewModel.currentOrder.observe(viewLifecycleOwner) { order ->
-            if (order != null && order.id == args.orderId && !isDataLoaded) {
-
-                binding.etContractNumber.setText(order.contractNumber)
-
-                selectedContractDate = order.contractDate.take(10)
-                selectedPlannedDate = order.plannedShipmentDate.take(10)
-
-                // Используем утилиту convertDate!
-                binding.etContractDate.setText(convertDate(selectedContractDate!!))
-                binding.etPlannedDate.setText(convertDate(selectedPlannedDate!!))
-
-                // Заполняем позиции только при первой загрузке
-                orderItemsList.clear()
-                val mappedLocalItems = order.items.map { item ->
-                    LocalOrderItem(
-                        processId = item.workProcess.id,
-                        type = item.workProcess.name,
-                        quantity = item.quantity
-                    )
-                }
-                orderItemsList.addAll(mappedLocalItems)
-                itemsAdapter.notifyDataSetChanged()
-
-                isDataLoaded = true // Защита от повторного перезаписывания при повороте экрана
-            }
+        if (viewModel.uiState.value.processes.isEmpty()) {
+            viewModel.loadProcesses()
         }
 
         binding.btnAddItem.setOnClickListener {
-            val bottomSheet = AddOrderItemBottomSheet()
-            bottomSheet.show(parentFragmentManager, "AddOrderItemBottomSheet")
+            AddOrderItemBottomSheet().show(parentFragmentManager, "AddOrderItemBottomSheet")
         }
-
         binding.btnSave.setOnClickListener { saveChanges() }
-
-        viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            val isLoading = state.isLoading || state.isActionInProgress
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-            binding.btnSave.isEnabled = !isLoading
-            binding.btnAddItem.isEnabled = !isLoading
-        }
     }
 
     private fun setupUI() {
@@ -119,47 +74,98 @@ class EditOrderFragment : Fragment() {
         binding.btnSave.text = "Сохранить изменения"
     }
 
-    private fun saveChanges() {
-        val contractNumber = binding.etContractNumber.text?.toString()?.trim()
-
-        if (contractNumber.isNullOrEmpty() || selectedContractDate == null || selectedPlannedDate == null) {
-            Toast.makeText(requireContext(), "Заполните основные параметры", Toast.LENGTH_SHORT)
-                .show()
-            return
-        }
-        if (orderItemsList.isEmpty()) {
-            Toast.makeText(requireContext(), "Добавьте хотя бы одну позицию", Toast.LENGTH_SHORT)
-                .show()
-            return
-        }
-
-        val orderUpdate = OrderUpdateDto(
-            id = args.orderId,
-            contractNumber = contractNumber,
-            contractDate = selectedContractDate!!,
-            plannedShipmentDate = selectedPlannedDate!!
-        )
-
-        val mappedItems = orderItemsList.map { item ->
-            OrderItemCreateDto(processId = item.processId, quantity = item.quantity)
-        }
-
+    @SuppressLint("NotifyDataSetChanged")
+    private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
-            val updateHeaderResult = viewModel.updateOrder(orderUpdate)
-            if (updateHeaderResult.isSuccess) {
-                val updateItemsResult = viewModel.updateOrderItems(args.orderId, mappedItems)
-                if (updateItemsResult.isSuccess) {
-                    Toast.makeText(requireContext(), "Заказ обновлен", Toast.LENGTH_SHORT).show()
-                    findNavController().popBackStack()
-                } else {
-                    Toast.makeText(
-                        requireContext(),
-                        "Ошибка при обновлении позиций",
-                        Toast.LENGTH_LONG
-                    ).show()
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    val b = _binding ?: return@collect
+
+                    val isLoading = state.isLoading || state.isActionInProgress
+                    b.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+                    b.btnSave.isEnabled = !isLoading
+                    b.btnAddItem.isEnabled = !isLoading
+
+                    val order = state.currentOrder ?: return@collect
+                    if (!isDataLoaded) {
+                        b.etContractNumber.setText(order.contractNumber)
+
+                        selectedContractDate = order.contractDate.take(10)
+                        selectedPlannedDate = order.plannedShipmentDate.take(10)
+
+                        b.etContractDate.setText(convertDate(selectedContractDate!!))
+                        b.etPlannedDate.setText(convertDate(selectedPlannedDate!!))
+
+                        orderItemsList.clear()
+                        orderItemsList.addAll(order.items.map { item ->
+                            LocalOrderItem(
+                                processId = item.workProcess.id,
+                                type = item.workProcess.name,
+                                quantity = item.quantity
+                            )
+                        })
+                        itemsAdapter.notifyDataSetChanged()
+                        isDataLoaded = true
+                    }
                 }
             }
         }
+    }
+
+    private fun observeEvents() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is OrderEvent.ShowError -> showErrorSnackbar(event.message)
+                        OrderEvent.OrderUpdated -> findNavController().popBackStack()
+                        OrderEvent.OrderClosed,
+                        OrderEvent.OrderDeleted,
+                        OrderEvent.OrderCreated,
+                        OrderEvent.PackagingAdded -> Unit
+                    }
+                }
+            }
+        }
+    }
+
+    private fun saveChanges() {
+        val contractNumber = binding.etContractNumber.text?.toString()?.trim()
+        val orderId = viewModel.uiState.value.currentOrder?.id
+
+        if (orderId == null) {
+            showErrorSnackbar("Заказ не загружен")
+            return
+        }
+        if (contractNumber.isNullOrEmpty() || selectedContractDate == null || selectedPlannedDate == null) {
+            showErrorSnackbar("Заполните основные параметры")
+            return
+        }
+        if (orderItemsList.isEmpty()) {
+            showErrorSnackbar("Добавьте хотя бы одну позицию")
+            return
+        }
+
+        val domainItems = orderItemsList.map { item ->
+            OrderItem(
+                id = 0,
+                quantity = item.quantity,
+                workProcess = Process(
+                    id = item.processId,
+                    name = item.type,
+                    description = "",
+                    steps = emptyList()
+                )
+            )
+        }
+
+        viewModel.updateOrderFull(
+            orderId = orderId,
+            contractNumber = contractNumber,
+            contractDate = selectedContractDate!!,
+            plannedShipmentDate = selectedPlannedDate!!,
+            items = domainItems
+        )
     }
 
     private fun setupRecyclerView() {
@@ -190,8 +196,6 @@ class EditOrderFragment : Fragment() {
         }
     }
 
-    // --- ОБНОВЛЕННАЯ РАБОТА С ДАТАМИ ЧЕРЕЗ УТИЛИТЫ ---
-
     private fun setupDatePickers() {
         binding.etContractDate.setOnClickListener {
             showDatePicker(selectedContractDate) { display, server ->
@@ -209,14 +213,12 @@ class EditOrderFragment : Fragment() {
 
     private fun showDatePicker(currentApiDate: String?, onDateSelected: (String, String) -> Unit) {
         val calendar = Calendar.getInstance()
-
         if (!currentApiDate.isNullOrEmpty()) {
             try {
                 calendar.time = apiFormat.parse(currentApiDate)!!
             } catch (e: Exception) {
             }
         }
-
         DatePickerDialog(
             requireContext(),
             { _, year, month, day ->
@@ -232,7 +234,7 @@ class EditOrderFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        viewModel.clearCurrentOrder()
+        isDataLoaded = false
         binding.rvOrderItems.adapter = null
         _binding = null
     }

@@ -17,8 +17,8 @@ data class OrderDto(
     val shipmentDate: String?,
     @SerializedName("shipment_by")
     val shipmentBy: EmployeeDto?,
-    val items: List<OrderItemDto>,
-    val packaging: List<PackagingDto>
+    val items: List<OrderItemDto>? = null,
+    val packaging: List<PackagingDto>? = null,
 ) : ItemDto()
 
 data class OrderItemDto(

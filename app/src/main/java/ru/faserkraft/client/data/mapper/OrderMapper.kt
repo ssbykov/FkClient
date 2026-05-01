@@ -21,8 +21,8 @@ fun OrderDto.toDomain(): Order = Order(
     plannedShipmentDate = plannedShipmentDate,
     shipmentDate = shipmentDate,
     shipmentBy = shipmentBy?.toDomain(),
-    items = items.map { it.toDomain() },
-    packaging = packaging.map { it.toDomain() },
+    items = items?.map { it.toDomain() } ?: emptyList(),
+    packaging = packaging?.map { it.toDomain() } ?: emptyList(),
 )
 
 fun Order.toCreateDto(): OrderCreateDto = OrderCreateDto(
