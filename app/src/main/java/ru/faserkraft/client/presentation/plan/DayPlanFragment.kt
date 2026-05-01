@@ -22,6 +22,7 @@ import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.convertDate
 import ru.faserkraft.client.utils.formatPlanDate
 import ru.faserkraft.client.utils.getToday
+import ru.faserkraft.client.utils.showErrorSnackbar
 
 class DayPlanFragment : Fragment() {
 
@@ -183,7 +184,7 @@ class DayPlanFragment : Fragment() {
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
             when (event) {
-                is PlanEvent.ShowError -> showDialog(event.message)
+                is PlanEvent.ShowError -> showErrorSnackbar(event.message)
             }
         }
     }
@@ -256,16 +257,7 @@ class DayPlanFragment : Fragment() {
         }
     }
 
-    // ---------- Dialogs ----------
-
-    private fun showDialog(message: String) {
-        activeDialog?.dismiss()
-        activeDialog = AlertDialog.Builder(requireContext())
-            .setMessage(message)
-            .setPositiveButton("ОК") { d, _ -> d.dismiss(); activeDialog = null }
-            .also { it.setOnDismissListener { activeDialog = null } }
-            .show()
-    }
+    // ---------- Dialog ----------
 
     private fun showConfirmDialog(title: String, message: String, onConfirm: () -> Unit) {
         activeDialog?.dismiss()

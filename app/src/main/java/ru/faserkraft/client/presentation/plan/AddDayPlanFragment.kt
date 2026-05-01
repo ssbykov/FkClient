@@ -21,6 +21,7 @@ import ru.faserkraft.client.domain.model.Employee
 import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.convertDate
+import ru.faserkraft.client.utils.showErrorSnackbar
 
 class AddDayPlanFragment : Fragment() {
 
@@ -137,7 +138,7 @@ class AddDayPlanFragment : Fragment() {
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
             when (event) {
-                is PlanEvent.ShowError -> showDialog(event.message)
+                is PlanEvent.ShowError -> showErrorSnackbar(event.message)
             }
         }
     }
@@ -246,17 +247,17 @@ class AddDayPlanFragment : Fragment() {
         val qtyText = binding.etQty.text?.toString()?.trim()
 
         if (empIndex == null || empIndex !in employees.indices) {
-            showDialog("Сотрудник не выбран"); return null
+            showErrorSnackbar("Сотрудник не выбран"); return null
         }
         if (selectedProcessIndex == null) {
-            showDialog("Процесс не выбран"); return null
+            showErrorSnackbar("Процесс не выбран"); return null
         }
         if (stepIndex == null || stepIndex !in steps.indices) {
-            showDialog("Этап не выбран"); return null
+            showErrorSnackbar("Этап не выбран"); return null
         }
         val qty = qtyText?.toIntOrNull()
         if (qty == null || qty <= 0) {
-            showDialog("Укажите корректное количество"); return null
+            showErrorSnackbar("Укажите корректное количество"); return null
         }
         return Triple(empIndex, stepIndex, qty)
     }
@@ -268,14 +269,6 @@ class AddDayPlanFragment : Fragment() {
         stepsAdapter.setItems(steps)
     }
 
-    private fun showDialog(message: String) {
-        activeDialog?.dismiss()
-        activeDialog = AlertDialog.Builder(requireContext())
-            .setMessage(message)
-            .setPositiveButton("ОК") { d, _ -> d.dismiss(); activeDialog = null }
-            .also { it.setOnDismissListener { activeDialog = null } }
-            .show()
-    }
 
     // ---------- Маппинг domain → UI ----------
 
