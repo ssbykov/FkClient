@@ -17,8 +17,8 @@ fun StepDefinitionDto.toDomain(): StepDefinition = StepDefinition(
 fun ProcessDto.toDomain(): Process = Process(
     id = id,
     name = name,
-    description = description,
-    steps = steps.map { it.toDomain() },
+    description = description ?: "",
+    steps = steps?.map { it.toDomain() } ?: emptyList(),
 )
 
 fun FinishedProcessDto.toDomain(): FinishedProcess = FinishedProcess(

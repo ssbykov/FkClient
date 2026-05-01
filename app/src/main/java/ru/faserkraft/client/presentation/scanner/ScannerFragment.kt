@@ -22,6 +22,7 @@ import ru.faserkraft.client.presentation.packaging.PackagingViewModel
 import ru.faserkraft.client.presentation.product.ProductEvent
 import ru.faserkraft.client.presentation.product.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.showErrorSnackbar
 
 class ScannerFragment : Fragment() {
 
@@ -211,16 +212,8 @@ class ScannerFragment : Fragment() {
     // ---------- Dialogs ----------
 
     private fun showError(message: String) {
-        activeDialog?.dismiss()
-        activeDialog = AlertDialog.Builder(requireContext())
-            .setMessage(message)
-            .setPositiveButton("ОК") { d, _ ->
-                scannerViewModel.resetHandled()
-                d.dismiss()
-                activeDialog = null
-            }
-            .also { it.setOnDismissListener { activeDialog = null } }
-            .show()
+        scannerViewModel.resetHandled()
+        showErrorSnackbar(message)
     }
 
     override fun onDestroyView() {
