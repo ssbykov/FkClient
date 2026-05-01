@@ -8,10 +8,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import ru.faserkraft.client.data.mapper.toDisplayString
 import ru.faserkraft.client.databinding.FragmentEditStatusProductBinding
 import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.data.mapper.toDisplayString
+import ru.faserkraft.client.utils.showErrorSnackbar
 
 class EditProductStatusFragment : Fragment() {
 
@@ -58,7 +59,7 @@ class EditProductStatusFragment : Fragment() {
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
             when (event) {
-                is ProductEvent.ShowError -> showDialog(event.message)
+                is ProductEvent.ShowError -> showErrorSnackbar(event.message)
                 else -> Unit
             }
         }
@@ -69,7 +70,7 @@ class EditProductStatusFragment : Fragment() {
     private fun setupSaveButton() {
         binding.btnChangeStatus.setOnClickListener {
             val product = viewModel.uiState.value.product ?: run {
-                showDialog("Продукт не загружен")
+                showErrorSnackbar("Продукт не загружен")
                 return@setOnClickListener
             }
 
@@ -107,16 +108,6 @@ class EditProductStatusFragment : Fragment() {
         }
     }
 
-    // ---------- Dialog ----------
-
-    private fun showDialog(message: String) {
-        activeDialog?.dismiss()
-        activeDialog = AlertDialog.Builder(requireContext())
-            .setMessage(message)
-            .setPositiveButton("ОК") { d, _ -> d.dismiss(); activeDialog = null }
-            .also { it.setOnDismissListener { activeDialog = null } }
-            .show()
-    }
 
     override fun onDestroyView() {
         activeDialog?.dismiss()

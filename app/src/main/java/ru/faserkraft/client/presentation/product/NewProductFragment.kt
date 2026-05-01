@@ -14,6 +14,7 @@ import ru.faserkraft.client.adapter.ProcessAdapter
 import ru.faserkraft.client.adapter.ProcessUi
 import ru.faserkraft.client.databinding.FragmentNewProductBinding
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.showErrorSnackbar
 
 class NewProductFragment : Fragment() {
 
@@ -74,7 +75,7 @@ class NewProductFragment : Fragment() {
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
             when (event) {
-                is ProductEvent.ShowError -> showDialog(event.message)
+                is ProductEvent.ShowError -> showErrorSnackbar(event.message)
                 is ProductEvent.NavigateToProduct -> navigateToProduct()
                 else -> Unit
             }
@@ -87,7 +88,7 @@ class NewProductFragment : Fragment() {
         binding.btnSave.setOnClickListener {
             val index = selectedIndex
             if (index == null || index !in processes.indices) {
-                showDialog("Процесс не выбран")
+                showErrorSnackbar("Процесс не выбран")
                 return@setOnClickListener
             }
 
@@ -113,17 +114,6 @@ class NewProductFragment : Fragment() {
         )
     }
 
-    // ---------- Dialog ----------
-
-    private fun showDialog(message: String) {
-        if (!isAdded) return
-        activeDialog?.dismiss()
-        activeDialog = AlertDialog.Builder(requireContext())
-            .setMessage(message)
-            .setPositiveButton("ОК") { d, _ -> d.dismiss(); activeDialog = null }
-            .also { it.setOnDismissListener { activeDialog = null } }
-            .show()
-    }
 
     override fun onDestroyView() {
         activeDialog?.dismiss()

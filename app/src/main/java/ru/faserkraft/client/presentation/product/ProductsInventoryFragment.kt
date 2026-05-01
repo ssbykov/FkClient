@@ -15,6 +15,7 @@ import ru.faserkraft.client.adapter.ProductsInventoryUiItem
 import ru.faserkraft.client.databinding.FragmentProductsInventoryBinding
 import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.showErrorSnackbar
 
 class ProductsInventoryFragment : Fragment() {
 
@@ -94,7 +95,7 @@ class ProductsInventoryFragment : Fragment() {
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
             when (event) {
-                is ProductEvent.ShowError -> showDialog(event.message)
+                is ProductEvent.ShowError -> showErrorSnackbar(event.message)
                 else -> Unit
             }
         }
@@ -125,14 +126,6 @@ class ProductsInventoryFragment : Fragment() {
         b.rvProductsStats.visibility = if (isEmpty) View.GONE else View.VISIBLE
     }
 
-    private fun showDialog(message: String) {
-        activeDialog?.dismiss()
-        activeDialog = AlertDialog.Builder(requireContext())
-            .setMessage(message)
-            .setPositiveButton("ОК") { d, _ -> d.dismiss(); activeDialog = null }
-            .also { it.setOnDismissListener { activeDialog = null } }
-            .show()
-    }
 
     override fun onDestroyView() {
         if (::emptyObserver.isInitialized) {

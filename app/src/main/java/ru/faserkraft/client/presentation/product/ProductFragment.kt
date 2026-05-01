@@ -19,6 +19,7 @@ import ru.faserkraft.client.domain.model.StepStatus
 import ru.faserkraft.client.model.UserRole
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.formatIsoToUi
+import ru.faserkraft.client.utils.showErrorSnackbar
 
 class ProductFragment : Fragment() {
 
@@ -90,7 +91,7 @@ class ProductFragment : Fragment() {
                         R.id.action_scannerFragment_to_newProductFragment
                     )
                 is ProductEvent.NavigateToProduct -> Unit
-                is ProductEvent.ShowError -> showDialog(event.message)
+                is ProductEvent.ShowError -> showErrorSnackbar(event.message)
             }
         }
     }
@@ -130,10 +131,10 @@ class ProductFragment : Fragment() {
             when {
                 product.status == ProductStatus.REWORK ||
                         product.status == ProductStatus.SCRAP ->
-                    showDialog("Нельзя закрыть этап: продукт в статусе РЕМОНТ или БРАК")
+                    showErrorSnackbar("Нельзя закрыть этап: продукт в статусе РЕМОНТ или БРАК")
 
                 step.status == StepStatus.DONE ->
-                    showDialog("Этап уже выполнен")
+                    showErrorSnackbar("Этап уже выполнен")
 
                 else -> showConfirmDialog("Закрыть этап", "Вы уверены?") {
                     viewModel.closeStep(step)
@@ -143,15 +144,6 @@ class ProductFragment : Fragment() {
     }
 
     // ---------- Dialogs ----------
-
-    private fun showDialog(message: String, onPositive: () -> Unit = {}) {
-        activeDialog?.dismiss()
-        activeDialog = AlertDialog.Builder(requireContext())
-            .setMessage(message)
-            .setPositiveButton("ОК") { d, _ -> onPositive(); d.dismiss(); activeDialog = null }
-            .also { it.setOnDismissListener { activeDialog = null } }
-            .show()
-    }
 
     private fun showConfirmDialog(title: String, message: String, onConfirm: () -> Unit) {
         activeDialog?.dismiss()

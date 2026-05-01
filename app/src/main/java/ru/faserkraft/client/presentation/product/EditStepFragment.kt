@@ -12,6 +12,7 @@ import ru.faserkraft.client.adapter.EmployeeUi
 import ru.faserkraft.client.adapter.EmployeesAdapter
 import ru.faserkraft.client.databinding.FragmentEditStepBinding
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.showErrorSnackbar
 
 class EditStepFragment : Fragment() {
 
@@ -79,7 +80,7 @@ class EditStepFragment : Fragment() {
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
             when (event) {
-                is ProductEvent.ShowError -> showDialog(event.message)
+                is ProductEvent.ShowError -> showErrorSnackbar(event.message)
                 else -> Unit
             }
         }
@@ -112,7 +113,7 @@ class EditStepFragment : Fragment() {
             }
 
             val newEmployee = employees.getOrNull(index) ?: run {
-                showDialog("Сотрудник не выбран")
+                showErrorSnackbar("Сотрудник не выбран")
                 return@setOnClickListener
             }
 
@@ -137,17 +138,6 @@ class EditStepFragment : Fragment() {
                 findNavController().navigateUp()
             }
         }
-    }
-
-    // ---------- Dialog ----------
-
-    private fun showDialog(message: String) {
-        activeDialog?.dismiss()
-        activeDialog = AlertDialog.Builder(requireContext())
-            .setMessage(message)
-            .setPositiveButton("ОК") { d, _ -> d.dismiss(); activeDialog = null }
-            .also { it.setOnDismissListener { activeDialog = null } }
-            .show()
     }
 
     override fun onDestroyView() {

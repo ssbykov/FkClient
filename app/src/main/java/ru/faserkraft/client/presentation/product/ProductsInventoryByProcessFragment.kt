@@ -9,10 +9,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import ru.faserkraft.client.adapter.ProductsInventoryByProcessAdapter
-import ru.faserkraft.client.adapter.ProductsInventoryByProcessUiItem
 import ru.faserkraft.client.databinding.FragmentProductsInventoryByProcessBinding
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.showErrorSnackbar
 
 class ProductsInventoryByProcessFragment : Fragment() {
 
@@ -88,7 +87,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
                         ProductsInventoryByProcessFragmentDirections
                             .actionProductsInventoryByProcessFragmentToProductFullFragment()
                     )
-                is ProductEvent.ShowError -> showDialog(event.message)
+                is ProductEvent.ShowError -> showErrorSnackbar(event.message)
                 else -> Unit
             }
         }
@@ -110,16 +109,6 @@ class ProductsInventoryByProcessFragment : Fragment() {
         viewModel.loadProductsByLastStep(item.processId, item.stepDefinitionId)
     }
 
-    // ---------- Dialog ----------
-
-    private fun showDialog(message: String) {
-        activeDialog?.dismiss()
-        activeDialog = AlertDialog.Builder(requireContext())
-            .setMessage(message)
-            .setPositiveButton("ОК") { d, _ -> d.dismiss(); activeDialog = null }
-            .also { it.setOnDismissListener { activeDialog = null } }
-            .show()
-    }
 
     override fun onDestroyView() {
         binding.rvProductsDetail.adapter = null
