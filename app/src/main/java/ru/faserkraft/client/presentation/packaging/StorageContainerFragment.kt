@@ -15,11 +15,11 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.StoragePageAdapter
 import ru.faserkraft.client.databinding.FragmentStorageContainerBinding
 import ru.faserkraft.client.domain.model.UserRole
-import ru.faserkraft.client.viewmodel.ScannerViewModel
+import ru.faserkraft.client.presentation.AppViewModel
 
 class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
 
-    private val viewModel: ScannerViewModel by activityViewModels()
+    private val appViewModel: AppViewModel by activityViewModels()
 
     private var _binding: FragmentStorageContainerBinding? = null
     private val binding get() = _binding!!
@@ -36,14 +36,20 @@ class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
     }
 
     private fun observeUser() {
-        viewModel.userData.observe(viewLifecycleOwner) { user ->
-            val hasAccess = user?.role == UserRole.MASTER
-            binding.noAccessContainer.isVisible = !hasAccess
-            binding.viewPagerStorage.isVisible = hasAccess
-            binding.tabLayoutStorage.isVisible = hasAccess
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                appViewModel.userData.collect { user ->
+                    val hasAccess = user?.role == UserRole.MASTER
+                    val b = _binding ?: return@collect
 
-            if (hasAccess && binding.viewPagerStorage.adapter == null) {
-                setupViewPager()
+                    b.noAccessContainer.isVisible = !hasAccess
+                    b.viewPagerStorage.isVisible = hasAccess
+                    b.tabLayoutStorage.isVisible = hasAccess
+
+                    if (hasAccess && b.viewPagerStorage.adapter == null) {
+                        setupViewPager()
+                    }
+                }
             }
         }
     }
@@ -51,7 +57,7 @@ class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
     private fun observeErrors() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.errorState.collect { msg ->
+                appViewModel.errorState.collect { msg ->
                     if (!isAdded || msg.isBlank()) return@collect
                     showErrorDialog(msg)
                 }
@@ -64,10 +70,7 @@ class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
         activeDialog = AlertDialog.Builder(requireContext())
             .setMessage(message)
             .setPositiveButton("ОК") { dialog, _ -> dialog.dismiss() }
-            .setOnDismissListener {
-                viewModel.resetIsHandled()
-                activeDialog = null
-            }
+            .setOnDismissListener { activeDialog = null }
             .show()
     }
 
