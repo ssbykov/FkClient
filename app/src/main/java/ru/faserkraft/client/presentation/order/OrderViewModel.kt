@@ -1,6 +1,5 @@
 package ru.faserkraft.client.presentation.order
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +20,7 @@ import ru.faserkraft.client.domain.usecase.order.GetOrdersUseCase
 import ru.faserkraft.client.domain.usecase.order.UpdateOrderItemsUseCase
 import ru.faserkraft.client.domain.usecase.order.UpdateOrderUseCase
 import ru.faserkraft.client.domain.usecase.process.GetProcessesUseCase
+import ru.faserkraft.client.presentation.base.toErrorMessage
 import javax.inject.Inject
 
 @HiltViewModel
@@ -81,7 +81,7 @@ class OrderViewModel @Inject constructor(
         }
     }
 
-    fun createOrderFull(
+    fun createOrder(
         contractNumber: String,
         contractDate: String,
         plannedShipmentDate: String,
@@ -104,7 +104,7 @@ class OrderViewModel @Inject constructor(
 
     // ---------- Обновление ----------
 
-    fun updateOrderFull(
+    fun updateOrder(
         orderId: Int,
         contractNumber: String,
         contractDate: String,
@@ -119,20 +119,6 @@ class OrderViewModel @Inject constructor(
             }
                 .onSuccess { updatedOrder ->
                     _uiState.update { state -> state.copy(currentOrder = updatedOrder) }
-                    loadOrders()
-                    _events.emit(OrderEvent.OrderUpdated)
-                }
-                .onFailure { emitError(it) }
-            _uiState.update { it.copy(isActionInProgress = false) }
-        }
-    }
-
-    fun updateOrderItems(orderId: Int, items: List<OrderItem>) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isActionInProgress = true) }
-            runCatching { updateOrderItemsUseCase(orderId, items) }
-                .onSuccess {
-                    _uiState.update { state -> state.copy(currentOrder = it) }
                     loadOrders()
                     _events.emit(OrderEvent.OrderUpdated)
                 }
@@ -210,12 +196,6 @@ class OrderViewModel @Inject constructor(
     // ---------- Вспомогательное ----------
 
     private suspend fun emitError(e: Throwable) {
-        // временно для диагностики
-        Log.e("OrderViewModel", "Full error", e)
-        _events.emit(OrderEvent.ShowError(e.message ?: UNKNOWN_ERROR))
-    }
-
-    companion object {
-        private const val UNKNOWN_ERROR = "Неизвестная ошибка"
+        _events.emit(OrderEvent.ShowError(e.toErrorMessage()))
     }
 }
