@@ -6,5 +6,5 @@ data class Packaging(
     val performedBy: Employee?,
     val performedAt: String?,
     val orderId: Int?,
-    val products: List<FinishedProduct>,
+    val products: List<FinishedProduct> = emptyList(),
 )

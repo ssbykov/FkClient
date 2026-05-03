@@ -49,14 +49,14 @@ class PackagingFragment : Fragment() {
         setupRecyclerView()
         observeState()
         observeEvents()
+        binding.btnEdit.setOnClickListener {
+            viewModel.onEditClicked()
+        }
     }
 
     private fun setupRecyclerView() {
         adapter = PackagingContentAdapter { serialNumber ->
             productViewModel.loadProduct(serialNumber)
-            findNavController().navigate(
-                R.id.action_packagingFragment_to_productFullFragment
-            )
         }
         binding.rvPackagingProducts.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPackagingProducts.adapter = adapter

@@ -13,7 +13,7 @@ data class PackagingDto(
     val performedAt: String? = null,
     @SerializedName("order_id")
     val orderId: Int? = null,
-    val products: List<FinishedProductDto>
+    val products: List<FinishedProductDto>?= null,
 ) : ItemDto()
 
 data class PackagingCreateDto(

@@ -9,12 +9,14 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.domain.model.Packaging
 import ru.faserkraft.client.domain.usecase.packaging.CreatePackagingUseCase
 import ru.faserkraft.client.domain.usecase.packaging.DeletePackagingUseCase
 import ru.faserkraft.client.domain.usecase.packaging.GetPackagingInStorageUseCase
 import ru.faserkraft.client.domain.usecase.packaging.GetPackagingUseCase
 import ru.faserkraft.client.domain.usecase.product.GetFinishedProductsUseCase
+import ru.faserkraft.client.presentation.base.toErrorMessage
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,6 +26,7 @@ class PackagingViewModel @Inject constructor(
     private val deletePackagingUseCase: DeletePackagingUseCase,
     private val getPackagingInStorageUseCase: GetPackagingInStorageUseCase,
     private val getFinishedProductsUseCase: GetFinishedProductsUseCase,
+    private val appAuth: AppAuth,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PackagingUiState())
@@ -32,6 +35,12 @@ class PackagingViewModel @Inject constructor(
     private val _events = MutableSharedFlow<PackagingEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<PackagingEvent> = _events
 
+    init {
+        _uiState.update {
+            it.copy(currentUser = appAuth.getRegistrationData())
+        }
+    }
+
     // ---------- Загрузка упаковки по серийному номеру (вход из QR) ----------
 
     fun loadPackaging(serialNumber: String) {
@@ -39,26 +48,29 @@ class PackagingViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             runCatching { getPackagingUseCase(serialNumber) }
                 .onSuccess { packaging ->
-                    if (packaging == null) {
+                    if (packaging == null) newPackaging(serialNumber)
+                    else setPackaging(packaging)
+                }
+                .onFailure { e ->
+                    if (e is retrofit2.HttpException && e.code() == 404) {
                         newPackaging(serialNumber)
                     } else {
-                        setPackaging(packaging)
+                        emitError(e)
                     }
                 }
-                .onFailure { emitError(it) }
             _uiState.update { it.copy(isLoading = false) }
         }
     }
 
     fun setPackaging(packaging: Packaging) {
-        _uiState.update { it.copy(packaging = packaging) }
+        _uiState.update { it.copy(currentPackaging = packaging) }
         viewModelScope.launch { _events.emit(PackagingEvent.NavigateToPackaging) }
     }
 
     private fun newPackaging(serialNumber: String) {
         _uiState.update {
             it.copy(
-                packaging = Packaging(
+                currentPackaging = Packaging(
                     id = 0,
                     serialNumber = serialNumber,
                     performedBy = null,
@@ -74,7 +86,7 @@ class PackagingViewModel @Inject constructor(
         }
     }
 
-    // ---------- Создание упаковки ----------
+    // ---------- Создание ----------
 
     fun createPackaging(serialNumber: String, productIds: List<Int>) {
         viewModelScope.launch {
@@ -86,19 +98,30 @@ class PackagingViewModel @Inject constructor(
         }
     }
 
-    // ---------- Удаление упаковки ----------
+    // ---------- Редактирование ----------
+
+    fun onEditClicked() {
+        viewModelScope.launch {
+            _events.emit(PackagingEvent.NavigateToEdit)
+        }
+    }
+
+    // ---------- Удаление ----------
 
     fun deletePackaging(serialNumber: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isActionInProgress = true) }
             runCatching { deletePackagingUseCase(serialNumber) }
-                .onSuccess { _uiState.update { state -> state.copy(packaging = null) } }
+                .onSuccess {
+                    _uiState.update { state -> state.copy(currentPackaging = null) }
+                    _events.emit(PackagingEvent.PackagingDeleted)
+                }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }
         }
     }
 
-    // ---------- Список упаковок на складе ----------
+    // ---------- Склад ----------
 
     fun loadPackagingInStorage() {
         viewModelScope.launch {
@@ -110,7 +133,7 @@ class PackagingViewModel @Inject constructor(
         }
     }
 
-    // ---------- Товары для упаковки ----------
+    // ---------- Продукты для упаковки ----------
 
     fun loadAvailableProducts() {
         viewModelScope.launch {
@@ -120,19 +143,10 @@ class PackagingViewModel @Inject constructor(
         }
     }
 
-    // ---------- Очистка ----------
-
-    fun clearPackaging() {
-        _uiState.update { it.copy(packaging = null) }
-    }
-
     // ---------- Вспомогательное ----------
 
     private suspend fun emitError(e: Throwable) {
-        _events.emit(PackagingEvent.ShowError(e.message ?: UNKNOWN_ERROR))
+        _events.emit(PackagingEvent.ShowError(e.toErrorMessage()))
     }
 
-    companion object {
-        private const val UNKNOWN_ERROR = "Неизвестная ошибка"
-    }
 }

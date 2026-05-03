@@ -10,7 +10,7 @@ fun PackagingDto.toDomain(): Packaging = Packaging(
     performedBy = performedBy?.toDomain(),
     performedAt = performedAt,
     orderId = orderId,
-    products = products.map { it.toDomain() },
+    products = products?.map { it.toDomain() } ?: emptyList(),
 )
 
 fun Packaging.toCreateDto(productIds: List<Int>): PackagingCreateDto = PackagingCreateDto(
