@@ -136,17 +136,17 @@ class ScannerFragment : Fragment() {
         collectFlow(packagingViewModel.events) { event ->
             if (_binding == null || !isAdded) return@collectFlow
             when (event) {
-                is PackagingEvent.NavigateToPackaging ->
+                PackagingEvent.NavigateToPackaging ->
                     findNavController().navigate(
                         R.id.action_scannerFragment_to_packagingFragment
                     )
-
-                is PackagingEvent.NavigateToNewPackaging ->
+                PackagingEvent.NavigateToNewPackaging ->
                     findNavController().navigate(
                         R.id.action_scannerFragment_to_newPackagingFragment
                     )
-
-                is PackagingEvent.ShowError -> showError(event.message)
+                is PackagingEvent.ShowError -> showErrorSnackbar(event.message)
+                PackagingEvent.NavigateToEdit,
+                PackagingEvent.PackagingDeleted -> Unit
             }
         }
     }
