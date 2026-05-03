@@ -33,28 +33,21 @@ private fun parseApiErrorBody(raw: String): Pair<String?, String?> {
     }
 }
 
-suspend fun <R> callApi(
-    block: suspend () -> Response<R>
-): R? {
+suspend fun <R> callApi(block: suspend () -> Response<R>): R? {
     return try {
         val response = block()
-
         if (!response.isSuccessful) {
             val raw = response.errorBody()?.string().orEmpty()
             val (serverCode, serverDetail) = parseApiErrorBody(raw)
-
             val errorMessage = serverDetail?.takeIf { it.isNotBlank() } ?: response.message()
             val uiCode = serverCode ?: "error_api_${response.code()}"
-
             throw AppError.ApiError(
                 status = response.code(),
                 uiCode = uiCode,
                 message = errorMessage
             )
         }
-
-        response.body() ?: throw AppError.UnknownError
-
+        response.body()
     } catch (e: IOException) {
         throw AppError.NetworkError
     } catch (e: AppError) {
@@ -64,33 +57,8 @@ suspend fun <R> callApi(
     }
 }
 
-suspend fun callApiNoBody(
-    block: suspend () -> Response<Unit>
-) {
-    try {
-        val response = block()
-
-        if (!response.isSuccessful) {
-            val raw = response.errorBody()?.string().orEmpty()
-            val (serverCode, serverDetail) = parseApiErrorBody(raw)
-
-            val errorMessage = serverDetail?.takeIf { it.isNotBlank() }
-                ?: if (response.code() == 404) "Не найдено" else response.message()
-
-            val uiCode = serverCode ?: "error_api_${response.code()}"
-
-            throw AppError.ApiError(
-                status = response.code(),
-                uiCode = uiCode,
-                message = errorMessage
-            )
-        }
-
-    } catch (e: IOException) {
-        throw AppError.NetworkError
-    } catch (e: AppError) {
-        throw e
-    } catch (e: Exception) {
-        throw AppError.UnknownError
-    }
+// Специализация для Unit — просто вызывает callApi и игнорирует null
+// BaseRequest.kt — вместо перегрузки:
+suspend fun callApiUnit(block: suspend () -> Response<Unit>) {
+    callApi<Unit>(block)
 }

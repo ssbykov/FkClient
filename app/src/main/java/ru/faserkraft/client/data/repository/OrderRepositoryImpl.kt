@@ -2,7 +2,7 @@ package ru.faserkraft.client.data.repository
 
 import ru.faserkraft.client.api.Api
 import ru.faserkraft.client.data.callApi
-import ru.faserkraft.client.data.callApiNoBody
+import ru.faserkraft.client.data.callApiUnit
 import ru.faserkraft.client.data.mapper.toCreateDto
 import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.domain.model.Order
@@ -65,7 +65,7 @@ class OrderRepositoryImpl @Inject constructor(
         requireNotNull(callApi { api.closeOrder(orderId) }).toDomain()
 
     override suspend fun deleteOrder(orderId: Int) =
-        callApiNoBody { api.deleteOrder(orderId) }
+        callApiUnit { api.deleteOrder(orderId) }
 
     override suspend fun addPackagingToOrder(orderId: Int, packagingIds: List<Int>) {
         callApi { api.addPackagingToOrder(orderId, packagingIds) }

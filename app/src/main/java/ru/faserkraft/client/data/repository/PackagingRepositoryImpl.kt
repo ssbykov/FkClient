@@ -2,7 +2,7 @@ package ru.faserkraft.client.data.repository
 
 import ru.faserkraft.client.api.Api
 import ru.faserkraft.client.data.callApi
-import ru.faserkraft.client.data.callApiNoBody
+import ru.faserkraft.client.data.callApiUnit
 import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.domain.model.Packaging
 import ru.faserkraft.client.domain.repository.PackagingRepository
@@ -34,7 +34,7 @@ class PackagingRepositoryImpl @Inject constructor(
         ).toDomain()
 
     override suspend fun deletePackaging(serialNumber: String) =
-        callApiNoBody { api.deletePackaging(serialNumber) }
+        callApiUnit { api.deletePackaging(serialNumber) }
 
     override suspend fun getPackagingInStorage(): List<Packaging> =
         callApi { api.getPackagingInStorage() }.orEmpty().map { it.toDomain() }
