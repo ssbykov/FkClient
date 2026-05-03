@@ -11,6 +11,7 @@ data class Process(
 data class FinishedProcess(
     val id: Int,
     val name: String,
+    val sizeTypeId: Int?,
     val sizeTypeName: String?,
     val packagingCount: Int?,
 )
