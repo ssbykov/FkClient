@@ -1,4 +1,4 @@
-package ru.faserkraft.client.adapter
+package ru.faserkraft.client.presentation.common.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemPackagingBinding
+import ru.faserkraft.client.presentation.order.ModuleTypeUi
 
 class PackagingListAdapter(
     private val onItemClick: (item: PackagingListUiItem) -> Unit

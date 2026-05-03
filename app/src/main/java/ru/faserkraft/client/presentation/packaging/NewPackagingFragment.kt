@@ -18,9 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
-import ru.faserkraft.client.activity.hideKeyboard
-import ru.faserkraft.client.adapter.PackagingProductUiItem
-import ru.faserkraft.client.adapter.PackagingProductsAdapter
+import ru.faserkraft.client.presentation.ui.hideKeyboard
 import ru.faserkraft.client.databinding.FragmentNewPackagingBinding
 import ru.faserkraft.client.utils.showErrorSnackbar
 
@@ -108,7 +106,7 @@ class NewPackagingFragment : Fragment() {
                             serialNumber = p.serialNumber,
                             processName = p.process.name,
                             sizeType = p.process.sizeTypeId ?: 0,
-                            packagingCount =  p.process.packagingCount ?: 1,
+                            packagingCount = p.process.packagingCount ?: 1,
                             isSelected = selectedIdsFromPackaging.contains(p.id)
                         )
                     }
@@ -121,7 +119,7 @@ class NewPackagingFragment : Fragment() {
                                 serialNumber = ep.serialNumber,
                                 processName = ep.process.name,
                                 sizeType = ep.process.sizeTypeId ?: 0,
-                                packagingCount =  ep.process.packagingCount ?: 1,
+                                packagingCount = ep.process.packagingCount ?: 1,
                                 isSelected = true
                             )
                         }.orEmpty()

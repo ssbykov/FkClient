@@ -15,8 +15,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
-import ru.faserkraft.client.adapter.PackagingContentAdapter
-import ru.faserkraft.client.adapter.PackagingContentUiItem
 import ru.faserkraft.client.databinding.FragmentPackagingBinding
 import ru.faserkraft.client.presentation.product.ProductEvent
 import ru.faserkraft.client.presentation.product.ProductViewModel
@@ -118,6 +116,7 @@ class PackagingFragment : Fragment() {
                             findNavController().navigate(
                                 R.id.action_packagingFragment_to_productFullFragment
                             )
+
                         else -> Unit
                     }
                 }

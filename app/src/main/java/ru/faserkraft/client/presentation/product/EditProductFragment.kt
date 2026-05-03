@@ -8,9 +8,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import ru.faserkraft.client.adapter.ProcessAdapter
-import ru.faserkraft.client.adapter.ProcessUi
 import ru.faserkraft.client.databinding.FragmentEditProductBinding
+import ru.faserkraft.client.presentation.common.adapter.ProcessAdapter
+import ru.faserkraft.client.presentation.common.adapter.ProcessUi
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.showErrorSnackbar
 

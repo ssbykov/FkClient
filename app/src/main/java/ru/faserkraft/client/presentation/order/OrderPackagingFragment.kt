@@ -16,11 +16,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
-import ru.faserkraft.client.adapter.ModuleTypeUi
-import ru.faserkraft.client.adapter.PackagingListAdapter
-import ru.faserkraft.client.adapter.PackagingListUiItem
 import ru.faserkraft.client.databinding.FragmentOrderPackagingBinding
 import ru.faserkraft.client.domain.model.Order
+import ru.faserkraft.client.presentation.common.adapter.PackagingListAdapter
+import ru.faserkraft.client.presentation.common.adapter.PackagingListUiItem
 import ru.faserkraft.client.presentation.packaging.PackagingEvent
 import ru.faserkraft.client.presentation.packaging.PackagingViewModel
 import ru.faserkraft.client.utils.showErrorSnackbar

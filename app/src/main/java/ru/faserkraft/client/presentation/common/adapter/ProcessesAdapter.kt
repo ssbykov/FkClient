@@ -1,4 +1,4 @@
-package ru.faserkraft.client.adapter
+package ru.faserkraft.client.presentation.common.adapter
 
 import android.content.Context
 import android.widget.ArrayAdapter

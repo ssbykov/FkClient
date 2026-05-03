@@ -12,8 +12,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
-import ru.faserkraft.client.adapter.ProductsStorageAdapter
-import ru.faserkraft.client.adapter.ProductsStorageUiItem
 import ru.faserkraft.client.databinding.FragmentProductsStorageBinding
 import ru.faserkraft.client.domain.model.Packaging
 

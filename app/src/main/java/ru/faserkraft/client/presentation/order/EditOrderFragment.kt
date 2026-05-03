@@ -15,8 +15,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
-import ru.faserkraft.client.adapter.LocalOrderItem
-import ru.faserkraft.client.adapter.OrderItemsAdapter
+import ru.faserkraft.client.presentation.order.LocalOrderItem
+import ru.faserkraft.client.presentation.order.OrderItemsAdapter
 import ru.faserkraft.client.databinding.FragmentNewOrderBinding
 import ru.faserkraft.client.domain.model.OrderItem
 import ru.faserkraft.client.domain.model.Process

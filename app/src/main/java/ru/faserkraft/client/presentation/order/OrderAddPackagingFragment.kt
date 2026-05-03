@@ -15,9 +15,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
-import ru.faserkraft.client.adapter.AddPackagingAdapter
-import ru.faserkraft.client.adapter.ModuleTypeUi
-import ru.faserkraft.client.adapter.PackagingShipmentUiItem
+import ru.faserkraft.client.presentation.order.AddPackagingAdapter
+import ru.faserkraft.client.presentation.order.ModuleTypeUi
+import ru.faserkraft.client.presentation.order.PackagingShipmentUiItem
 import ru.faserkraft.client.databinding.FragmentOrderAddPackagingBinding
 import ru.faserkraft.client.domain.model.Order
 import ru.faserkraft.client.domain.model.Packaging

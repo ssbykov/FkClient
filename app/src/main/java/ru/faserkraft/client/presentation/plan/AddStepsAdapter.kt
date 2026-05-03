@@ -1,5 +1,6 @@
-package ru.faserkraft.client.adapter
+package ru.faserkraft.client.presentation.plan
 
+import android.R
 import android.content.Context
 import android.widget.ArrayAdapter
 
@@ -10,7 +11,7 @@ data class StepUi(
 
 class AddStepsAdapter(
     context: Context
-) : ArrayAdapter<String>(context, android.R.layout.simple_list_item_1) {
+) : ArrayAdapter<String>(context, R.layout.simple_list_item_1) {
 
     private val items: MutableList<StepUi> = mutableListOf()
 

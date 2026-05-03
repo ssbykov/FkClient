@@ -1,9 +1,8 @@
-package ru.faserkraft.client.adapter
+package ru.faserkraft.client.presentation.packaging
 
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import ru.faserkraft.client.activity.OrdersFragment
-import ru.faserkraft.client.activity.StorageFragment
+import ru.faserkraft.client.presentation.order.OrdersFragment
 
 class StoragePageAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
 

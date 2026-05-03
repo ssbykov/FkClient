@@ -1,4 +1,4 @@
-package ru.faserkraft.client.adapter
+package ru.faserkraft.client.presentation.order
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

@@ -12,8 +12,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import ru.faserkraft.client.adapter.EmployeeUi
-import ru.faserkraft.client.adapter.EmployeesAdapter
+import ru.faserkraft.client.presentation.common.adapter.EmployeeUi
+import ru.faserkraft.client.presentation.common.adapter.EmployeesAdapter
 import ru.faserkraft.client.databinding.FragmentQrGenerationBinding
 
 @AndroidEntryPoint

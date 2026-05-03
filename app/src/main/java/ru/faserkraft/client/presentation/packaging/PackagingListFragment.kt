@@ -14,10 +14,10 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
-import ru.faserkraft.client.adapter.ModuleTypeUi
-import ru.faserkraft.client.adapter.PackagingListAdapter
-import ru.faserkraft.client.adapter.PackagingListUiItem
+import ru.faserkraft.client.presentation.order.ModuleTypeUi
 import ru.faserkraft.client.databinding.FragmentPackagingListBinding
+import ru.faserkraft.client.presentation.common.adapter.PackagingListAdapter
+import ru.faserkraft.client.presentation.common.adapter.PackagingListUiItem
 import ru.faserkraft.client.utils.showErrorSnackbar
 
 class PackagingListFragment : Fragment() {

@@ -1,6 +1,6 @@
-package ru.faserkraft.client.adapter
+package ru.faserkraft.client.presentation.common.adapter
 
-//noinspection SuspiciousImport
+
 import android.R
 import android.content.Context
 import android.widget.ArrayAdapter

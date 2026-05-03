@@ -12,7 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
-import ru.faserkraft.client.adapter.StoragePageAdapter
+import ru.faserkraft.client.presentation.packaging.StoragePageAdapter
 import ru.faserkraft.client.databinding.FragmentStorageContainerBinding
 import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.presentation.AppViewModel
