@@ -1,6 +1,7 @@
 package ru.faserkraft.client.model
 
 import com.google.gson.annotations.SerializedName
+import ru.faserkraft.client.domain.model.UserRole
 
 data class VersionInfo(
     @SerializedName("version_name")
