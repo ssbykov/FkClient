@@ -33,7 +33,7 @@
 
     <fragment
         android:id="@+id/storageContainerFragment"
-        android:name="ru.faserkraft.client.activity.StorageContainerFragment"
+        android:name="ru.faserkraft.client.presentation.packaging.StorageContainerFragment"
         android:label="Склад"
         tools:layout="@layout/fragment_storage_container">
         <action
