@@ -45,14 +45,14 @@ class PackagingListFragment : Fragment() {
         val process = args.process
         binding.tvProcess.text = process
 
-        setupRecyclerView(process)
+        setupRecyclerView()
         observeState(process)
         observeEvents()
 
         viewModel.loadPackagingInStorage()
     }
 
-    private fun setupRecyclerView(process: String) {
+    private fun setupRecyclerView() {
         adapter = PackagingListAdapter(
             onItemClick = { item ->
                 viewModel.loadPackaging(item.serialNumber)
