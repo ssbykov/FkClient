@@ -11,17 +11,18 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import ru.faserkraft.client.api.Api
+import ru.faserkraft.client.data.callApi
 import ru.faserkraft.client.domain.usecase.employee.GetEmployeesUseCase
 import ru.faserkraft.client.dto.toQrContent
 import ru.faserkraft.client.presentation.base.toErrorMessage
-import ru.faserkraft.client.repository.ApiRepository
 import ru.faserkraft.client.utils.QrCodeGenerator
 import javax.inject.Inject
 
 @HiltViewModel
 class QrGenerationViewModel @Inject constructor(
     private val getEmployeesUseCase: GetEmployeesUseCase,
-    private val repository: ApiRepository,
+    private val api: Api,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QrGenerationUiState())
@@ -44,7 +45,7 @@ class QrGenerationViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isActionInProgress = true) }
             runCatching {
-                val response = repository.getQrCode(employeeId)
+                val response = callApi { api.getQrCode(employeeId) }
                     ?: error("Пустой ответ от сервера")
                 QrCodeGenerator.generate(response.toQrContent())
             }

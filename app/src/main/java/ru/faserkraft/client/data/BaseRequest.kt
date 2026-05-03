@@ -1,11 +1,10 @@
-package ru.faserkraft.client.repository
+package ru.faserkraft.client.data
 
+import org.json.JSONArray
+import org.json.JSONObject
 import retrofit2.Response
 import ru.faserkraft.client.error.AppError
 import java.io.IOException
-import org.json.JSONObject
-
-import org.json.JSONArray
 
 private fun parseApiErrorBody(raw: String): Pair<String?, String?> {
     return try {

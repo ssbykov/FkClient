@@ -1,8 +1,6 @@
 package ru.faserkraft.client.api
 
-// Импорты существующих DTO
 
-// Импорты DTO для заказов (нужно создать эти классы)
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
