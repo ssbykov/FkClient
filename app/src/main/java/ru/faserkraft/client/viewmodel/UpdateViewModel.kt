@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.BuildConfig
-import ru.faserkraft.client.model.UserData
+import ru.faserkraft.client.domain.model.UserData
 import ru.faserkraft.client.model.VersionInfo
 import ru.faserkraft.client.repository.UpdateRepository
 import ru.faserkraft.client.update.AppUpdateManager
