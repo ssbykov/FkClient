@@ -24,6 +24,7 @@ fun ProcessDto.toDomain(): Process = Process(
 fun FinishedProcessDto.toDomain(): FinishedProcess = FinishedProcess(
     id = id,
     name = name,
+    sizeTypeId = type?.id,
     sizeTypeName = type?.name,
     packagingCount = type?.packagingCount,
 )
