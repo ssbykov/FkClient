@@ -1,8 +1,8 @@
 package ru.faserkraft.client.presentation.order
 
-import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -74,7 +74,6 @@ class EditOrderFragment : Fragment() {
         binding.btnSave.text = "Сохранить изменения"
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -159,7 +158,7 @@ class EditOrderFragment : Fragment() {
             )
         }
 
-        viewModel.updateOrderFull(
+        viewModel.updateOrder(
             orderId = orderId,
             contractNumber = contractNumber,
             contractDate = selectedContractDate!!,
@@ -217,6 +216,7 @@ class EditOrderFragment : Fragment() {
             try {
                 calendar.time = apiFormat.parse(currentApiDate)!!
             } catch (e: Exception) {
+                Log.w("EditOrderFragment", "Не удалось распарсить дату: $currentApiDate", e)
             }
         }
         DatePickerDialog(
