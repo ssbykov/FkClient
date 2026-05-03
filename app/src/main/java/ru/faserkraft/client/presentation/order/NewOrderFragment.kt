@@ -2,6 +2,7 @@ package ru.faserkraft.client.presentation.order
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +15,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
-import ru.faserkraft.client.presentation.order.AddOrderItemBottomSheet
 import ru.faserkraft.client.adapter.LocalOrderItem
 import ru.faserkraft.client.adapter.OrderItemsAdapter
 import ru.faserkraft.client.databinding.FragmentNewOrderBinding
@@ -130,7 +130,7 @@ class NewOrderFragment : Fragment() {
             )
         }
 
-        viewModel.createOrderFull(
+        viewModel.createOrder(
             contractNumber = contractNumber,
             contractDate = selectedContractDate!!,
             plannedShipmentDate = selectedPlannedDate!!,
@@ -184,7 +184,11 @@ class NewOrderFragment : Fragment() {
     private fun showDatePicker(currentApiDate: String?, onDateSelected: (String, String) -> Unit) {
         val calendar = Calendar.getInstance()
         if (!currentApiDate.isNullOrEmpty()) {
-            try { calendar.time = apiFormat.parse(currentApiDate)!! } catch (e: Exception) { }
+            try {
+                calendar.time = apiFormat.parse(currentApiDate)!!
+            } catch (e: Exception) {
+                Log.w("NewOrderFragment", "Не удалось распарсить дату: $currentApiDate", e)
+            }
         }
         DatePickerDialog(
             requireContext(),
