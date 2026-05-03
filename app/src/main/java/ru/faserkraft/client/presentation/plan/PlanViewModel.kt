@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.domain.model.DailyPlan
 import ru.faserkraft.client.domain.model.DailyPlanStep
+import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.domain.usecase.employee.GetEmployeesUseCase
 import ru.faserkraft.client.domain.usecase.plan.AddStepToPlanUseCase
 import ru.faserkraft.client.domain.usecase.plan.CopyDayPlanUseCase
@@ -21,9 +22,8 @@ import ru.faserkraft.client.domain.usecase.plan.GetDayPlansUseCase
 import ru.faserkraft.client.domain.usecase.plan.RemoveStepFromPlanUseCase
 import ru.faserkraft.client.domain.usecase.plan.UpdateStepInPlanUseCase
 import ru.faserkraft.client.domain.usecase.process.GetProcessesUseCase
-import ru.faserkraft.client.domain.usecase.product.GetProductsByLastStepUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductsByStepEmployeeDayUseCase
-import ru.faserkraft.client.model.UserRole
+import ru.faserkraft.client.presentation.base.toErrorMessage
 import ru.faserkraft.client.utils.apiPattern
 import ru.faserkraft.client.utils.getToday
 import ru.faserkraft.client.utils.isPlanDateEditable
@@ -39,7 +39,6 @@ class PlanViewModel @Inject constructor(
     private val copyDayPlanUseCase: CopyDayPlanUseCase,
     private val getEmployeesUseCase: GetEmployeesUseCase,
     private val getProcessesUseCase: GetProcessesUseCase,
-    private val getProductsByLastStepUseCase: GetProductsByLastStepUseCase,
     private val getProductsByStepEmployeeDayUseCase: GetProductsByStepEmployeeDayUseCase,
     private val appAuth: AppAuth,
 ) : ViewModel() {
@@ -164,18 +163,6 @@ class PlanViewModel @Inject constructor(
 
     // ---------- Продукты ----------
 
-    fun loadProductsByLastStep(processId: Int, stepDefinitionId: Int) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, filteredProducts = emptyList()) }
-            runCatching { getProductsByLastStepUseCase(processId, stepDefinitionId) }
-                .onSuccess { products ->
-                    _uiState.update { it.copy(filteredProducts = products) }
-                }
-                .onFailure { emitError(it) }
-            _uiState.update { it.copy(isLoading = false) }
-        }
-    }
-
     fun loadProductsByStepEmployeeDay(
         stepDefinitionId: Int,
         day: String,
@@ -230,10 +217,7 @@ class PlanViewModel @Inject constructor(
     // ---------- Ошибки ----------
 
     private suspend fun emitError(e: Throwable) {
-        _events.emit(PlanEvent.ShowError(e.message ?: UNKNOWN_ERROR))
+        _events.emit(PlanEvent.ShowError(e.toErrorMessage()))
     }
 
-    companion object {
-        private const val UNKNOWN_ERROR = "Неизвестная ошибка"
-    }
 }
