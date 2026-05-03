@@ -20,13 +20,12 @@ import ru.faserkraft.client.domain.usecase.process.GetProcessesUseCase
 import ru.faserkraft.client.domain.usecase.product.ChangeProductProcessUseCase
 import ru.faserkraft.client.domain.usecase.product.ChangeProductStatusUseCase
 import ru.faserkraft.client.domain.usecase.product.CreateProductUseCase
-import ru.faserkraft.client.domain.usecase.product.GetFinishedProductsUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductsByLastStepUseCase
-import ru.faserkraft.client.domain.usecase.product.GetProductsByStepEmployeeDayUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductsInventoryUseCase
 import ru.faserkraft.client.domain.usecase.step.ChangeStepPerformerUseCase
 import ru.faserkraft.client.domain.usecase.step.CloseStepUseCase
+import ru.faserkraft.client.presentation.base.toErrorMessage
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,9 +39,7 @@ class ProductViewModel @Inject constructor(
     private val getProcessesUseCase: GetProcessesUseCase,
     private val getEmployeesUseCase: GetEmployeesUseCase,
     private val getProductsInventoryUseCase: GetProductsInventoryUseCase,
-    private val getFinishedProductsUseCase: GetFinishedProductsUseCase,
     private val getProductsByLastStepUseCase: GetProductsByLastStepUseCase,
-    private val getProductsByStepEmployeeDayUseCase: GetProductsByStepEmployeeDayUseCase,
     private val appAuth: AppAuth,                                          // ← добавлено
 ) : ViewModel() {
 
@@ -192,18 +189,6 @@ class ProductViewModel @Inject constructor(
         }
     }
 
-    fun loadAvailableProductsForPackaging() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            runCatching { getFinishedProductsUseCase() }
-                .onSuccess { list ->
-                    _uiState.update { it.copy(availableProductsForPackaging = list) }
-                }
-                .onFailure { emitError(it) }
-            _uiState.update { it.copy(isLoading = false) }
-        }
-    }
-
     fun loadProductsByLastStep(processId: Int, stepDefinitionId: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, productsInventoryByProcess = emptyList()) }
@@ -216,37 +201,9 @@ class ProductViewModel @Inject constructor(
         }
     }
 
-    fun loadProductsByStepEmployeeDay(
-        stepDefinitionId: Int,
-        day: String,
-        employeeId: Int,
-    ) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, productsInventoryByProcess = emptyList()) }
-            runCatching {
-                getProductsByStepEmployeeDayUseCase(stepDefinitionId, day, employeeId)
-            }
-                .onSuccess { list ->
-                    _uiState.update { it.copy(productsInventoryByProcess = list) }
-                }
-                .onFailure { emitError(it) }
-            _uiState.update { it.copy(isLoading = false) }
-        }
-    }
-
-    // ---------- Очистка ----------
-
-    fun clearProduct() {
-        _uiState.update { it.copy(product = null, selectedStep = null) }
-    }
-
     // ---------- Вспомогательное ----------
 
     private suspend fun emitError(e: Throwable) {
-        _events.emit(ProductEvent.ShowError(e.message ?: UNKNOWN_ERROR))
-    }
-
-    companion object {
-        private const val UNKNOWN_ERROR = "Неизвестная ошибка"
+        _events.emit(ProductEvent.ShowError(e.toErrorMessage()))
     }
 }
