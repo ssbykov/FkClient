@@ -16,7 +16,7 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductBinding
 import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.model.StepStatus
-import ru.faserkraft.client.model.UserRole
+import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.formatIsoToUi
 import ru.faserkraft.client.utils.showErrorSnackbar
