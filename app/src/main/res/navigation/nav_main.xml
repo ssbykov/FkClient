@@ -175,14 +175,9 @@
 
     <fragment
         android:id="@+id/newPackagingFragment"
-        android:name="ru.faserkraft.client.activity.NewPackagingFragment"
+        android:name="ru.faserkraft.client.presentation.packaging.NewPackagingFragment"
         android:label="fragment_new_packaging"
         tools:layout="@layout/fragment_new_packaging">
-        <argument
-            android:name="packaging"
-            android:defaultValue="@null"
-            app:argType="ru.faserkraft.client.dto.PackagingDto"
-            app:nullable="true" />
         <action
             android:id="@+id/action_newPackagingFragment_to_packagingFragment"
             app:destination="@id/packagingFragment" />
@@ -190,7 +185,7 @@
 
     <fragment
         android:id="@+id/packagingFragment"
-        android:name="ru.faserkraft.client.activity.PackagingFragment"
+        android:name="ru.faserkraft.client.presentation.packaging.PackagingFragment"
         android:label="fragment_packaging"
         tools:layout="@layout/fragment_packaging">
         <action
@@ -223,7 +218,7 @@
 
     <fragment
         android:id="@+id/packagingListFragment"
-        android:name="ru.faserkraft.client.activity.PackagingListFragment"
+        android:name="ru.faserkraft.client.presentation.packaging.PackagingListFragment"
         android:label="PackagingListFragment"
         tools:layout="@layout/fragment_packaging_list">
         <argument
