@@ -13,7 +13,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductFullBinding
-import ru.faserkraft.client.model.UserRole
+import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.formatIsoToUi
 
