@@ -6,7 +6,7 @@ import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.domain.model.Step
-import ru.faserkraft.client.model.UserRole
+import ru.faserkraft.client.domain.model.UserRole
 
 data class ProductUiState(
     val isLoading: Boolean = false,
