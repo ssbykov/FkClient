@@ -34,8 +34,8 @@ import ru.faserkraft.client.dto.StepDto
 import ru.faserkraft.client.dto.emptyStep
 import ru.faserkraft.client.dto.toQrContent
 import ru.faserkraft.client.error.AppError
-import ru.faserkraft.client.model.UserData
-import ru.faserkraft.client.model.UserRole
+import ru.faserkraft.client.domain.model.UserData
+import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.repository.ApiRepository
 import ru.faserkraft.client.utils.QrCodeGenerator
 import ru.faserkraft.client.utils.getToday
