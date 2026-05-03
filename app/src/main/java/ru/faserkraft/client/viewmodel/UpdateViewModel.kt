@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.BuildConfig
 import ru.faserkraft.client.domain.model.UserData
@@ -24,16 +23,9 @@ class UpdateViewModel @Inject constructor(
     private val updateManager = AppUpdateManager(application, repository)
 
     private val _updateAvailable = MutableStateFlow<VersionInfo?>(null)
-    val updateAvailable: StateFlow<VersionInfo?> = _updateAvailable.asStateFlow()
+    val updateAvailable: StateFlow<VersionInfo?> = _updateAvailable
 
     val status: StateFlow<AppUpdateManager.UpdateStatus> = updateManager.status
-
-
-    fun startUpdate(version: VersionInfo) {
-        updateManager.downloadAndInstall(
-            fileName = "${version.versionName}.apk"
-        )
-    }
 
     fun checkForUpdates(user: UserData) {
         viewModelScope.launch {
@@ -44,8 +36,16 @@ class UpdateViewModel @Inject constructor(
                 ) {
                     _updateAvailable.value = latest
                 }
+            }.onFailure {
+                // ошибка проверки обновлений — не критична, молча игнорируем
             }
         }
+    }
+
+    fun startUpdate(version: VersionInfo) {
+        updateManager.downloadAndInstall(
+            fileName = "${version.versionName}.apk"
+        )
     }
 
     override fun onCleared() {
