@@ -6,14 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import kotlinx.coroutines.launch
 import ru.faserkraft.client.databinding.FragmentProductsStorageBinding
 import ru.faserkraft.client.domain.model.Packaging
+import ru.faserkraft.client.presentation.ui.collectFlow
 
 class StorageFragment : Fragment() {
 
@@ -64,18 +61,14 @@ class StorageFragment : Fragment() {
     }
 
     private fun observeState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    val b = _binding ?: return@collect
+        collectFlow(viewModel.uiState) { state ->
+            val b = _binding ?: return@collectFlow
 
-                    b.swipeRefreshStats.isRefreshing = state.isLoading
-                    b.swipeRefreshStats.isEnabled = !state.isLoading
+            b.swipeRefreshStats.isRefreshing = state.isLoading
+            b.swipeRefreshStats.isEnabled = !state.isLoading
 
-                    val uiList = mapToUiItems(state.packagingInStorage)
-                    adapter.submitList(uiList) { checkEmpty() }
-                }
-            }
+            val uiList = mapToUiItems(state.packagingInStorage)
+            adapter.submitList(uiList) { checkEmpty() }
         }
     }
 

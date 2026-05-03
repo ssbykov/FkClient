@@ -1,7 +1,6 @@
 package ru.faserkraft.client.presentation.scanner
 
 import android.Manifest
-import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.Editable
@@ -32,8 +31,6 @@ class ScannerFragment : Fragment() {
 
     private var _binding: FragmentScannerBinding? = null
     private val binding get() = _binding!!
-
-    private var activeDialog: AlertDialog? = null
 
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -134,16 +131,17 @@ class ScannerFragment : Fragment() {
 
     private fun observePackagingEvents() {
         collectFlow(packagingViewModel.events) { event ->
-            if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 PackagingEvent.NavigateToPackaging ->
                     findNavController().navigate(
                         R.id.action_scannerFragment_to_packagingFragment
                     )
+
                 PackagingEvent.NavigateToNewPackaging ->
                     findNavController().navigate(
                         R.id.action_scannerFragment_to_newPackagingFragment
                     )
+
                 is PackagingEvent.ShowError -> showErrorSnackbar(event.message)
                 PackagingEvent.NavigateToEdit,
                 PackagingEvent.PackagingDeleted -> Unit
@@ -163,6 +161,7 @@ class ScannerFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        if (_binding == null) return
         binding.zxingBarcodeScanner.resume()
         scannerViewModel.resetHandled()
         binding.etManualInput.setText(R.string.uf_0000000)
@@ -217,8 +216,6 @@ class ScannerFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        activeDialog?.dismiss()
-        activeDialog = null
         binding.zxingBarcodeScanner.pause()
         _binding = null
         super.onDestroyView()

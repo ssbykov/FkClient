@@ -1,5 +1,6 @@
 package ru.faserkraft.client.presentation.registration
 
+import QrGenerationEvent
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,14 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
+import ru.faserkraft.client.databinding.FragmentQrGenerationBinding
 import ru.faserkraft.client.presentation.common.adapter.EmployeeUi
 import ru.faserkraft.client.presentation.common.adapter.EmployeesAdapter
-import ru.faserkraft.client.databinding.FragmentQrGenerationBinding
+import ru.faserkraft.client.presentation.ui.collectFlow
 
 @AndroidEntryPoint
 class QrGenerationFragment : Fragment() {
@@ -70,40 +68,32 @@ class QrGenerationFragment : Fragment() {
     }
 
     private fun observeState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    val b = _binding ?: return@collect
+        collectFlow(viewModel.uiState) { state ->
+            val b = _binding ?: return@collectFlow
 
-                    val uiEmployees = state.employees.map { EmployeeUi(it.id, it.name) }
-                    if (uiEmployees != employees) {
-                        employees = uiEmployees
-                        employeesAdapter.setItems(employees)
-                        val first = employees.firstOrNull()
-                        selectedEmployeeId = first?.id
-                        b.actvEmployee.setText(first?.name.orEmpty(), false)
-                    }
-
-                    b.ivQrCode.setImageBitmap(state.qrBitmap)
-
-                    val inProgress = state.isLoading || state.isActionInProgress
-                    b.btnGenerateQr.isEnabled = !inProgress
-                    b.btnGenerateQr.alpha = if (inProgress) 0.5f else 1f
-                    b.progressQrContainer.visibility =
-                        if (inProgress) View.VISIBLE else View.GONE
-                }
+            val uiEmployees = state.employees.map { EmployeeUi(it.id, it.name) }
+            if (uiEmployees != employees) {
+                employees = uiEmployees
+                employeesAdapter.setItems(employees)
+                val first = employees.firstOrNull()
+                selectedEmployeeId = first?.id
+                b.actvEmployee.setText(first?.name.orEmpty(), false)
             }
+
+            b.ivQrCode.setImageBitmap(state.qrBitmap)
+
+            val inProgress = state.isLoading || state.isActionInProgress
+            b.btnGenerateQr.isEnabled = !inProgress
+            b.btnGenerateQr.alpha = if (inProgress) 0.5f else 1f
+            b.progressQrContainer.visibility =
+                if (inProgress) View.VISIBLE else View.GONE
         }
     }
 
     private fun observeEvents() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.events.collect { event ->
-                    when (event) {
-                        is QrGenerationEvent.ShowError -> showDialog(event.message)
-                    }
-                }
+        collectFlow(viewModel.events) { event ->
+            when (event) {
+                is QrGenerationEvent.ShowError -> showDialog(event.message)
             }
         }
     }

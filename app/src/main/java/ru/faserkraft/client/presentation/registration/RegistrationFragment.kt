@@ -8,17 +8,14 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentRegistrationBinding
 import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.presentation.AppViewModel
 import ru.faserkraft.client.presentation.scanner.ScannerViewModel
+import ru.faserkraft.client.presentation.ui.collectFlow
 
 @AndroidEntryPoint
 class RegistrationFragment : Fragment() {
@@ -47,19 +44,15 @@ class RegistrationFragment : Fragment() {
     }
 
     private fun observeUser() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                appViewModel.userData.collect { user ->
-                    val b = _binding ?: return@collect
-                    user ?: return@collect
+        collectFlow(appViewModel.userData) { user ->
+            val b = _binding ?: return@collectFlow
+            user ?: return@collectFlow
 
-                    b.tvEmployeeName.text = user.name
-                    b.tvEmail.text = user.email
-                    b.tvRole.text = user.role?.value ?: ""
-                    b.fabShowQr.isVisible =
-                        user.role == UserRole.ADMIN || user.role == UserRole.MASTER
-                }
-            }
+            b.tvEmployeeName.text = user.name
+            b.tvEmail.text = user.email
+            b.tvRole.text = user.role?.value ?: ""
+            b.fabShowQr.isVisible =
+                user.role == UserRole.ADMIN || user.role == UserRole.MASTER
         }
     }
 

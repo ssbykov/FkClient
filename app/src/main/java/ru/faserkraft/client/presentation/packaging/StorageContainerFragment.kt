@@ -6,16 +6,12 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.tabs.TabLayoutMediator
-import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
-import ru.faserkraft.client.presentation.packaging.StoragePageAdapter
 import ru.faserkraft.client.databinding.FragmentStorageContainerBinding
 import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.presentation.AppViewModel
+import ru.faserkraft.client.presentation.ui.collectFlow
 
 class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
 
@@ -36,32 +32,24 @@ class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
     }
 
     private fun observeUser() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                appViewModel.userData.collect { user ->
-                    val hasAccess = user?.role == UserRole.MASTER
-                    val b = _binding ?: return@collect
+        collectFlow(appViewModel.userData) { user ->
+            val hasAccess = user?.role == UserRole.MASTER
+            val b = _binding ?: return@collectFlow
 
-                    b.noAccessContainer.isVisible = !hasAccess
-                    b.viewPagerStorage.isVisible = hasAccess
-                    b.tabLayoutStorage.isVisible = hasAccess
+            b.noAccessContainer.isVisible = !hasAccess
+            b.viewPagerStorage.isVisible = hasAccess
+            b.tabLayoutStorage.isVisible = hasAccess
 
-                    if (hasAccess && b.viewPagerStorage.adapter == null) {
-                        setupViewPager()
-                    }
-                }
+            if (hasAccess && b.viewPagerStorage.adapter == null) {
+                setupViewPager()
             }
         }
     }
 
     private fun observeErrors() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                appViewModel.errorState.collect { msg ->
-                    if (!isAdded || msg.isBlank()) return@collect
-                    showErrorDialog(msg)
-                }
-            }
+        collectFlow(appViewModel.errorState) { msg ->
+            if (!isAdded || msg.isBlank()) return@collectFlow
+            showErrorDialog(msg)
         }
     }
 
