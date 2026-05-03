@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import ru.faserkraft.client.dto.LoginData
-import ru.faserkraft.client.model.UserData
-import ru.faserkraft.client.model.UserRole
+import ru.faserkraft.client.domain.model.UserData
+import ru.faserkraft.client.domain.model.UserRole
 import javax.inject.Inject
 import javax.inject.Singleton
 

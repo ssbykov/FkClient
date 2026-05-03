@@ -1,4 +1,4 @@
-package ru.faserkraft.client.model
+package ru.faserkraft.client.domain.model
 
 import com.google.gson.annotations.SerializedName
 
@@ -22,5 +22,3 @@ enum class UserRole(val value: String) {
             entries.firstOrNull { it.value == value }
     }
 }
-
-
