@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.adapter.StoragePageAdapter
 import ru.faserkraft.client.databinding.FragmentStorageContainerBinding
-import ru.faserkraft.client.model.UserRole
+import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.viewmodel.ScannerViewModel
 
 class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
