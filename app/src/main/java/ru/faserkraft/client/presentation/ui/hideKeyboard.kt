@@ -1,4 +1,4 @@
-package ru.faserkraft.client.activity
+package ru.faserkraft.client.presentation.ui
 
 import android.app.Activity
 import android.content.Context
@@ -6,7 +6,6 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
 
-// Расширение для Fragment
 fun Fragment.hideKeyboard() {
     view?.let { activity?.hideKeyboard(it) }
 }
