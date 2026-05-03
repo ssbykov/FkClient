@@ -55,7 +55,7 @@
 
     <fragment
         android:id="@+id/registrationFragment"
-        android:name="ru.faserkraft.client.activity.RegistrationFragment"
+        android:name="ru.faserkraft.client.presentation.registration.RegistrationFragment"
         android:label="fragment_registration"
         tools:layout="@layout/fragment_registration">
         <action
@@ -149,7 +149,7 @@
 
     <fragment
         android:id="@+id/qrGenerationFragment"
-        android:name="ru.faserkraft.client.activity.QrGenerationFragment"
+        android:name="ru.faserkraft.client.presentation.registration.QrGenerationFragment"
         android:label="fragment_qr_generation"
         tools:layout="@layout/fragment_qr_generation" />
 

@@ -28,6 +28,11 @@ class ScannerViewModel @Inject constructor() : ViewModel() {
         isHandled = false
     }
 
+    fun clearState() {
+        isHandled = false
+        _uiState.update { ScannerUiState() }
+    }
+
     fun decodeQrCode(raw: String) {
         if (isHandled) return
         isHandled = true
