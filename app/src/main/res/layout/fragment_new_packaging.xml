@@ -7,7 +7,7 @@
     android:paddingHorizontal="24dp"
     android:paddingTop="24dp"
     android:paddingBottom="16dp"
-    tools:context=".activity.NewPackagingFragment">
+    tools:context=".presentation.packaging.NewPackagingFragment">
 
     <!-- Заголовок -->
     <TextView
