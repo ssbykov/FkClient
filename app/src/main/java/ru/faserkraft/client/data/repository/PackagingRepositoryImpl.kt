@@ -4,6 +4,7 @@ import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.domain.model.Packaging
 import ru.faserkraft.client.domain.repository.PackagingRepository
 import ru.faserkraft.client.dto.PackagingCreateDto
+import ru.faserkraft.client.error.AppError
 import ru.faserkraft.client.repository.ApiRepository
 import javax.inject.Inject
 
@@ -11,8 +12,14 @@ class PackagingRepositoryImpl @Inject constructor(
     private val apiRepository: ApiRepository,
 ) : PackagingRepository {
 
-    override suspend fun getPackaging(serialNumber: String): Packaging? =
-        apiRepository.getPackaging(serialNumber)?.toDomain()
+    override suspend fun getPackaging(serialNumber: String): Packaging? {
+        return try {
+            apiRepository.getPackaging(serialNumber)?.toDomain()
+        } catch (e: AppError.ApiError) {
+            if (e.status == 404) null
+            else throw e
+        }
+    }
 
     override suspend fun createPackaging(serialNumber: String, productIds: List<Int>): Packaging =
         requireNotNull(
