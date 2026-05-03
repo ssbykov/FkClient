@@ -5,7 +5,7 @@ import ru.faserkraft.client.domain.model.DailyPlanStep
 import ru.faserkraft.client.domain.model.Employee
 import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.domain.model.Product
-import ru.faserkraft.client.model.UserRole
+import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.utils.getToday
 
 data class PlanUiState(
