@@ -1,4 +1,4 @@
-package ru.faserkraft.client.api
+package ru.faserkraft.client.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -11,12 +11,18 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import ru.faserkraft.client.BuildConfig
+import ru.faserkraft.client.api.Api
+import ru.faserkraft.client.api.AuthApi
+import ru.faserkraft.client.api.AuthInterceptor
+import ru.faserkraft.client.api.BASE_URL
+import ru.faserkraft.client.api.TokenAuthenticator
+import ru.faserkraft.client.api.UpdateApi
 import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object ApiModule {
+object NetworkModule {
 
     @Provides
     @Singleton

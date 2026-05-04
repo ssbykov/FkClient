@@ -3,9 +3,9 @@ package ru.faserkraft.client.auth
 import android.content.Context
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
-import ru.faserkraft.client.dto.LoginData
 import ru.faserkraft.client.domain.model.UserData
 import ru.faserkraft.client.domain.model.UserRole
+import ru.faserkraft.client.dto.LoginData
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,9 +36,9 @@ class AppAuthImpl @Inject constructor(
         }
     }
 
-    override fun getRegistrationData(): UserData {
-        val name = prefs.getString(USERNAME, "") ?: "Не зарегистрирован"
-        val email = prefs.getString(LOGIN, "") ?: ""
+    override fun getRegistrationData(): UserData? {
+        val email = prefs.getString(LOGIN, null) ?: return null
+        val name = prefs.getString(USERNAME, null).orEmpty()
         val roleString = prefs.getString(ROLE, null)
 
         val role = roleString?.let { value ->
@@ -55,10 +55,11 @@ class AppAuthImpl @Inject constructor(
 
     override fun resetRegistration() {
         prefs.edit {
-            putString(LOGIN, null)
-            putString(PASSWORD, null)
-            putString(USERNAME, "Не зарегистрирован")
-            putString(TOKEN, null)
+            remove(LOGIN)
+            remove(PASSWORD)
+            remove(USERNAME)
+            remove(ROLE)
+            remove(TOKEN)
         }
     }
 
