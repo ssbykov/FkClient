@@ -32,8 +32,17 @@ class AppViewModel @Inject constructor(
     private val _userData = MutableStateFlow<UserData?>(null)
     val userData: StateFlow<UserData?> = _userData
 
-    private suspend fun onRegistrationReady(userData: UserData) {
-        _userData.emit(userData)
+    init {
+        loadUserData()
+    }
+
+    private fun loadUserData() {
+        _userData.value =
+            if (appAuth.checkRegistration() != null) {
+                appAuth.getRegistrationData()
+            } else {
+                null
+            }
     }
 
     fun registerDevice(request: DeviceRequestDto) {
@@ -53,7 +62,7 @@ class AppViewModel @Inject constructor(
                     role = UserRole.fromValue(registration.userRole) ?: UserRole.WORKER
                 )
                 appAuth.saveUserData(userData)
-                onRegistrationReady(userData)
+                _userData.value = userData
             }.onFailure { error ->
                 _errorState.emit(error.toErrorMessage())
             }
@@ -61,10 +70,7 @@ class AppViewModel @Inject constructor(
     }
 
     fun resetRegistrationData() {
-        viewModelScope.launch {
-            appAuth.resetRegistration()
-            _userData.emit(null)
-        }
+        appAuth.resetRegistration()
+        _userData.value = null
     }
-
 }
