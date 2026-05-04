@@ -13,7 +13,7 @@ import ru.faserkraft.client.domain.model.UserData
 import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.domain.usecase.device.RegisterDeviceUseCase
 import ru.faserkraft.client.dto.DeviceRequestDto
-
+import ru.faserkraft.client.presentation.base.toErrorMessage
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,8 +24,6 @@ class AppViewModel @Inject constructor(
 
     companion object {
         const val DEVICE_ALREADY_REGISTERED = "Устройство уже зарегистрировано"
-        const val EMPTY_SERVER_RESPONSE = "Пустой ответ сервера"
-        const val NETWORK_ERROR = "Ошибка сети"
     }
 
     private val _errorState = MutableSharedFlow<String>(extraBufferCapacity = 1)
@@ -57,7 +55,7 @@ class AppViewModel @Inject constructor(
                 appAuth.saveUserData(userData)
                 onRegistrationReady(userData)
             }.onFailure { error ->
-                _errorState.emit(error.message ?: EMPTY_SERVER_RESPONSE)
+                _errorState.emit(error.toErrorMessage())
             }
         }
     }
@@ -68,4 +66,5 @@ class AppViewModel @Inject constructor(
             _userData.emit(null)
         }
     }
+
 }
