@@ -1,0 +1,71 @@
+package ru.faserkraft.client.presentation.app
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import ru.faserkraft.client.auth.AppAuth
+import ru.faserkraft.client.domain.model.UserData
+import ru.faserkraft.client.domain.model.UserRole
+import ru.faserkraft.client.domain.usecase.device.RegisterDeviceUseCase
+import ru.faserkraft.client.dto.DeviceRequestDto
+
+import javax.inject.Inject
+
+@HiltViewModel
+class AppViewModel @Inject constructor(
+    private val appAuth: AppAuth,
+    private val registerDeviceUseCase: RegisterDeviceUseCase,
+) : ViewModel() {
+
+    companion object {
+        const val DEVICE_ALREADY_REGISTERED = "Устройство уже зарегистрировано"
+        const val EMPTY_SERVER_RESPONSE = "Пустой ответ сервера"
+        const val NETWORK_ERROR = "Ошибка сети"
+    }
+
+    private val _errorState = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val errorState: SharedFlow<String> = _errorState
+
+    private val _userData = MutableStateFlow<UserData?>(null)
+    val userData: StateFlow<UserData?> = _userData
+
+    private suspend fun onRegistrationReady(userData: UserData) {
+        _userData.emit(userData)
+    }
+
+    fun registerDevice(request: DeviceRequestDto) {
+        viewModelScope.launch {
+            if (appAuth.checkRegistration() != null) {
+                _errorState.emit(DEVICE_ALREADY_REGISTERED)
+                return@launch
+            }
+
+            runCatching {
+                registerDeviceUseCase(request)
+            }.onSuccess { registration ->
+                val userData = UserData(
+                    email = registration.userEmail,
+                    password = registration.password,
+                    name = registration.userName,
+                    role = UserRole.fromValue(registration.userRole) ?: UserRole.WORKER
+                )
+                appAuth.saveUserData(userData)
+                onRegistrationReady(userData)
+            }.onFailure { error ->
+                _errorState.emit(error.message ?: EMPTY_SERVER_RESPONSE)
+            }
+        }
+    }
+
+    fun resetRegistrationData() {
+        viewModelScope.launch {
+            appAuth.resetRegistration()
+            _userData.emit(null)
+        }
+    }
+}

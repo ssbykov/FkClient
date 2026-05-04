@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.AppActivityBinding
 import ru.faserkraft.client.model.VersionInfo
-import ru.faserkraft.client.presentation.AppViewModel
+import ru.faserkraft.client.presentation.app.AppViewModel
 import ru.faserkraft.client.update.AppUpdateManager
 import ru.faserkraft.client.viewmodel.UpdateViewModel
 

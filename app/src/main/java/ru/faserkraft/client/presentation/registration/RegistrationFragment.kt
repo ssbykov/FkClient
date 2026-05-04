@@ -13,7 +13,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentRegistrationBinding
 import ru.faserkraft.client.domain.model.UserRole
-import ru.faserkraft.client.presentation.AppViewModel
+import ru.faserkraft.client.presentation.app.AppViewModel
 import ru.faserkraft.client.presentation.scanner.ScannerViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
 

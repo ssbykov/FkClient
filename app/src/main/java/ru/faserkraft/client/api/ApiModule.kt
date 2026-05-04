@@ -1,5 +1,7 @@
 package ru.faserkraft.client.api
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,6 +17,10 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object ApiModule {
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson = GsonBuilder().create()
 
     @Provides
     @Singleton
@@ -40,15 +46,17 @@ object ApiModule {
             .authenticator(tokenAuthenticator)
             .build()
 
-    // --- Retrofit для обычного API ---
     @Provides
     @Singleton
     @Named("mainRetrofit")
-    fun provideRetrofit(okHttp: OkHttpClient): Retrofit =
+    fun provideRetrofit(
+        okHttp: OkHttpClient,
+        gson: Gson,
+    ): Retrofit =
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttp)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
     @Provides
@@ -61,7 +69,6 @@ object ApiModule {
     fun provideUpdateApi(@Named("mainRetrofit") retrofit: Retrofit): UpdateApi =
         retrofit.create(UpdateApi::class.java)
 
-    // --- отдельный OkHttp/Retrofit для AuthApi (БЕЗ TokenAuthenticator) ---
     @Provides
     @Singleton
     @Named("authOkHttp")
@@ -73,11 +80,14 @@ object ApiModule {
     @Provides
     @Singleton
     @Named("authRetrofit")
-    fun provideAuthRetrofit(@Named("authOkHttp") authOkHttp: OkHttpClient): Retrofit =
+    fun provideAuthRetrofit(
+        @Named("authOkHttp") authOkHttp: OkHttpClient,
+        gson: Gson,
+    ): Retrofit =
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(authOkHttp)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
     @Provides

@@ -10,7 +10,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentStorageContainerBinding
 import ru.faserkraft.client.domain.model.UserRole
-import ru.faserkraft.client.presentation.AppViewModel
+import ru.faserkraft.client.presentation.app.AppViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
 
 class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {

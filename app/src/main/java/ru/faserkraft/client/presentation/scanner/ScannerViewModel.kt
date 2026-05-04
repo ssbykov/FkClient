@@ -9,12 +9,14 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import ru.faserkraft.client.utils.isUfCode
-import ru.faserkraft.client.utils.isUfPkgCode
+import ru.faserkraft.client.domain.qr.QrClassifier
+import ru.faserkraft.client.domain.qr.QrParseResult
 import javax.inject.Inject
 
 @HiltViewModel
-class ScannerViewModel @Inject constructor() : ViewModel() {
+class ScannerViewModel @Inject constructor(
+    private val qrClassifier: QrClassifier,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ScannerUiState())
     val uiState: StateFlow<ScannerUiState> = _uiState
@@ -39,11 +41,23 @@ class ScannerViewModel @Inject constructor() : ViewModel() {
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, lastScannedValue = raw) }
-            when {
-                isUfCode(raw) -> _events.emit(ScannerEvent.OpenProduct(raw))
-                isUfPkgCode(raw) -> _events.emit(ScannerEvent.OpenPackaging(raw))
-                else -> _events.emit(ScannerEvent.OpenDeviceRegistration(raw))
+
+            when (val result = qrClassifier.classify(raw)) {
+                is QrParseResult.Product ->
+                    _events.emit(ScannerEvent.OpenProduct(result.code))
+
+                is QrParseResult.Packaging ->
+                    _events.emit(ScannerEvent.OpenPackaging(result.code))
+
+                is QrParseResult.DeviceRegistration ->
+                    _events.emit(ScannerEvent.OpenDeviceRegistration(result.request))
+
+                QrParseResult.Unknown -> {
+                    _events.emit(ScannerEvent.ShowError("Нераспознанный QR-код"))
+                    isHandled = false
+                }
             }
+
             _uiState.update { it.copy(isLoading = false) }
         }
     }

@@ -14,8 +14,10 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import dagger.hilt.android.AndroidEntryPoint
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentScannerBinding
+import ru.faserkraft.client.presentation.app.AppViewModel
 import ru.faserkraft.client.presentation.packaging.PackagingEvent
 import ru.faserkraft.client.presentation.packaging.PackagingViewModel
 import ru.faserkraft.client.presentation.product.ProductEvent
@@ -23,9 +25,11 @@ import ru.faserkraft.client.presentation.product.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.showErrorSnackbar
 
+@AndroidEntryPoint
 class ScannerFragment : Fragment() {
 
     private val scannerViewModel: ScannerViewModel by activityViewModels()
+    private val appViewModel: AppViewModel by activityViewModels()
     private val productViewModel: ProductViewModel by activityViewModels()
     private val packagingViewModel: PackagingViewModel by activityViewModels()
 
@@ -72,8 +76,6 @@ class ScannerFragment : Fragment() {
         observePackagingEvents()
     }
 
-    // ---------- Scanner state ----------
-
     private fun observeScannerState() {
         collectFlow(scannerViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
@@ -83,35 +85,33 @@ class ScannerFragment : Fragment() {
         }
     }
 
-    // ---------- Scanner events — только роутинг ----------
-
     private fun observeScannerEvents() {
         collectFlow(scannerViewModel.events) { event ->
             if (_binding == null || !isAdded) return@collectFlow
+
             when (event) {
                 is ScannerEvent.OpenProduct ->
-                    productViewModel.loadProduct(event.serialNumber)
+                    productViewModel.loadProduct(event.code)
 
                 is ScannerEvent.OpenPackaging ->
-                    packagingViewModel.loadPackaging(event.serialNumber)
+                    packagingViewModel.loadPackaging(event.code)
 
-                is ScannerEvent.OpenDeviceRegistration ->
+                is ScannerEvent.OpenDeviceRegistration -> {
+                    appViewModel.registerDevice(event.request)
                     findNavController().navigate(
                         R.id.action_scannerFragment_to_registrationFragment
                     )
+                }
 
                 is ScannerEvent.ShowError -> showError(event.message)
             }
         }
     }
 
-    // ---------- Product events — навигация ----------
-
     private fun observeProductEvents() {
         collectFlow(productViewModel.events) { event ->
             if (_binding == null || !isAdded) return@collectFlow
             when (event) {
-
                 is ProductEvent.NavigateToProduct ->
                     findNavController().navigate(
                         R.id.action_scannerFragment_to_productFragment
@@ -127,10 +127,10 @@ class ScannerFragment : Fragment() {
         }
     }
 
-    // ---------- Packaging events — навигация ----------
-
     private fun observePackagingEvents() {
         collectFlow(packagingViewModel.events) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
+
             when (event) {
                 PackagingEvent.NavigateToPackaging ->
                     findNavController().navigate(
@@ -143,13 +143,12 @@ class ScannerFragment : Fragment() {
                     )
 
                 is PackagingEvent.ShowError -> showErrorSnackbar(event.message)
+
                 PackagingEvent.NavigateToEdit,
                 PackagingEvent.PackagingDeleted -> Unit
             }
         }
     }
-
-    // ---------- Scanner ----------
 
     private fun startScanner() {
         binding.zxingBarcodeScanner.decodeContinuous { result ->
@@ -170,10 +169,10 @@ class ScannerFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        binding.zxingBarcodeScanner.pause()
+        if (_binding != null) {
+            binding.zxingBarcodeScanner.pause()
+        }
     }
-
-    // ---------- Manual input ----------
 
     private fun setupManualInputButton() {
         binding.tilManualInput.setEndIconOnClickListener {
@@ -194,21 +193,27 @@ class ScannerFragment : Fragment() {
         }
         editText.addTextChangedListener(object : TextWatcher {
             private var isFormatting = false
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+
             override fun afterTextChanged(s: Editable?) {
                 if (isFormatting || s == null) return
                 isFormatting = true
+
                 val digits = s.toString().replace("\\D".toRegex(), "")
                 val limited = if (digits.length > 7) digits.substring(digits.length - 7) else digits
                 val formatted = "uf-${limited.padStart(7, '0')}"
-                if (s.toString() != formatted) s.replace(0, s.length, formatted)
+
+                if (s.toString() != formatted) {
+                    s.replace(0, s.length, formatted)
+                }
+
                 isFormatting = false
             }
         })
     }
-
-    // ---------- Dialogs ----------
 
     private fun showError(message: String) {
         scannerViewModel.resetHandled()

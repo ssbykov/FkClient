@@ -4,7 +4,10 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import ru.faserkraft.client.data.qr.QrClassifierImpl
+import ru.faserkraft.client.domain.qr.QrClassifier
 import ru.faserkraft.client.domain.repository.DailyPlanRepository
+import ru.faserkraft.client.domain.repository.DeviceRepository
 import ru.faserkraft.client.domain.repository.EmployeeRepository
 import ru.faserkraft.client.domain.repository.OrderRepository
 import ru.faserkraft.client.domain.repository.PackagingRepository
@@ -44,4 +47,11 @@ abstract class DomainRepositoryModule {
     @Binds
     @Singleton
     abstract fun bindDailyPlanRepository(impl: DailyPlanRepositoryImpl): DailyPlanRepository
+
+    @Binds
+    abstract fun bindDeviceRepository(impl: DeviceRepositoryImpl): DeviceRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindQrClassifier(impl: QrClassifierImpl): QrClassifier
 }
