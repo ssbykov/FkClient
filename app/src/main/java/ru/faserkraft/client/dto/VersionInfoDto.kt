@@ -1,9 +1,9 @@
-package ru.faserkraft.client.model
+package ru.faserkraft.client.dto
 
 import com.google.gson.annotations.SerializedName
 import ru.faserkraft.client.domain.model.UserRole
 
-data class VersionInfo(
+data class VersionInfoDto(
     @SerializedName("version_name")
     val versionName: String,
     @SerializedName("apk_file")

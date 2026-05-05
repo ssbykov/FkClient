@@ -1,7 +1,6 @@
-package ru.faserkraft.client.viewmodel
+package ru.faserkraft.client.presentation.update
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -10,24 +9,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.BuildConfig
+import ru.faserkraft.client.data.update.AppUpdateManager
+import ru.faserkraft.client.data.update.UpdateStatus
 import ru.faserkraft.client.domain.model.UserData
-import ru.faserkraft.client.model.VersionInfo
-import ru.faserkraft.client.repository.UpdateRepository
-import ru.faserkraft.client.update.AppUpdateManager
+import ru.faserkraft.client.domain.model.VersionInfo
+import ru.faserkraft.client.domain.repository.UpdateRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class UpdateViewModel @Inject constructor(
     private val repository: UpdateRepository,
-    application: Application
-) : AndroidViewModel(application) {
+    private val appUpdateManager: AppUpdateManager
+) : ViewModel() {
 
-    private val updateManager = AppUpdateManager(application, repository)
+    private val _events = MutableSharedFlow<UpdateUiEvent>(extraBufferCapacity = 1)
+    val events: SharedFlow<UpdateUiEvent> = _events.asSharedFlow()
 
-    private val _updateAvailable = MutableSharedFlow<VersionInfo>(extraBufferCapacity = 1)
-    val updateAvailable: SharedFlow<VersionInfo> = _updateAvailable.asSharedFlow()
-
-    val status: StateFlow<AppUpdateManager.UpdateStatus> = updateManager.status
+    val status: StateFlow<UpdateStatus> = appUpdateManager.status
 
     private var updateCheckStarted = false
     private var updateDialogShown = false
@@ -45,22 +43,26 @@ class UpdateViewModel @Inject constructor(
                     user.role in latest.roles
                 ) {
                     updateDialogShown = true
-                    _updateAvailable.emit(latest)
+                    _events.emit(UpdateUiEvent.ShowUpdateDialog(latest))
                 }
-            }.onFailure {
-                // ошибка проверки обновлений — не критична, молча игнорируем
+            }.onFailure { error ->
+                _events.tryEmit(
+                    UpdateUiEvent.ShowError(
+                        error.message ?: "Ошибка проверки обновлений"
+                    )
+                )
             }
         }
     }
 
     fun startUpdate(version: VersionInfo) {
-        updateManager.downloadAndInstall(
-            fileName = "${version.versionName}.apk"
+        appUpdateManager.downloadAndInstall(
+            apkFileName = "${version.versionName}.apk"
         )
     }
 
     override fun onCleared() {
         super.onCleared()
-        updateManager.destroy()
+        appUpdateManager.destroy()
     }
 }

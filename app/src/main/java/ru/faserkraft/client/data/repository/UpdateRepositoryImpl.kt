@@ -1,11 +1,13 @@
-package ru.faserkraft.client.repository
+package ru.faserkraft.client.data.repository
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.faserkraft.client.api.UpdateApi
 import ru.faserkraft.client.data.callApi
+import ru.faserkraft.client.data.mapper.toDomain
+import ru.faserkraft.client.domain.model.VersionInfo
+import ru.faserkraft.client.domain.repository.UpdateRepository
 import ru.faserkraft.client.error.AppError
-import ru.faserkraft.client.model.VersionInfo
 import java.io.File
 import javax.inject.Inject
 
@@ -13,7 +15,8 @@ class UpdateRepositoryImpl @Inject constructor(
     private val api: UpdateApi
 ) : UpdateRepository {
     override suspend fun getLatestVersion(): VersionInfo =
-        callApi { api.getLatestVersion() }   // теперь тип выводится корректно
+        callApi { api.getLatestVersion() }
+            ?.toDomain()
             ?: throw AppError.UnknownError()
 
     override suspend fun downloadApkToFile(destFile: File, onProgress: (Int) -> Unit) {

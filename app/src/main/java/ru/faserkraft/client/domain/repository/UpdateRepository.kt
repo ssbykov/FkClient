@@ -1,8 +1,7 @@
-package ru.faserkraft.client.repository
+package ru.faserkraft.client.domain.repository
 
-import ru.faserkraft.client.model.VersionInfo
+import ru.faserkraft.client.domain.model.VersionInfo
 import java.io.File
-
 
 interface UpdateRepository {
     suspend fun getLatestVersion(): VersionInfo

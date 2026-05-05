@@ -15,11 +15,12 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
+import ru.faserkraft.client.data.update.UpdateStatus
 import ru.faserkraft.client.databinding.AppActivityBinding
-import ru.faserkraft.client.model.VersionInfo
+import ru.faserkraft.client.domain.model.VersionInfo
 import ru.faserkraft.client.presentation.app.AppViewModel
-import ru.faserkraft.client.update.AppUpdateManager
-import ru.faserkraft.client.viewmodel.UpdateViewModel
+import ru.faserkraft.client.presentation.update.UpdateUiEvent
+import ru.faserkraft.client.presentation.update.UpdateViewModel
 
 @AndroidEntryPoint
 class AppActivity : AppCompatActivity() {
@@ -39,7 +40,7 @@ class AppActivity : AppCompatActivity() {
 
         setupBottomNav(binding.bottomNav)
         triggerUpdateCheckOnce()
-        observeUpdateAvailable()
+        observeUpdateEvents()
         observeUpdateStatus()
     }
 
@@ -77,11 +78,14 @@ class AppActivity : AppCompatActivity() {
         }
     }
 
-    private fun observeUpdateAvailable() {
+    private fun observeUpdateEvents() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                updateViewModel.updateAvailable.collect { versionInfo ->
-                    showUpdateDialog(versionInfo)
+                updateViewModel.events.collect { event ->
+                    when (event) {
+                        is UpdateUiEvent.ShowUpdateDialog -> showUpdateDialog(event.version)
+                        is UpdateUiEvent.ShowError -> showUpdateErrorDialog(event.message)
+                    }
                 }
             }
         }
@@ -91,7 +95,7 @@ class AppActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 updateViewModel.status.collect { status ->
-                    if (status is AppUpdateManager.UpdateStatus.Error) {
+                    if (status is UpdateStatus.Error) {
                         showUpdateErrorDialog(status.message)
                     }
                 }
@@ -102,7 +106,15 @@ class AppActivity : AppCompatActivity() {
     private fun showUpdateDialog(versionInfo: VersionInfo) {
         MaterialAlertDialogBuilder(this)
             .setTitle("Доступно обновление")
-            .setMessage("Версия ${versionInfo.versionName}")
+            .setMessage(
+                buildString {
+                    append("Версия ${versionInfo.versionName}")
+                    if (versionInfo.changelog.isNotBlank()) {
+                        append("\n\n")
+                        append(versionInfo.changelog)
+                    }
+                }
+            )
             .setPositiveButton("Обновить") { _, _ ->
                 updateViewModel.startUpdate(versionInfo)
             }

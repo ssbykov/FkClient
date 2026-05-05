@@ -24,8 +24,8 @@ import ru.faserkraft.client.domain.repository.PackagingRepository
 import ru.faserkraft.client.domain.repository.ProcessRepository
 import ru.faserkraft.client.domain.repository.ProductRepository
 import ru.faserkraft.client.domain.repository.StepRepository
-import ru.faserkraft.client.repository.UpdateRepository
-import ru.faserkraft.client.repository.UpdateRepositoryImpl
+import ru.faserkraft.client.domain.repository.UpdateRepository
+import ru.faserkraft.client.data.repository.UpdateRepositoryImpl
 import javax.inject.Singleton
 
 @Module
