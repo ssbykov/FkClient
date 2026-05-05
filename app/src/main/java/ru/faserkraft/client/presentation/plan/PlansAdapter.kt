@@ -32,12 +32,17 @@ class PlansAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            TYPE_HEADER -> HeaderVH(ItemEmployeeHeaderBinding.inflate(inflater, parent, false))
-            else -> StepVH(
+            TYPE_HEADER -> HeaderVH(
+                ItemEmployeeHeaderBinding.inflate(inflater, parent, false)
+            )
+
+            TYPE_STEP -> StepVH(
                 binding = ItemPlanBinding.inflate(inflater, parent, false),
                 onEditPlanClick = onEditPlanClick,
                 onEmployeeProductsClick = onEmployeeProductsClick,
             )
+
+            else -> error("Unknown viewType: $viewType")
         }
     }
 
@@ -55,27 +60,44 @@ class PlansAdapter(
         notifyDataSetChanged()
     }
 
-    // ---------- Конвертация List<DailyPlan> → плоский список для адаптера ----------
-
     fun submitPlans(plans: List<DailyPlan>) {
-        val items = mutableListOf<EmployeePlanUiItem>()
-        plans.forEach { plan ->
-            items += EmployeePlanUiItem.Header(
-                employeeName = plan.employee.name,
-                plan = plan,
-            )
-            plan.steps.forEach { step ->
-                items += EmployeePlanUiItem.Step(plan = plan, step = step)
+        val items = plans
+            .groupBy { it.employee.id }
+            .values
+            .flatMap { employeePlans ->
+                val firstPlan = employeePlans.firstOrNull() ?: return@flatMap emptyList()
+
+                val stepItems = employeePlans.flatMap { plan ->
+                    plan.steps.map { step ->
+                        EmployeePlanUiItem.Step(
+                            plan = plan,
+                            step = step
+                        )
+                    }
+                }
+
+                if (stepItems.isEmpty()) {
+                    emptyList()
+                } else {
+                    buildList {
+                        add(
+                            EmployeePlanUiItem.Header(
+                                employeeId = firstPlan.employee.id,
+                                employeeName = firstPlan.employee.name
+                            )
+                        )
+                        addAll(stepItems)
+                    }
+                }
             }
-        }
+
         submitList(items)
     }
-
-    // ---------- ViewHolders ----------
 
     class HeaderVH(
         private val binding: ItemEmployeeHeaderBinding,
     ) : RecyclerView.ViewHolder(binding.root) {
+
         fun bind(item: EmployeePlanUiItem.Header) {
             binding.tvEmployeeName.text = item.employeeName
         }
@@ -105,15 +127,14 @@ class PlansAdapter(
         }
     }
 
-    // ---------- DiffUtil ----------
-
     class Diff : DiffUtil.ItemCallback<EmployeePlanUiItem>() {
+
         override fun areItemsTheSame(
             oldItem: EmployeePlanUiItem,
             newItem: EmployeePlanUiItem,
         ): Boolean = when {
             oldItem is EmployeePlanUiItem.Header && newItem is EmployeePlanUiItem.Header ->
-                oldItem.plan.id == newItem.plan.id
+                oldItem.employeeId == newItem.employeeId
 
             oldItem is EmployeePlanUiItem.Step && newItem is EmployeePlanUiItem.Step ->
                 oldItem.step.id == newItem.step.id
@@ -128,12 +149,11 @@ class PlansAdapter(
     }
 }
 
-// ---------- UI-модели ----------
-
 sealed class EmployeePlanUiItem {
+
     data class Header(
+        val employeeId: Int,
         val employeeName: String,
-        val plan: DailyPlan,
     ) : EmployeePlanUiItem()
 
     data class Step(
