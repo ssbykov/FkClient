@@ -14,7 +14,7 @@ class UpdateRepositoryImpl @Inject constructor(
 ) : UpdateRepository {
     override suspend fun getLatestVersion(): VersionInfo =
         callApi { api.getLatestVersion() }   // теперь тип выводится корректно
-            ?: throw AppError.UnknownError
+            ?: throw AppError.UnknownError()
 
     override suspend fun downloadApkToFile(destFile: File, onProgress: (Int) -> Unit) {
         val response = api.downloadApk()
@@ -27,7 +27,7 @@ class UpdateRepositoryImpl @Inject constructor(
             )
         }
 
-        val body = response.body() ?: throw AppError.UnknownError
+        val body = response.body() ?: throw AppError.UnknownError()
         val totalBytes = body.contentLength()
 
         withContext(Dispatchers.IO) {

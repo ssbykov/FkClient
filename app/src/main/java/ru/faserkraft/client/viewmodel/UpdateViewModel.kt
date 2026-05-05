@@ -4,8 +4,10 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.BuildConfig
 import ru.faserkraft.client.domain.model.UserData
@@ -22,19 +24,28 @@ class UpdateViewModel @Inject constructor(
 
     private val updateManager = AppUpdateManager(application, repository)
 
-    private val _updateAvailable = MutableStateFlow<VersionInfo?>(null)
-    val updateAvailable: StateFlow<VersionInfo?> = _updateAvailable
+    private val _updateAvailable = MutableSharedFlow<VersionInfo>(extraBufferCapacity = 1)
+    val updateAvailable: SharedFlow<VersionInfo> = _updateAvailable.asSharedFlow()
 
     val status: StateFlow<AppUpdateManager.UpdateStatus> = updateManager.status
 
+    private var updateCheckStarted = false
+    private var updateDialogShown = false
+
     fun checkForUpdates(user: UserData) {
+        if (updateCheckStarted) return
+        updateCheckStarted = true
+
         viewModelScope.launch {
             runCatching {
                 val latest = repository.getLatestVersion()
-                if (latest.versionName > BuildConfig.VERSION_NAME &&
+                if (
+                    !updateDialogShown &&
+                    latest.versionName > BuildConfig.VERSION_NAME &&
                     user.role in latest.roles
                 ) {
-                    _updateAvailable.value = latest
+                    updateDialogShown = true
+                    _updateAvailable.emit(latest)
                 }
             }.onFailure {
                 // ошибка проверки обновлений — не критична, молча игнорируем
