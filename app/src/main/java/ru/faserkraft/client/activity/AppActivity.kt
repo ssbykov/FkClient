@@ -12,6 +12,7 @@ import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.AppActivityBinding
@@ -37,7 +38,7 @@ class AppActivity : AppCompatActivity() {
         navController = navHostFragment.navController
 
         setupBottomNav(binding.bottomNav)
-        observeUser()
+        triggerUpdateCheckOnce()
         observeUpdateAvailable()
         observeUpdateStatus()
     }
@@ -66,14 +67,13 @@ class AppActivity : AppCompatActivity() {
         }
     }
 
-    private fun observeUser() {
+    private fun triggerUpdateCheckOnce() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                appViewModel.userData.collect { user ->
-                    user ?: return@collect
-                    updateViewModel.checkForUpdates(user)
-                }
-            }
+            val user = appViewModel.userData.value
+                ?: appViewModel.userData.firstOrNull { it != null }
+                ?: return@launch
+
+            updateViewModel.checkForUpdates(user)
         }
     }
 
@@ -81,7 +81,6 @@ class AppActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 updateViewModel.updateAvailable.collect { versionInfo ->
-                    versionInfo ?: return@collect
                     showUpdateDialog(versionInfo)
                 }
             }

@@ -36,8 +36,10 @@ class PackagingViewModel @Inject constructor(
     val events: SharedFlow<PackagingEvent> = _events
 
     init {
-        _uiState.update {
-            it.copy(currentUser = appAuth.getRegistrationData())
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(currentUser = appAuth.getRegistrationData())
+            }
         }
     }
 

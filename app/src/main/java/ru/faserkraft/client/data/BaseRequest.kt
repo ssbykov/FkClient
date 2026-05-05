@@ -1,10 +1,13 @@
 package ru.faserkraft.client.data
 
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONObject
 import retrofit2.Response
 import ru.faserkraft.client.error.AppError
 import java.io.IOException
+
+private const val TAG = "BaseRequest"
 
 private fun parseApiErrorBody(raw: String): Pair<String?, String?> {
     return try {
@@ -16,12 +19,12 @@ private fun parseApiErrorBody(raw: String): Pair<String?, String?> {
         if (json.has("detail")) {
             val detailElement = json.get("detail")
             detail = if (detailElement is JSONArray) {
-                // Ошибка валидации Pydantic — это массив объектов
                 if (detailElement.length() > 0) {
                     detailElement.getJSONObject(0).optString("msg")
-                } else null
+                } else {
+                    null
+                }
             } else {
-                // Обычная ошибка FastAPI — это просто строка
                 detailElement.toString()
             }
         }
@@ -29,6 +32,7 @@ private fun parseApiErrorBody(raw: String): Pair<String?, String?> {
         val code = json.optString("code").takeIf { it.isNotBlank() }
         code to detail
     } catch (e: Exception) {
+        Log.w(TAG, "Failed to parse api error body: $raw", e)
         null to null
     }
 }
@@ -36,29 +40,37 @@ private fun parseApiErrorBody(raw: String): Pair<String?, String?> {
 suspend fun <R> callApi(block: suspend () -> Response<R>): R? {
     return try {
         val response = block()
+
         if (!response.isSuccessful) {
             val raw = response.errorBody()?.string().orEmpty()
             val (serverCode, serverDetail) = parseApiErrorBody(raw)
             val errorMessage = serverDetail?.takeIf { it.isNotBlank() } ?: response.message()
             val uiCode = serverCode ?: "error_api_${response.code()}"
+
+            Log.e(
+                TAG,
+                "HTTP ${response.code()} ${response.message()} body=$raw"
+            )
+
             throw AppError.ApiError(
                 status = response.code(),
                 uiCode = uiCode,
-                message = errorMessage
+                message = errorMessage,
             )
         }
+
         response.body()
     } catch (e: IOException) {
-        throw AppError.NetworkError
+        Log.e(TAG, "Network IO error", e)
+        throw AppError.NetworkError(e)
     } catch (e: AppError) {
         throw e
     } catch (e: Exception) {
-        throw AppError.UnknownError
+        Log.e(TAG, "Unexpected error in callApi", e)
+        throw AppError.UnknownError(e)
     }
 }
 
-// Специализация для Unit — просто вызывает callApi и игнорирует null
-// BaseRequest.kt — вместо перегрузки:
 suspend fun callApiUnit(block: suspend () -> Response<Unit>) {
     callApi<Unit>(block)
 }

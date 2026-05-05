@@ -17,6 +17,7 @@ import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentScannerBinding
+import ru.faserkraft.client.presentation.app.AppEvent
 import ru.faserkraft.client.presentation.app.AppViewModel
 import ru.faserkraft.client.presentation.packaging.PackagingEvent
 import ru.faserkraft.client.presentation.packaging.PackagingViewModel
@@ -36,16 +37,22 @@ class ScannerFragment : Fragment() {
     private var _binding: FragmentScannerBinding? = null
     private val binding get() = _binding!!
 
+    private var scannerStarted = false
+
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (_binding == null) return@registerForActivityResult
-        if (isGranted) startScanner()
-        else Toast.makeText(
-            requireContext(),
-            "Camera permission is required to scan QR codes",
-            Toast.LENGTH_LONG
-        ).show()
+
+        if (isGranted) {
+            startScannerIfNeeded()
+        } else {
+            Toast.makeText(
+                requireContext(),
+                "Camera permission is required to scan QR codes",
+                Toast.LENGTH_LONG
+            ).show()
+        }
     }
 
     override fun onCreateView(
@@ -63,7 +70,7 @@ class ScannerFragment : Fragment() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED
         ) {
-            startScanner()
+            startScannerIfNeeded()
         } else {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
@@ -72,6 +79,8 @@ class ScannerFragment : Fragment() {
         setupManualInputButton()
         observeScannerState()
         observeScannerEvents()
+        observeAppEvents()
+        observeAppErrors()
         observeProductEvents()
         observePackagingEvents()
     }
@@ -79,9 +88,14 @@ class ScannerFragment : Fragment() {
     private fun observeScannerState() {
         collectFlow(scannerViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
+
             b.loadingOverlay.visibility = if (state.isLoading) View.VISIBLE else View.GONE
-            if (state.isLoading) b.zxingBarcodeScanner.pause()
-            else b.zxingBarcodeScanner.resume()
+
+            if (state.isLoading) {
+                b.zxingBarcodeScanner.pause()
+            } else if (scannerStarted) {
+                b.zxingBarcodeScanner.resume()
+            }
         }
     }
 
@@ -90,39 +104,69 @@ class ScannerFragment : Fragment() {
             if (_binding == null || !isAdded) return@collectFlow
 
             when (event) {
-                is ScannerEvent.OpenProduct ->
+                is ScannerEvent.OpenProduct -> {
                     productViewModel.loadProduct(event.code)
+                }
 
-                is ScannerEvent.OpenPackaging ->
+                is ScannerEvent.OpenPackaging -> {
                     packagingViewModel.loadPackaging(event.code)
+                }
 
                 is ScannerEvent.OpenDeviceRegistration -> {
+                    binding.zxingBarcodeScanner.pause()
                     appViewModel.registerDevice(event.request)
+                }
+
+                is ScannerEvent.ShowError -> {
+                    showError(event.message)
+                }
+            }
+        }
+    }
+
+    private fun observeAppEvents() {
+        collectFlow(appViewModel.events) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
+
+            when (event) {
+                AppEvent.RegistrationCompleted -> {
                     findNavController().navigate(
                         R.id.action_scannerFragment_to_registrationFragment
                     )
                 }
 
-                is ScannerEvent.ShowError -> showError(event.message)
+                AppEvent.LogoutCompleted -> Unit
             }
+        }
+    }
+
+    private fun observeAppErrors() {
+        collectFlow(appViewModel.errorState) { message ->
+            if (_binding == null || !isAdded) return@collectFlow
+            showError(message)
         }
     }
 
     private fun observeProductEvents() {
         collectFlow(productViewModel.events) { event ->
             if (_binding == null || !isAdded) return@collectFlow
+
             when (event) {
-                is ProductEvent.NavigateToProduct ->
+                is ProductEvent.NavigateToProduct -> {
                     findNavController().navigate(
                         R.id.action_scannerFragment_to_productFragment
                     )
+                }
 
-                is ProductEvent.NavigateToNewProduct ->
+                is ProductEvent.NavigateToNewProduct -> {
                     findNavController().navigate(
                         R.id.action_scannerFragment_to_newProductFragment
                     )
+                }
 
-                is ProductEvent.ShowError -> showError(event.message)
+                is ProductEvent.ShowError -> {
+                    showError(event.message)
+                }
             }
         }
     }
@@ -132,17 +176,21 @@ class ScannerFragment : Fragment() {
             if (_binding == null || !isAdded) return@collectFlow
 
             when (event) {
-                PackagingEvent.NavigateToPackaging ->
+                PackagingEvent.NavigateToPackaging -> {
                     findNavController().navigate(
                         R.id.action_scannerFragment_to_packagingFragment
                     )
+                }
 
-                PackagingEvent.NavigateToNewPackaging ->
+                PackagingEvent.NavigateToNewPackaging -> {
                     findNavController().navigate(
                         R.id.action_scannerFragment_to_newPackagingFragment
                     )
+                }
 
-                is PackagingEvent.ShowError -> showErrorSnackbar(event.message)
+                is PackagingEvent.ShowError -> {
+                    showError(event.message)
+                }
 
                 PackagingEvent.NavigateToEdit,
                 PackagingEvent.PackagingDeleted -> Unit
@@ -150,10 +198,15 @@ class ScannerFragment : Fragment() {
         }
     }
 
-    private fun startScanner() {
+    private fun startScannerIfNeeded() {
+        if (scannerStarted || _binding == null) return
+
+        scannerStarted = true
+
         binding.zxingBarcodeScanner.decodeContinuous { result ->
             val text = result?.text ?: return@decodeContinuous
             if (!isAdded || view == null || _binding == null) return@decodeContinuous
+
             scannerViewModel.decodeQrCode(text)
         }
     }
@@ -161,7 +214,11 @@ class ScannerFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if (_binding == null) return
-        binding.zxingBarcodeScanner.resume()
+
+        if (scannerStarted) {
+            binding.zxingBarcodeScanner.resume()
+        }
+
         scannerViewModel.resetHandled()
         binding.etManualInput.setText(R.string.uf_0000000)
         binding.etManualInput.clearFocus()
@@ -169,9 +226,7 @@ class ScannerFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        if (_binding != null) {
-            binding.zxingBarcodeScanner.pause()
-        }
+        _binding?.zxingBarcodeScanner?.pause()
     }
 
     private fun setupManualInputButton() {
@@ -187,10 +242,17 @@ class ScannerFragment : Fragment() {
 
     private fun setupManualInputMask() {
         val editText = binding.etManualInput
-        editText.setOnClickListener { editText.setSelection(editText.text?.length ?: 0) }
-        editText.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) editText.setSelection(editText.text?.length ?: 0)
+
+        editText.setOnClickListener {
+            editText.setSelection(editText.text?.length ?: 0)
         }
+
+        editText.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                editText.setSelection(editText.text?.length ?: 0)
+            }
+        }
+
         editText.addTextChangedListener(object : TextWatcher {
             private var isFormatting = false
 
@@ -203,7 +265,11 @@ class ScannerFragment : Fragment() {
                 isFormatting = true
 
                 val digits = s.toString().replace("\\D".toRegex(), "")
-                val limited = if (digits.length > 7) digits.substring(digits.length - 7) else digits
+                val limited = if (digits.length > 7) {
+                    digits.substring(digits.length - 7)
+                } else {
+                    digits
+                }
                 val formatted = "uf-${limited.padStart(7, '0')}"
 
                 if (s.toString() != formatted) {
@@ -217,11 +283,13 @@ class ScannerFragment : Fragment() {
 
     private fun showError(message: String) {
         scannerViewModel.resetHandled()
+        _binding?.zxingBarcodeScanner?.resume()
         showErrorSnackbar(message)
     }
 
     override fun onDestroyView() {
-        binding.zxingBarcodeScanner.pause()
+        _binding?.zxingBarcodeScanner?.pause()
+        scannerStarted = false
         _binding = null
         super.onDestroyView()
     }

@@ -50,7 +50,15 @@ class ProductViewModel @Inject constructor(
     val events: SharedFlow<ProductEvent> = _events
 
     init {
-        _uiState.update { it.copy(userRole = appAuth.getRegistrationData()?.role) }  // ← добавлено
+        loadUserRole()
+    }
+
+    private fun loadUserRole() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(userRole = appAuth.getRegistrationData()?.role)
+            }
+        }
     }
 
     // ---------- Загрузка продукта по серийному номеру (вход из QR) ----------

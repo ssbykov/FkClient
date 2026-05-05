@@ -56,9 +56,11 @@ class PlanViewModel @Inject constructor(
     // ---------- Пользователь / роль ----------
 
     private fun loadUserRole() {
-        val role = appAuth.getRegistrationData()?.role
-        _uiState.update { it.copy(userRole = role) }
-        recomputeCanEdit()
+        viewModelScope.launch {
+            val role = appAuth.getRegistrationData()?.role
+            _uiState.update { it.copy(userRole = role) }
+            recomputeCanEdit()
+        }
     }
 
     // ---------- Планы ----------

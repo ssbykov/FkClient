@@ -8,10 +8,11 @@ import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.auth.AppAuthImpl
 import javax.inject.Singleton
 
-@InstallIn(SingletonComponent::class)
 @Module
-interface AuthModule {
-    @Singleton
+@InstallIn(SingletonComponent::class)
+abstract class AppAuthModule {
+
     @Binds
-    fun bindsApiRepository(impl: AppAuthImpl): AppAuth
+    @Singleton
+    abstract fun bindAppAuth(impl: AppAuthImpl): AppAuth
 }

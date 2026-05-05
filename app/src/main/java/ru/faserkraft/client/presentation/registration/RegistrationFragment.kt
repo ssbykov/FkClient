@@ -46,7 +46,14 @@ class RegistrationFragment : Fragment() {
     private fun observeUser() {
         collectFlow(appViewModel.userData) { user ->
             val b = _binding ?: return@collectFlow
-            user ?: return@collectFlow
+
+            if (user == null) {
+                b.tvEmployeeName.text = ""
+                b.tvEmail.text = ""
+                b.tvRole.text = ""
+                b.fabShowQr.isVisible = false
+                return@collectFlow
+            }
 
             b.tvEmployeeName.text = user.name
             b.tvEmail.text = user.email
@@ -57,7 +64,9 @@ class RegistrationFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        binding.btnDone.setOnClickListener { showResetConfirmationDialog() }
+        binding.btnDone.setOnClickListener {
+            showResetConfirmationDialog()
+        }
 
         binding.fabShowQr.setOnClickListener {
             findNavController().navigate(
@@ -68,24 +77,27 @@ class RegistrationFragment : Fragment() {
 
     private fun showResetConfirmationDialog() {
         activeDialog?.dismiss()
+
         activeDialog = AlertDialog.Builder(requireContext())
             .setTitle("Завершить регистрацию?")
             .setMessage("Данные будут очищены, продолжить?")
             .setPositiveButton("Да") { dialog, _ ->
-                appViewModel.resetRegistrationData()
+                appViewModel.logout()
                 scannerViewModel.clearState()
                 dialog.dismiss()
                 findNavController().navigateUp()
             }
-            .setNegativeButton("Отмена") { dialog, _ -> dialog.dismiss() }
+            .setNegativeButton("Отмена") { dialog, _ ->
+                dialog.dismiss()
+            }
             .setOnDismissListener { activeDialog = null }
             .show()
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
         activeDialog?.dismiss()
         activeDialog = null
         _binding = null
+        super.onDestroyView()
     }
 }

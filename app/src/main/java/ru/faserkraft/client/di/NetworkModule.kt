@@ -17,6 +17,7 @@ import ru.faserkraft.client.api.AuthInterceptor
 import ru.faserkraft.client.api.BASE_URL
 import ru.faserkraft.client.api.TokenAuthenticator
 import ru.faserkraft.client.api.UpdateApi
+import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -37,16 +38,20 @@ object NetworkModule {
             } else {
                 HttpLoggingInterceptor.Level.NONE
             }
+            redactHeader("Authorization")
         }
 
     @Provides
     @Singleton
-    fun provideOkHttp(
+    fun provideMainOkHttp(
         logging: HttpLoggingInterceptor,
         authInterceptor: AuthInterceptor,
         tokenAuthenticator: TokenAuthenticator,
     ): OkHttpClient =
         OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
             .addInterceptor(logging)
             .addInterceptor(authInterceptor)
             .authenticator(tokenAuthenticator)
@@ -55,7 +60,7 @@ object NetworkModule {
     @Provides
     @Singleton
     @Named("mainRetrofit")
-    fun provideRetrofit(
+    fun provideMainRetrofit(
         okHttp: OkHttpClient,
         gson: Gson,
     ): Retrofit =
@@ -78,8 +83,13 @@ object NetworkModule {
     @Provides
     @Singleton
     @Named("authOkHttp")
-    fun provideAuthOkHttp(logging: HttpLoggingInterceptor): OkHttpClient =
+    fun provideAuthOkHttp(
+        logging: HttpLoggingInterceptor,
+    ): OkHttpClient =
         OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
             .addInterceptor(logging)
             .build()
 

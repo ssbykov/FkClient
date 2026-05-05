@@ -5,7 +5,8 @@ import java.io.Serializable
 sealed class AppError(
     open val uiCode: String,
     override val message: String? = null,
-) : RuntimeException(message), Serializable {
+    cause: Throwable? = null,
+) : RuntimeException(message, cause), Serializable {
 
     data class ApiError(
         val status: Int,
@@ -13,7 +14,21 @@ sealed class AppError(
         override val message: String? = null,
     ) : AppError(uiCode, message)
 
-    data object NetworkError : AppError("error_network")
-    data object UnknownError : AppError("error_unknown")
+    data class NetworkError(
+        val error: Throwable? = null,
+    ) : AppError(
+        uiCode = "error_network",
+        message = error?.message,
+        cause = error,
+    )
+
+    data class UnknownError(
+        val error: Throwable? = null,
+    ) : AppError(
+        uiCode = "error_unknown",
+        message = error?.message,
+        cause = error,
+    )
+
     data object DaoError : AppError("dao_error")
 }
