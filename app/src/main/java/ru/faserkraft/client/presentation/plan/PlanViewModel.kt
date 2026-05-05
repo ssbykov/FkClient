@@ -23,6 +23,8 @@ import ru.faserkraft.client.domain.usecase.plan.RemoveStepFromPlanUseCase
 import ru.faserkraft.client.domain.usecase.plan.UpdateStepInPlanUseCase
 import ru.faserkraft.client.domain.usecase.process.GetProcessesUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductsByStepEmployeeDayUseCase
+import ru.faserkraft.client.presentation.app.AppSessionCoordinator
+import ru.faserkraft.client.presentation.app.AppSessionEvent
 import ru.faserkraft.client.presentation.base.toErrorMessage
 import ru.faserkraft.client.utils.apiPattern
 import ru.faserkraft.client.utils.getToday
@@ -41,6 +43,7 @@ class PlanViewModel @Inject constructor(
     private val getProcessesUseCase: GetProcessesUseCase,
     private val getProductsByStepEmployeeDayUseCase: GetProductsByStepEmployeeDayUseCase,
     private val appAuth: AppAuth,
+    private val sessionCoordinator: AppSessionCoordinator,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PlanUiState())
@@ -49,8 +52,24 @@ class PlanViewModel @Inject constructor(
     private val _events = MutableSharedFlow<PlanEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<PlanEvent> = _events
 
+
     init {
         loadUserRole()
+        observeSessionEvents()
+    }
+
+    private fun observeSessionEvents() {
+        viewModelScope.launch {
+            sessionCoordinator.events.collect { event ->
+                when (event) {
+                    AppSessionEvent.Logout -> resetState()
+                }
+            }
+        }
+    }
+
+    fun resetState() {
+        _uiState.value = PlanUiState()
     }
 
     // ---------- Пользователь / роль ----------

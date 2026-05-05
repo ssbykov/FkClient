@@ -16,6 +16,8 @@ import ru.faserkraft.client.domain.usecase.packaging.DeletePackagingUseCase
 import ru.faserkraft.client.domain.usecase.packaging.GetPackagingInStorageUseCase
 import ru.faserkraft.client.domain.usecase.packaging.GetPackagingUseCase
 import ru.faserkraft.client.domain.usecase.product.GetFinishedProductsUseCase
+import ru.faserkraft.client.presentation.app.AppSessionCoordinator
+import ru.faserkraft.client.presentation.app.AppSessionEvent
 import ru.faserkraft.client.presentation.base.toErrorMessage
 import javax.inject.Inject
 
@@ -27,6 +29,7 @@ class PackagingViewModel @Inject constructor(
     private val getPackagingInStorageUseCase: GetPackagingInStorageUseCase,
     private val getFinishedProductsUseCase: GetFinishedProductsUseCase,
     private val appAuth: AppAuth,
+    private val sessionCoordinator: AppSessionCoordinator,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PackagingUiState())
@@ -41,6 +44,21 @@ class PackagingViewModel @Inject constructor(
                 it.copy(currentUser = appAuth.getRegistrationData())
             }
         }
+        observeSessionEvents()
+    }
+
+    private fun observeSessionEvents() {
+        viewModelScope.launch {
+            sessionCoordinator.events.collect { event ->
+                when (event) {
+                    AppSessionEvent.Logout -> resetState()
+                }
+            }
+        }
+    }
+
+    fun resetState() {
+        _uiState.value = PackagingUiState()
     }
 
     // ---------- Загрузка упаковки по серийному номеру (вход из QR) ----------

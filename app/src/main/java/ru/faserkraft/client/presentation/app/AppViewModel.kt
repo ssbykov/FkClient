@@ -29,6 +29,7 @@ class AppViewModel @Inject constructor(
     private val appAuth: AppAuth,
     private val loginUseCase: LoginUseCase,
     private val registerDeviceUseCase: RegisterDeviceUseCase,
+    private val sessionCoordinator: AppSessionCoordinator,
 ) : ViewModel() {
 
     private val _userData = MutableStateFlow<UserData?>(null)
@@ -86,6 +87,7 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch {
             appAuth.clear()
             _userData.value = null
+            sessionCoordinator.send(AppSessionEvent.Logout)
             _events.emit(AppEvent.LogoutCompleted)
         }
     }

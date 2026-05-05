@@ -25,6 +25,8 @@ import ru.faserkraft.client.domain.usecase.product.GetProductsByLastStepUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductsInventoryUseCase
 import ru.faserkraft.client.domain.usecase.step.ChangeStepPerformerUseCase
 import ru.faserkraft.client.domain.usecase.step.CloseStepUseCase
+import ru.faserkraft.client.presentation.app.AppSessionCoordinator
+import ru.faserkraft.client.presentation.app.AppSessionEvent
 import ru.faserkraft.client.presentation.base.toErrorMessage
 import javax.inject.Inject
 
@@ -40,7 +42,8 @@ class ProductViewModel @Inject constructor(
     private val getEmployeesUseCase: GetEmployeesUseCase,
     private val getProductsInventoryUseCase: GetProductsInventoryUseCase,
     private val getProductsByLastStepUseCase: GetProductsByLastStepUseCase,
-    private val appAuth: AppAuth,                                          // ← добавлено
+    private val appAuth: AppAuth,
+    private val sessionCoordinator: AppSessionCoordinator,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProductUiState())
@@ -51,6 +54,21 @@ class ProductViewModel @Inject constructor(
 
     init {
         loadUserRole()
+        observeSessionEvents()
+    }
+
+    private fun observeSessionEvents() {
+        viewModelScope.launch {
+            sessionCoordinator.events.collect { event ->
+                when (event) {
+                    AppSessionEvent.Logout -> resetState()
+                }
+            }
+        }
+    }
+
+    fun resetState() {
+        _uiState.value = ProductUiState()
     }
 
     private fun loadUserRole() {
