@@ -14,11 +14,9 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductBinding
-import ru.faserkraft.client.domain.model.ProductStatus
-import ru.faserkraft.client.domain.model.StepStatus
-import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.formatIsoToUi
+import ru.faserkraft.client.utils.navigateSafely
 import ru.faserkraft.client.utils.showErrorSnackbar
 
 class ProductFragment : Fragment() {
@@ -29,6 +27,8 @@ class ProductFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var activeDialog: AlertDialog? = null
+
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,6 +47,13 @@ class ProductFragment : Fragment() {
         setupClickListeners()
     }
 
+    override fun onDestroyView() {
+        activeDialog?.dismiss()
+        activeDialog = null
+        _binding = null
+        super.onDestroyView()
+    }
+
     // ---------- Observe ----------
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -54,11 +61,16 @@ class ProductFragment : Fragment() {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
-            b.progressEdit.visibility =
-                if (state.isActionInProgress) View.VISIBLE else View.GONE
+            val canEdit = state.userRole.canEditProduct()
+
+            b.progressEdit.visibility = if (state.isActionInProgress) View.VISIBLE else View.GONE
+            b.btnEdit.visibility = if (canEdit) View.VISIBLE else View.GONE
             b.btnDone.isEnabled = !state.isActionInProgress
+            // isClickable (а не isEnabled) — сохраняет внешний вид chip, но блокирует касания
+            b.chipProductStatus.isClickable = canEdit
 
             val product = state.product ?: return@collectFlow
+
             b.tvProcess.text = product.process.name
             b.tvProductNumber.text = product.serialNumber
             b.tvCreated.text = formatIsoToUi(product.createdAt)
@@ -67,6 +79,7 @@ class ProductFragment : Fragment() {
             val ctx = b.root.context
             val bgColor = ContextCompat.getColor(ctx, uiStatus.bgColorRes)
             val textColor = ContextCompat.getColor(ctx, uiStatus.textColorRes)
+
             b.chipProductStatus.text = getString(uiStatus.titleRes)
             b.chipProductStatus.chipBackgroundColor = ColorStateList.valueOf(bgColor)
             b.chipProductStatus.setTextColor(textColor)
@@ -74,24 +87,41 @@ class ProductFragment : Fragment() {
 
             val step = state.selectedStep ?: return@collectFlow
             val uiStepStatus = step.toUiStatus()
+
             b.tvStepName.text = ctx.getString(R.string.step_last_title, step.definition.name)
             b.tvStatus.text = ctx.getString(uiStepStatus.statusTitleRes)
             b.tvCompletedAt.text = ctx.getString(uiStepStatus.statusDescRes)
-            b.cardRoot.setBackgroundColor(
-                ContextCompat.getColor(ctx, uiStepStatus.bgColorRes)
-            )
+            b.cardRoot.setBackgroundColor(ContextCompat.getColor(ctx, uiStepStatus.bgColorRes))
         }
     }
 
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
             when (event) {
-                is ProductEvent.NavigateToNewProduct ->
-                    findNavController().navigate(
-                        R.id.action_scannerFragment_to_newProductFragment
+                is ProductEvent.NavigateToEditProcess -> {
+                    findNavController().navigateSafely(
+                        R.id.action_productFragment_to_editProductFragment
                     )
-                is ProductEvent.NavigateToProduct -> Unit
-                is ProductEvent.ShowError -> showErrorSnackbar(event.message)
+                }
+
+                is ProductEvent.NavigateToEditStatus -> {
+                    findNavController().navigateSafely(
+                        R.id.action_productFragment_to_editProductStatusFragment
+                    )
+                }
+
+                is ProductEvent.ShowError -> {
+                    showErrorSnackbar(event.message)
+                }
+
+                is ProductEvent.ShowConfirmationDialog -> {
+                    showConfirmDialog(title = event.title, message = event.message) {
+                        viewModel.onDialogConfirmed(event.actionType, event.step)
+                    }
+                }
+
+                ProductEvent.NavigateToNewProduct,
+                ProductEvent.NavigateToProduct -> Unit
             }
         }
     }
@@ -99,47 +129,18 @@ class ProductFragment : Fragment() {
     // ---------- Clicks ----------
 
     private fun setupClickListeners() {
+        // Fragment не содержит бизнес-логики — он только делегирует клики во ViewModel
         binding.btnAllStages.setOnClickListener {
             findNavController().navigate(R.id.action_productFragment_to_productFullFragment)
         }
-
         binding.chipProductStatus.setOnClickListener {
-            if (!viewModel.uiState.value.userRole.canEditProduct()) return@setOnClickListener
-            showConfirmDialog("Изменение статуса", "Вы уверены?") {
-                findNavController().navigate(
-                    R.id.action_productFragment_to_editProductStatusFragment
-                )
-            }
+            viewModel.onChangeStatusClicked()
         }
-
         binding.btnEdit.setOnClickListener {
-            if (!viewModel.uiState.value.userRole.canEditProduct()) return@setOnClickListener
-            showConfirmDialog("Изменение процесса", "Вы уверены?") {
-                viewModel.loadProcesses()
-                findNavController().navigate(
-                    R.id.action_productFragment_to_editProductFragment
-                )
-            }
+            viewModel.onChangeProcessClicked()
         }
-
         binding.btnDone.setOnClickListener {
-            val state = viewModel.uiState.value
-            val product = state.product ?: return@setOnClickListener
-            val step = state.selectedStep ?: return@setOnClickListener
-            if (step.id == 0) return@setOnClickListener
-
-            when {
-                product.status == ProductStatus.REWORK ||
-                        product.status == ProductStatus.SCRAP ->
-                    showErrorSnackbar("Нельзя закрыть этап: продукт в статусе РЕМОНТ или БРАК")
-
-                step.status == StepStatus.DONE ->
-                    showErrorSnackbar("Этап уже выполнен")
-
-                else -> showConfirmDialog("Закрыть этап", "Вы уверены?") {
-                    viewModel.closeStep(step)
-                }
-            }
+            viewModel.onCloseStepClicked()
         }
     }
 
@@ -150,20 +151,18 @@ class ProductFragment : Fragment() {
         activeDialog = AlertDialog.Builder(requireContext())
             .setTitle(title)
             .setMessage(message)
-            .setPositiveButton("Да") { d, _ -> onConfirm(); d.dismiss(); activeDialog = null }
-            .setNegativeButton("Отмена") { d, _ -> d.dismiss(); activeDialog = null }
-            .also { it.setOnDismissListener { activeDialog = null } }
+            .setPositiveButton("Да") { d, _ ->
+                onConfirm()
+                d.dismiss()
+                activeDialog = null
+            }
+            .setNegativeButton("Отмена") { d, _ ->
+                d.dismiss()
+                activeDialog = null
+            }
+            .also { builder ->
+                builder.setOnDismissListener { activeDialog = null }
+            }
             .show()
     }
-
-    override fun onDestroyView() {
-        activeDialog?.dismiss()
-        activeDialog = null
-        _binding = null
-        super.onDestroyView()
-    }
 }
-
-// Extension в том же файле или в ProductUiMappers.kt
-private fun UserRole?.canEditProduct() =
-    this == UserRole.ADMIN || this == UserRole.MASTER
