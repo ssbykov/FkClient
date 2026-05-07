@@ -61,8 +61,7 @@ class NewProductFragment : Fragment() {
 
             b.btnSave.isEnabled = !state.isActionInProgress
 
-            // Серийный номер нового продукта из pendingSerialNumber
-            state.pendingSerialNumber?.let { b.tvSerial.text = it }  // ← изменить
+            state.pendingSerialNumber?.let { b.tvSerial.text = it }
 
             val newProcesses = state.processes.map { ProcessUi(it.id, it.name) }
             if (newProcesses != processes) {
