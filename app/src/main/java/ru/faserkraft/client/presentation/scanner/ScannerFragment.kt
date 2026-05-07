@@ -24,6 +24,7 @@ import ru.faserkraft.client.presentation.packaging.PackagingViewModel
 import ru.faserkraft.client.presentation.product.ProductEvent
 import ru.faserkraft.client.presentation.product.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.navigateSafely
 import ru.faserkraft.client.utils.showErrorSnackbar
 
 @AndroidEntryPoint
@@ -153,20 +154,18 @@ class ScannerFragment : Fragment() {
 
             when (event) {
                 is ProductEvent.NavigateToProduct -> {
-                    findNavController().navigate(
-                        R.id.action_scannerFragment_to_productFragment
-                    )
+                    findNavController().navigateSafely(R.id.action_scannerFragment_to_productFragment)
                 }
 
                 is ProductEvent.NavigateToNewProduct -> {
-                    findNavController().navigate(
-                        R.id.action_scannerFragment_to_newProductFragment
-                    )
+                    findNavController().navigateSafely(R.id.action_scannerFragment_to_newProductFragment)
                 }
 
                 is ProductEvent.ShowError -> {
                     showError(event.message)
                 }
+
+                else -> Unit
             }
         }
     }
@@ -177,13 +176,13 @@ class ScannerFragment : Fragment() {
 
             when (event) {
                 PackagingEvent.NavigateToPackaging -> {
-                    findNavController().navigate(
+                    findNavController().navigateSafely(
                         R.id.action_scannerFragment_to_packagingFragment
                     )
                 }
 
                 PackagingEvent.NavigateToNewPackaging -> {
-                    findNavController().navigate(
+                    findNavController().navigateSafely(
                         R.id.action_scannerFragment_to_newPackagingFragment
                     )
                 }
@@ -200,12 +199,13 @@ class ScannerFragment : Fragment() {
 
     private fun startScannerIfNeeded() {
         if (scannerStarted || _binding == null) return
-
         scannerStarted = true
 
         binding.zxingBarcodeScanner.decodeContinuous { result ->
             val text = result?.text ?: return@decodeContinuous
             if (!isAdded || view == null || _binding == null) return@decodeContinuous
+
+            binding.zxingBarcodeScanner.pause()
 
             scannerViewModel.decodeQrCode(text)
         }
@@ -256,7 +256,8 @@ class ScannerFragment : Fragment() {
         editText.addTextChangedListener(object : TextWatcher {
             private var isFormatting = false
 
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) =
+                Unit
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
 
