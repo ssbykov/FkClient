@@ -3,10 +3,10 @@ package ru.faserkraft.client.presentation.plan
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.auth.AppAuth
@@ -49,9 +49,8 @@ class PlanViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PlanUiState())
     val uiState: StateFlow<PlanUiState> = _uiState
 
-    private val _events = MutableSharedFlow<PlanEvent>(extraBufferCapacity = 1)
-    val events: SharedFlow<PlanEvent> = _events
-
+    private val _events = Channel<PlanEvent>()
+    val events = _events.receiveAsFlow()
 
     init {
         loadUserRole()
@@ -210,7 +209,6 @@ class PlanViewModel @Inject constructor(
 
         try {
             val format = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-
             val parsedDate = format.parse(current) ?: return
 
             val calendar = Calendar.getInstance().apply {
@@ -219,7 +217,6 @@ class PlanViewModel @Inject constructor(
             }
 
             val newDate = format.format(calendar.time)
-
             loadPlans(newDate)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -252,7 +249,6 @@ class PlanViewModel @Inject constructor(
     // ---------- Ошибки ----------
 
     private suspend fun emitError(e: Throwable) {
-        _events.emit(PlanEvent.ShowError(e.toErrorMessage()))
+        _events.send(PlanEvent.ShowError(e.toErrorMessage()))
     }
-
 }

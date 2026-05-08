@@ -20,6 +20,7 @@ import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.convertDate
 import ru.faserkraft.client.utils.formatPlanDate
 import ru.faserkraft.client.utils.getToday
+import ru.faserkraft.client.utils.navigateSafely
 import ru.faserkraft.client.utils.showErrorSnackbar
 
 class DayPlanFragment : Fragment() {
@@ -38,6 +39,8 @@ class DayPlanFragment : Fragment() {
     private var activeDialog: AlertDialog? = null
 
     private lateinit var emptyObserver: RecyclerView.AdapterDataObserver
+
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,6 +67,19 @@ class DayPlanFragment : Fragment() {
             viewModel.loadEmployees()
             viewModel.loadProcesses()
         }
+    }
+
+    override fun onDestroyView() {
+        if (::emptyObserver.isInitialized) {
+            plansAdapter.unregisterAdapterDataObserver(emptyObserver)
+        }
+        binding.rvPlans.adapter = null
+        datePicker?.dismiss()
+        datePicker = null
+        activeDialog?.dismiss()
+        activeDialog = null
+        _binding = null
+        super.onDestroyView()
     }
 
     // ---------- Setup ----------
@@ -101,7 +117,8 @@ class DayPlanFragment : Fragment() {
             override fun onSwiped(vh: RecyclerView.ViewHolder, direction: Int) {
                 val position = vh.bindingAdapterPosition
                 val item = plansAdapter.currentList.getOrNull(position)
-                // Визуально откатываем — удаляем только после подтверждения
+
+                // Визуально откатываем свайп — удаляем только после подтверждения
                 plansAdapter.notifyItemChanged(position)
 
                 if (item !is EmployeePlanUiItem.Step || !isAdded) return
@@ -148,7 +165,6 @@ class DayPlanFragment : Fragment() {
 
             // Загрузка
             b.swipeRefresh.isRefreshing = state.isLoading
-            b.swipeRefresh.isEnabled = !state.isLoading
             b.etDate.isEnabled = !state.isLoading
             b.fabAddPlan.isEnabled = !state.isLoading
 
@@ -169,10 +185,8 @@ class DayPlanFragment : Fragment() {
                 b.fabAddPlan.visibility = View.GONE
             }
 
-            // canEdit в адаптер: только мастер + не прошедший день
             plansAdapter.setCanEdit(state.canEdit && !state.isPastDate)
 
-            // Список
             plansAdapter.submitPlans(state.plans)
         }
     }
@@ -185,7 +199,7 @@ class DayPlanFragment : Fragment() {
         }
     }
 
-    // ---------- Empty state ----------
+    // ---------- Helpers ----------
 
     private fun checkEmpty() {
         val b = _binding ?: return
@@ -213,28 +227,24 @@ class DayPlanFragment : Fragment() {
         picker.show(parentFragmentManager, "day_plan_date_picker")
     }
 
-    // ---------- Навигация ----------
+    // ---------- Navigation ----------
 
     private fun openAddPlanScreen() {
         viewModel.loadEmployees()
         viewModel.loadProcesses()
-        findNavController().navigate(
-            R.id.action_dayPlanFragment_to_addDayPlanFragment
-        )
+        findNavController().navigateSafely(R.id.action_dayPlanFragment_to_addDayPlanFragment)
     }
 
     private fun onEditPlan(plan: DailyPlan, step: DailyPlanStep) {
         viewModel.selectPlanStep(plan, step)
         viewModel.loadEmployees()
         viewModel.loadProcesses()
-        findNavController().navigate(R.id.action_dayPlanFragment_to_addDayPlanFragment)
+        findNavController().navigateSafely(R.id.action_dayPlanFragment_to_addDayPlanFragment)
     }
 
     private fun onEmployeeProducts(plan: DailyPlan, step: DailyPlanStep) {
         viewModel.selectPlanStep(plan, step)
-        findNavController().navigate(
-            R.id.action_dayPlanFragment_to_employeePlanProductsFragment
-        )
+        findNavController().navigateSafely(R.id.action_dayPlanFragment_to_employeePlanProductsFragment)
     }
 
     // ---------- Copy plan dialog ----------
@@ -259,24 +269,16 @@ class DayPlanFragment : Fragment() {
         activeDialog = AlertDialog.Builder(requireContext())
             .setTitle(title)
             .setMessage(message)
-            .setPositiveButton("Да") { d, _ -> onConfirm(); d.dismiss(); activeDialog = null }
-            .setNegativeButton("Отмена") { d, _ -> d.dismiss(); activeDialog = null }
+            .setPositiveButton("Да") { d, _ ->
+                onConfirm()
+                d.dismiss()
+                activeDialog = null
+            }
+            .setNegativeButton("Отмена") { d, _ ->
+                d.dismiss()
+                activeDialog = null
+            }
             .also { it.setOnDismissListener { activeDialog = null } }
             .show()
-    }
-
-    // ---------- Lifecycle ----------
-
-    override fun onDestroyView() {
-        if (::emptyObserver.isInitialized) {
-            plansAdapter.unregisterAdapterDataObserver(emptyObserver)
-        }
-        binding.rvPlans.adapter = null
-        datePicker?.dismiss()
-        datePicker = null
-        activeDialog?.dismiss()
-        activeDialog = null
-        _binding = null
-        super.onDestroyView()
     }
 }

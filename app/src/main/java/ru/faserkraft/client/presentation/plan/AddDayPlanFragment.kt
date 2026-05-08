@@ -8,13 +8,13 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import ru.faserkraft.client.presentation.common.adapter.EmployeeUi
-import ru.faserkraft.client.presentation.common.adapter.EmployeesAdapter
 import ru.faserkraft.client.databinding.FragmentAddDayPlanBinding
 import ru.faserkraft.client.domain.model.DailyPlan
 import ru.faserkraft.client.domain.model.DailyPlanStep
 import ru.faserkraft.client.domain.model.Employee
 import ru.faserkraft.client.domain.model.Process
+import ru.faserkraft.client.presentation.common.adapter.EmployeeUi
+import ru.faserkraft.client.presentation.common.adapter.EmployeesAdapter
 import ru.faserkraft.client.presentation.common.adapter.ProcessAdapter
 import ru.faserkraft.client.presentation.common.adapter.ProcessUi
 import ru.faserkraft.client.presentation.ui.collectFlow
@@ -45,6 +45,11 @@ class AddDayPlanFragment : Fragment() {
     private var selectedStepIndex: Int? = null
 
     private var activeDialog: AlertDialog? = null
+
+    // Флаг для безопасного возврата после успешного сохранения
+    private var isWaitingForResult = false
+
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -95,12 +100,33 @@ class AddDayPlanFragment : Fragment() {
         val plan = editingPlan
         val step = editingStep
         if (plan != null && step != null) {
-            // Режим редактирования
             binding.etDate.setText(convertDate(plan.date))
             binding.etQty.setText(step.plannedQuantity.toString())
         } else {
-            // Режим создания — дата из текущего state
             binding.etDate.setText(convertDate(viewModel.uiState.value.date))
+        }
+    }
+
+    private fun setupUiListeners() {
+        binding.actvEmployee.setOnItemClickListener { _, _, position, _ ->
+            selectedEmployeeIndex = position
+        }
+
+        binding.actvProcess.setOnItemClickListener { _, _, position, _ ->
+            selectedProcessIndex = position
+            val process = viewModel.uiState.value.processes.getOrNull(position)
+                ?: return@setOnItemClickListener
+            loadStepsForProcess(process)
+            selectedStepIndex = null
+            binding.actvStep.setText("", false)
+        }
+
+        binding.actvStep.setOnItemClickListener { _, _, position, _ ->
+            selectedStepIndex = position
+        }
+
+        binding.btnCreatePlan.setOnClickListener {
+            if (editingPlan == null) onCreateClicked() else onUpdateClicked()
         }
     }
 
@@ -114,6 +140,12 @@ class AddDayPlanFragment : Fragment() {
             b.btnCreatePlan.isEnabled = !state.isActionInProgress
             b.progressCreatePlan.visibility =
                 if (state.isActionInProgress) View.VISIBLE else View.GONE
+
+            // Навигация при успешном сохранении (если ждали результата и загрузка кончилась)
+            if (isWaitingForResult && !state.isActionInProgress) {
+                isWaitingForResult = false
+                findNavController().popBackStack()
+            }
 
             // Сотрудники
             val newEmployees = state.employees.toEmployeeUi()
@@ -136,7 +168,10 @@ class AddDayPlanFragment : Fragment() {
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
             when (event) {
-                is PlanEvent.ShowError -> showErrorSnackbar(event.message)
+                is PlanEvent.ShowError -> {
+                    isWaitingForResult = false
+                    showErrorSnackbar(event.message)
+                }
             }
         }
     }
@@ -173,43 +208,18 @@ class AddDayPlanFragment : Fragment() {
         }
     }
 
-    // ---------- UI listeners ----------
-
-    private fun setupUiListeners() {
-        binding.actvEmployee.setOnItemClickListener { _, _, position, _ ->
-            selectedEmployeeIndex = position
-        }
-
-        binding.actvProcess.setOnItemClickListener { _, _, position, _ ->
-            selectedProcessIndex = position
-            val process = viewModel.uiState.value.processes.getOrNull(position)
-                ?: return@setOnItemClickListener
-            loadStepsForProcess(process)
-            selectedStepIndex = null
-            binding.actvStep.setText("", false)
-        }
-
-        binding.actvStep.setOnItemClickListener { _, _, position, _ ->
-            selectedStepIndex = position
-        }
-
-        binding.btnCreatePlan.setOnClickListener {
-            if (editingPlan == null) onCreateClicked() else onUpdateClicked()
-        }
-    }
-
     // ---------- Actions ----------
 
     private fun onCreateClicked() {
         val (empIndex, stepIndex, qty) = validateSelection() ?: return
         val planDate = convertDate(binding.etDate.text.toString())
+        isWaitingForResult = true
         viewModel.addStepToPlan(
             planDate = planDate,
             employeeId = employees[empIndex].id,
             stepId = steps[stepIndex].id,
             plannedQuantity = qty,
         )
-        observeSuccessAndNavigateUp()
     }
 
     private fun onUpdateClicked() {
@@ -217,6 +227,7 @@ class AddDayPlanFragment : Fragment() {
         val step = editingStep ?: return
         val (empIndex, stepIndex, qty) = validateSelection() ?: return
         val planDate = convertDate(binding.etDate.text.toString())
+        isWaitingForResult = true
         viewModel.updateStepInPlan(
             stepId = step.id,
             planDate = planDate,
@@ -224,17 +235,6 @@ class AddDayPlanFragment : Fragment() {
             employeeId = employees[empIndex].id,
             plannedQuantity = qty,
         )
-        observeSuccessAndNavigateUp()
-    }
-
-    // Ждём завершения action и уходим вверх по стеку
-    private fun observeSuccessAndNavigateUp() {
-        collectFlow(viewModel.uiState) { state ->
-            if (!state.isActionInProgress && _binding != null) {
-                // Навигируемся только если нет ошибки (ошибка уйдёт через events)
-                findNavController().navigateUp()
-            }
-        }
     }
 
     // ---------- Validation ----------
@@ -266,7 +266,6 @@ class AddDayPlanFragment : Fragment() {
         steps = process.steps.map { StepUi(id = it.id, name = it.name) }
         stepsAdapter.setItems(steps)
     }
-
 
     // ---------- Маппинг domain → UI ----------
 
