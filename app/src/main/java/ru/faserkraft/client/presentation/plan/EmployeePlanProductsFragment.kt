@@ -19,6 +19,7 @@ import ru.faserkraft.client.presentation.product.ProductsInventoryByProcessAdapt
 import ru.faserkraft.client.presentation.product.ProductsInventoryByProcessUiItem
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.convertDate
+import ru.faserkraft.client.utils.navigateSafely
 
 class EmployeePlanProductsFragment : Fragment() {
 
@@ -28,18 +29,19 @@ class EmployeePlanProductsFragment : Fragment() {
     private var _binding: FragmentEmployeePlanProductsBinding? = null
     private val binding get() = _binding!!
 
-    // Данные берём из state вместо navArgs
     private var plan: DailyPlan? = null
     private var step: DailyPlanStep? = null
 
     private val adapter = ProductsInventoryByProcessAdapter { serialNumber ->
         productViewModel.loadProduct(serialNumber)
-        findNavController().navigate(
+        findNavController().navigateSafely(
             R.id.action_employeePlanProductsFragment_to_productFullFragment
         )
     }
 
     private var activeDialog: AlertDialog? = null
+
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -104,7 +106,7 @@ class EmployeePlanProductsFragment : Fragment() {
 
             // Прогресс
             b.swipeRefreshDetail.isRefreshing = state.isLoading
-            b.swipeRefreshDetail.isEnabled = !state.isLoading
+            // b.swipeRefreshDetail.isEnabled = !state.isLoading // <- Убрано
 
             // Список продуктов
             val currentStep = step ?: return@collectFlow
