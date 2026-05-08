@@ -22,8 +22,8 @@ data class ProductDto(
     val process: ProcessDto,
     @SerializedName("created_at")
     val createdAt: String,
-    @SerializedName("packaging_id")
-    val packagingId: Int?,
+   @SerializedName("packaging")
+    val packaging: PackagingShortDto?,
     val status: ProductStatusDto,
     val steps: List<StepDto>
 ) : ItemDto()
