@@ -21,3 +21,8 @@ data class PackagingCreateDto(
     val serialNumber: String,
     val products: List<Int>
 ) : ItemDto()
+
+data class PackagingShortDto(
+    @SerializedName("serial_number")
+    val serialNumber: String
+)
