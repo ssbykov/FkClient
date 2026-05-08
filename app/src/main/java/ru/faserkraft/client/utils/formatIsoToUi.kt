@@ -1,35 +1,36 @@
 package ru.faserkraft.client.utils
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-@RequiresApi(Build.VERSION_CODES.O)
-private val uiFormatter: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
-        .withZone(ZoneId.systemDefault())
+private val isoParser: SimpleDateFormat
+    get() = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
 
-@RequiresApi(Build.VERSION_CODES.O)
+private val uiFormatter: SimpleDateFormat
+    get() = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).apply {
+        timeZone = TimeZone.getDefault()
+    }
+
 fun formatIsoToUi(iso: String?): String {
     if (iso.isNullOrBlank()) return "-"
 
     return try {
-        val instant = Instant.parse(iso)
-        uiFormatter.format(instant)
+        val date = isoParser.parse(iso)
+
+        if (date != null) {
+            uiFormatter.format(date)
+        } else {
+            iso
+        }
     } catch (e: Exception) {
-        iso
+        iso ?: "-"
     }
 }
 
-
 fun nowIsoUtc(): String {
-    val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
-    sdf.timeZone = TimeZone.getTimeZone("UTC")
-    return sdf.format(Date())
+    return isoParser.format(Date())
 }
