@@ -7,6 +7,7 @@ sealed interface ProductEvent {
     object NavigateToProduct : ProductEvent
     data class NavigateToEditProcess(val productId: Long) : ProductEvent
     data class NavigateToEditStatus(val productId: Long) : ProductEvent
+    data class NavigateToPackaging(val packagingSerialNumber: String) : ProductEvent
     data class ShowError(val message: String) : ProductEvent
     data class ShowConfirmationDialog(
         val title: String,
