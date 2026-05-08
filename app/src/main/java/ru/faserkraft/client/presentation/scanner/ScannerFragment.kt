@@ -119,7 +119,8 @@ class ScannerFragment : Fragment() {
                 }
 
                 is ScannerEvent.ShowError -> {
-                    showError(event.message)
+                    // Ошибка именно парсинга сканера — сбрасываем состояние и возобновляем камеру
+                    handleScannerError(event.message)
                 }
             }
         }
@@ -131,7 +132,8 @@ class ScannerFragment : Fragment() {
 
             when (event) {
                 AppEvent.RegistrationCompleted -> {
-                    findNavController().navigate(
+                    // Используем безопасную навигацию
+                    findNavController().navigateSafely(
                         R.id.action_scannerFragment_to_registrationFragment
                     )
                 }
@@ -144,7 +146,9 @@ class ScannerFragment : Fragment() {
     private fun observeAppErrors() {
         collectFlow(appViewModel.errorState) { message ->
             if (_binding == null || !isAdded) return@collectFlow
-            showError(message)
+            // Глобальные ошибки (сеть и т.д.) просто показываем, не трогая состояние сканера напрямую.
+            // Если нужно возобновить сканер, это сделает снятие флага isLoading через стейт.
+            showErrorSnackbar(message)
         }
     }
 
@@ -162,7 +166,7 @@ class ScannerFragment : Fragment() {
                 }
 
                 is ProductEvent.ShowError -> {
-                    showError(event.message)
+                    handleScannerError(event.message)
                 }
 
                 else -> Unit
@@ -188,7 +192,7 @@ class ScannerFragment : Fragment() {
                 }
 
                 is PackagingEvent.ShowError -> {
-                    showError(event.message)
+                    handleScannerError(event.message)
                 }
 
                 PackagingEvent.NavigateToEdit,
@@ -282,7 +286,11 @@ class ScannerFragment : Fragment() {
         })
     }
 
-    private fun showError(message: String) {
+    /**
+     * Сброс сканера после ошибки продукта, упаковки или чтения QR-кода.
+     * Дает пользователю просканировать следующий код.
+     */
+    private fun handleScannerError(message: String) {
         scannerViewModel.resetHandled()
         _binding?.zxingBarcodeScanner?.resume()
         showErrorSnackbar(message)

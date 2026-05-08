@@ -16,6 +16,7 @@ import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.presentation.app.AppViewModel
 import ru.faserkraft.client.presentation.scanner.ScannerViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.navigateSafely
 
 @AndroidEntryPoint
 class RegistrationFragment : Fragment() {
@@ -69,7 +70,7 @@ class RegistrationFragment : Fragment() {
         }
 
         binding.fabShowQr.setOnClickListener {
-            findNavController().navigate(
+            findNavController().navigateSafely(
                 R.id.action_registrationFragment_to_qrGenerationFragment
             )
         }
@@ -82,6 +83,7 @@ class RegistrationFragment : Fragment() {
             .setTitle("Завершить регистрацию?")
             .setMessage("Данные будут очищены, продолжить?")
             .setPositiveButton("Да") { dialog, _ ->
+                if (_binding == null) return@setPositiveButton
                 appViewModel.logout()
                 scannerViewModel.clearState()
                 dialog.dismiss()

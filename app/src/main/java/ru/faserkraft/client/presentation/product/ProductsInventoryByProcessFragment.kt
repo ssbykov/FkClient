@@ -1,6 +1,5 @@
 package ru.faserkraft.client.presentation.product
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +10,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import ru.faserkraft.client.databinding.FragmentProductsInventoryByProcessBinding
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.navigateSafely
 import ru.faserkraft.client.utils.showErrorSnackbar
 
 class ProductsInventoryByProcessFragment : Fragment() {
@@ -21,7 +21,8 @@ class ProductsInventoryByProcessFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var adapter: ProductsInventoryByProcessAdapter
-    private var activeDialog: AlertDialog? = null
+
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,6 +43,12 @@ class ProductsInventoryByProcessFragment : Fragment() {
         loadData()
 
         binding.swipeRefreshDetail.setOnRefreshListener { loadData() }
+    }
+
+    override fun onDestroyView() {
+        binding.rvProductsDetail.adapter = null
+        _binding = null
+        super.onDestroyView()
     }
 
     // ---------- Setup ----------
@@ -82,11 +89,12 @@ class ProductsInventoryByProcessFragment : Fragment() {
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
             when (event) {
-                is ProductEvent.NavigateToProduct ->
-                    findNavController().navigate(
+                is ProductEvent.NavigateToProduct -> {
+                    findNavController().navigateSafely(
                         ProductsInventoryByProcessFragmentDirections
                             .actionProductsInventoryByProcessFragmentToProductFullFragment()
                     )
+                }
                 is ProductEvent.ShowError -> showErrorSnackbar(event.message)
                 else -> Unit
             }
@@ -107,14 +115,5 @@ class ProductsInventoryByProcessFragment : Fragment() {
         val item = viewModel.uiState.value.selectedInventoryItem ?: return
         adapter.submitList(emptyList())
         viewModel.loadProductsByLastStep(item.processId, item.stepDefinitionId)
-    }
-
-
-    override fun onDestroyView() {
-        binding.rvProductsDetail.adapter = null
-        activeDialog?.dismiss()
-        activeDialog = null
-        _binding = null
-        super.onDestroyView()
     }
 }

@@ -1,6 +1,5 @@
 package ru.faserkraft.client.presentation.product
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +14,7 @@ import ru.faserkraft.client.adapter.ProductsInventoryUiItem
 import ru.faserkraft.client.databinding.FragmentProductsInventoryBinding
 import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.navigateSafely
 import ru.faserkraft.client.utils.showErrorSnackbar
 
 class ProductsInventoryFragment : Fragment() {
@@ -27,7 +27,7 @@ class ProductsInventoryFragment : Fragment() {
     private lateinit var adapter: ProductsInventoryAdapter
     private lateinit var emptyObserver: RecyclerView.AdapterDataObserver
 
-    private var activeDialog: AlertDialog? = null
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,13 +53,23 @@ class ProductsInventoryFragment : Fragment() {
         viewModel.loadProductsInventory()
     }
 
+    override fun onDestroyView() {
+        if (::emptyObserver.isInitialized) {
+            adapter.unregisterAdapterDataObserver(emptyObserver)
+        }
+        binding.rvProductsStats.adapter = null
+        _binding = null
+        super.onDestroyView()
+    }
+
     // ---------- Setup ----------
 
     private fun setupAdapter() {
         adapter = ProductsInventoryAdapter { item ->
             if (_binding == null) return@ProductsInventoryAdapter
             viewModel.selectInventoryItem(item)   // ← сохраняем в state
-            findNavController().navigate(
+            // Используем безопасный переход вместо обычного navigate
+            findNavController().navigateSafely(
                 ProductsInventoryFragmentDirections
                     .actionProductsInventoryFragmentToProductsInventoryByProcessFragment()
             )
@@ -124,17 +134,5 @@ class ProductsInventoryFragment : Fragment() {
         val isEmpty = adapter.itemCount == 0
         b.tvEmptyInventory.visibility = if (isEmpty) View.VISIBLE else View.GONE
         b.rvProductsStats.visibility = if (isEmpty) View.GONE else View.VISIBLE
-    }
-
-
-    override fun onDestroyView() {
-        if (::emptyObserver.isInitialized) {
-            adapter.unregisterAdapterDataObserver(emptyObserver)
-        }
-        binding.rvProductsStats.adapter = null
-        activeDialog?.dismiss()
-        activeDialog = null
-        _binding = null
-        super.onDestroyView()
     }
 }

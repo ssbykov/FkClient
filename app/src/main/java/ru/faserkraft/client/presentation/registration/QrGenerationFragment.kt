@@ -28,6 +28,8 @@ class QrGenerationFragment : Fragment() {
 
     private var activeDialog: AlertDialog? = null
 
+    // ---------- Lifecycle ----------
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -45,6 +47,15 @@ class QrGenerationFragment : Fragment() {
         observeEvents()
         viewModel.loadEmployees()
     }
+
+    override fun onDestroyView() {
+        activeDialog?.dismiss()
+        activeDialog = null
+        _binding = null
+        super.onDestroyView()
+    }
+
+    // ---------- Setup ----------
 
     private fun setupAdapter() {
         employeesAdapter = EmployeesAdapter(requireContext())
@@ -67,6 +78,8 @@ class QrGenerationFragment : Fragment() {
         }
     }
 
+    // ---------- Observe ----------
+
     private fun observeState() {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
@@ -75,6 +88,8 @@ class QrGenerationFragment : Fragment() {
             if (uiEmployees != employees) {
                 employees = uiEmployees
                 employeesAdapter.setItems(employees)
+
+                // Предвыбор первого сотрудника
                 val first = employees.firstOrNull()
                 selectedEmployeeId = first?.id
                 b.actvEmployee.setText(first?.name.orEmpty(), false)
@@ -98,6 +113,8 @@ class QrGenerationFragment : Fragment() {
         }
     }
 
+    // ---------- Dialogs ----------
+
     private fun showDialog(message: String) {
         activeDialog?.dismiss()
         activeDialog = AlertDialog.Builder(requireContext())
@@ -105,12 +122,5 @@ class QrGenerationFragment : Fragment() {
             .setPositiveButton("ОК") { dialog, _ -> dialog.dismiss() }
             .setOnDismissListener { activeDialog = null }
             .show()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        activeDialog?.dismiss()
-        activeDialog = null
-        _binding = null
     }
 }

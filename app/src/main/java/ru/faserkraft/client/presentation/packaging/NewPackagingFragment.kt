@@ -8,18 +8,16 @@ import android.view.inputmethod.EditorInfo
 import android.widget.CompoundButton
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
-import ru.faserkraft.client.presentation.ui.hideKeyboard
 import ru.faserkraft.client.databinding.FragmentNewPackagingBinding
+import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.presentation.ui.hideKeyboard
+import ru.faserkraft.client.utils.navigateSafely
 import ru.faserkraft.client.utils.showErrorSnackbar
 
 class NewPackagingFragment : Fragment() {
@@ -31,6 +29,8 @@ class NewPackagingFragment : Fragment() {
 
     private lateinit var adapter: PackagingProductsAdapter
     private var emptyObserver: RecyclerView.AdapterDataObserver? = null
+
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -63,6 +63,16 @@ class NewPackagingFragment : Fragment() {
         binding.btnSave.setOnClickListener { onSaveClick() }
     }
 
+    override fun onDestroyView() {
+        emptyObserver?.let { adapter.unregisterAdapterDataObserver(it) }
+        emptyObserver = null
+        binding.rvProducts.adapter = null
+        _binding = null
+        super.onDestroyView()
+    }
+
+    // ---------- Setup & Observe ----------
+
     private fun setupAdapter() {
         adapter = PackagingProductsAdapter { item, isChecked ->
             val current = adapter.currentList.toMutableList()
@@ -89,67 +99,61 @@ class NewPackagingFragment : Fragment() {
     }
 
     private fun observeState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    val b = _binding ?: return@collect
+        collectFlow(viewModel.uiState) { state ->
+            val b = _binding ?: return@collectFlow
 
-                    b.tvPackagingSerial.text = state.currentPackaging?.serialNumber
+            b.tvPackagingSerial.text = state.currentPackaging?.serialNumber
 
-                    val editingPackaging = state.currentPackaging
-                    val selectedIdsFromPackaging =
-                        editingPackaging?.products?.map { it.id }?.toSet().orEmpty()
+            val editingPackaging = state.currentPackaging
+            val selectedIdsFromPackaging =
+                editingPackaging?.products?.map { it.id }?.toSet().orEmpty()
 
-                    val base = state.availableProducts.map { p ->
-                        PackagingProductUiItem(
-                            id = p.id,
-                            serialNumber = p.serialNumber,
-                            processName = p.process.name,
-                            sizeType = p.process.sizeTypeId ?: 0,
-                            packagingCount = p.process.packagingCount ?: 1,
-                            isSelected = selectedIdsFromPackaging.contains(p.id)
-                        )
-                    }
-
-                    val extra = editingPackaging?.products
-                        ?.filter { ep -> base.none { it.id == ep.id } }
-                        ?.map { ep ->
-                            PackagingProductUiItem(
-                                id = ep.id,
-                                serialNumber = ep.serialNumber,
-                                processName = ep.process.name,
-                                sizeType = ep.process.sizeTypeId ?: 0,
-                                packagingCount = ep.process.packagingCount ?: 1,
-                                isSelected = true
-                            )
-                        }.orEmpty()
-
-                    val uiItems = (base + extra).sortedBy { it.serialNumber }
-                    adapter.submitList(uiItems)
-                    syncSelectAllCheckbox(uiItems)
-
-                    val isLoading = state.isLoading || state.isActionInProgress
-                    b.btnSave.isEnabled = !isLoading
-                }
+            val base = state.availableProducts.map { p ->
+                PackagingProductUiItem(
+                    id = p.id,
+                    serialNumber = p.serialNumber,
+                    processName = p.process.name,
+                    sizeType = p.process.sizeTypeId ?: 0,
+                    packagingCount = p.process.packagingCount ?: 1,
+                    isSelected = selectedIdsFromPackaging.contains(p.id)
+                )
             }
+
+            val extra = editingPackaging?.products
+                ?.filter { ep -> base.none { it.id == ep.id } }
+                ?.map { ep ->
+                    PackagingProductUiItem(
+                        id = ep.id,
+                        serialNumber = ep.serialNumber,
+                        processName = ep.process.name,
+                        sizeType = ep.process.sizeTypeId ?: 0,
+                        packagingCount = ep.process.packagingCount ?: 1,
+                        isSelected = true
+                    )
+                }.orEmpty()
+
+            val uiItems = (base + extra).sortedBy { it.serialNumber }
+            adapter.submitList(uiItems)
+            syncSelectAllCheckbox(uiItems)
+
+            val isLoading = state.isLoading || state.isActionInProgress
+            b.btnSave.isEnabled = !isLoading
         }
     }
 
     private fun observeEvents() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.events.collect { event ->
-                    when (event) {
-                        is PackagingEvent.ShowError -> showErrorSnackbar(event.message)
-                        PackagingEvent.NavigateToPackaging -> navigateToPackaging()
-                        PackagingEvent.PackagingDeleted -> navigateToScanner()
-                        PackagingEvent.NavigateToNewPackaging,
-                        PackagingEvent.NavigateToEdit -> Unit
-                    }
-                }
+        collectFlow(viewModel.events) { event ->
+            when (event) {
+                is PackagingEvent.ShowError -> showErrorSnackbar(event.message)
+                PackagingEvent.NavigateToPackaging -> navigateToPackaging()
+                PackagingEvent.PackagingDeleted -> navigateToScanner()
+                PackagingEvent.NavigateToNewPackaging,
+                PackagingEvent.NavigateToEdit -> Unit
             }
         }
     }
+
+    // ---------- Actions ----------
 
     private fun onSaveClick() {
         val serial = binding.tvPackagingSerial.text?.toString().orEmpty()
@@ -200,24 +204,27 @@ class NewPackagingFragment : Fragment() {
         viewModel.createPackaging(serial, selectedItems.map { it.id })
     }
 
+    // ---------- Navigation ----------
+
     private fun navigateToPackaging() {
         val navOptions = NavOptions.Builder()
             .setPopUpTo(R.id.newPackagingFragment, inclusive = true)
             .setLaunchSingleTop(true)
             .build()
-        findNavController().navigate(
+        findNavController().navigateSafely(
             R.id.action_newPackagingFragment_to_packagingFragment,
-            null,
             navOptions
         )
     }
 
     private fun navigateToScanner() {
         val navOptions = NavOptions.Builder()
-            .setPopUpTo(R.id.nav_main, true)
+            .setPopUpTo(R.id.nav_main, inclusive = true)
             .build()
         findNavController().navigate(R.id.scannerFragment, null, navOptions)
     }
+
+    // ---------- Helpers ----------
 
     private fun checkEmpty() {
         val isEmpty = adapter.itemCount == 0
@@ -237,13 +244,5 @@ class NewPackagingFragment : Fragment() {
     private val selectAllListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
         val updated = adapter.currentList.map { it.copy(isSelected = isChecked) }
         adapter.submitList(updated)
-    }
-
-    override fun onDestroyView() {
-        emptyObserver?.let { adapter.unregisterAdapterDataObserver(it) }
-        emptyObserver = null
-        binding.rvProducts.adapter = null
-        _binding = null
-        super.onDestroyView()
     }
 }
