@@ -1,11 +1,9 @@
 package ru.faserkraft.client.presentation.product
 
 import android.graphics.drawable.GradientDrawable
-import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -23,7 +21,6 @@ class StepsAdapter(
         return StepVH(binding, onItemClick)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: StepVH, position: Int) {
         holder.bind(getItem(position))
     }
@@ -33,7 +30,6 @@ class StepsAdapter(
         private val onItemClick: (StepUiItem) -> Unit,
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        @RequiresApi(Build.VERSION_CODES.O)
         fun bind(item: StepUiItem) = with(binding) {
             val step = item.step
             tvStepIndex.text = step.definition.order.toString()
