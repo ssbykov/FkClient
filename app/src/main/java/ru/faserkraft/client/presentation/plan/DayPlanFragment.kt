@@ -1,12 +1,10 @@
 package ru.faserkraft.client.presentation.plan
 
 import android.app.AlertDialog
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -50,7 +48,6 @@ class DayPlanFragment : Fragment() {
         return binding.root
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -120,7 +117,6 @@ class DayPlanFragment : Fragment() {
         ItemTouchHelper(swipeCallback).attachToRecyclerView(binding.rvPlans)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun setupDateControls() {
         binding.btnPrevDate.setOnClickListener { viewModel.shiftDate(-1) }
         binding.btnNextDate.setOnClickListener { viewModel.shiftDate(+1) }
@@ -250,7 +246,6 @@ class DayPlanFragment : Fragment() {
         ) {
             val sourceDate = viewModel.uiState.value.date
             viewModel.copyDayPlan(sourceDate)
-            // После копирования переходим на сегодня
             val today = getToday()
             viewModel.recomputeCanEdit(today)
             viewModel.loadPlans(today)
