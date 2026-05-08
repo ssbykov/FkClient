@@ -72,7 +72,6 @@
                 android:focusable="true"
                 tools:text="УФ-3-20-ПС" />
 
-            <!-- Номер -->
             <TextView
                 android:id="@+id/tvProductNumber"
                 android:layout_width="0dp"
@@ -84,7 +83,6 @@
                 app:layout_constraintTop_toBottomOf="@id/tvProcess"
                 tools:text="uf-000000001" />
 
-            <!-- Дата/время -->
             <TextView
                 android:id="@+id/tvCreated"
                 android:layout_width="0dp"
@@ -96,26 +94,56 @@
                 app:layout_constraintTop_toBottomOf="@id/tvProductNumber"
                 tools:text="20-11-2025 08:31" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipProductStatus"
-                style="@style/Widget.FK.ProductStatusChip"
-                android:layout_width="wrap_content"
+            <!-- Ряд для чипов: Статус и Упаковка -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/chipsContainer"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:checkable="false"
-                android:clickable="true"
-                android:focusable="true"
-                android:textAllCaps="false"
-                android:textAppearance="?attr/textAppearanceBody2"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tvCreated"
-                tools:text="Восстановление" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvCreated">
 
+                <!-- Чип упаковки (Слева) -->
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPackaging"
+                    style="@style/Widget.MaterialComponents.Chip.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="false"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:textAllCaps="false"
+                    android:visibility="gone"
+                    app:chipIcon="@drawable/ic_packaging"
+                    app:chipIconVisible="true"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="Упаковка: UP-12345"
+                    tools:visibility="visible" />
 
+                <!-- Статус (Справа) -->
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipProductStatus"
+                    style="@style/Widget.FK.ProductStatusChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="false"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:textAllCaps="false"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintHorizontal_bias="1.0"
+                    tools:text="В работе" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </com.google.android.material.card.MaterialCardView>
-
 
     <!-- Карточка текущего этапа (кликабельная) -->
     <com.google.android.material.card.MaterialCardView
@@ -155,11 +183,8 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     tools:text="Подготовка пучков" />
-
-
             </LinearLayout>
 
-            <!-- Статус этапа -->
             <TextView
                 android:id="@+id/tvStatus"
                 android:layout_width="match_parent"

@@ -1,14 +1,20 @@
 package ru.faserkraft.client.utils
 
-import androidx.annotation.IdRes
 import androidx.navigation.NavController
+import androidx.navigation.NavDirections
 
-fun NavController.navigateSafely(@IdRes actionId: Int) {
-    val currentDestinationId = currentDestination?.id
+fun NavController.navigateSafely(actionId: Int) {
+    val currentDestination = this.currentDestination
     val action = currentDestination?.getAction(actionId)
+    if (action != null) {
+        this.navigate(actionId)
+    }
+}
 
-    // Если экшен существует для текущего экрана, безопасно переходим
-    if (action != null && currentDestinationId != action.destinationId) {
-        navigate(actionId)
+fun NavController.navigateSafely(directions: NavDirections) {
+    val currentDestination = this.currentDestination
+    val action = currentDestination?.getAction(directions.actionId)
+    if (action != null) {
+        this.navigate(directions)
     }
 }

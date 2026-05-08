@@ -2,12 +2,10 @@ package ru.faserkraft.client.presentation.product
 
 import android.app.AlertDialog
 import android.content.res.ColorStateList
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -39,7 +37,6 @@ class ProductFragment : Fragment() {
         return binding.root
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         observeState()
@@ -56,25 +53,27 @@ class ProductFragment : Fragment() {
 
     // ---------- Observe ----------
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun observeState() {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
-            val canEdit = state.userRole.canEditProduct()
+            val product = state.product
+
+            val canEditByRole = state.userRole.canEditProduct()
+            val isNotPackaged = product?.packagingSerialNumber == null
+            val canEdit = canEditByRole && isNotPackaged
 
             b.progressEdit.visibility = if (state.isActionInProgress) View.VISIBLE else View.GONE
             b.btnEdit.visibility = if (canEdit) View.VISIBLE else View.GONE
-            b.btnDone.isEnabled = !state.isActionInProgress
-            // isClickable (а не isEnabled) — сохраняет внешний вид chip, но блокирует касания
             b.chipProductStatus.isClickable = canEdit
 
-            val product = state.product ?: return@collectFlow
+            if (product == null) return@collectFlow
 
             b.tvProcess.text = product.process.name
             b.tvProductNumber.text = product.serialNumber
             b.tvCreated.text = formatIsoToUi(product.createdAt)
 
+            // --- СТАТУС ---
             val uiStatus = product.status.toUiProductStatus()
             val ctx = b.root.context
             val bgColor = ContextCompat.getColor(ctx, uiStatus.bgColorRes)
@@ -85,6 +84,20 @@ class ProductFragment : Fragment() {
             b.chipProductStatus.setTextColor(textColor)
             b.cardProductInfo.setCardBackgroundColor(bgColor)
 
+            if (product.packagingSerialNumber != null) {
+                b.chipPackaging.visibility = View.VISIBLE
+                b.chipPackaging.text = product.packagingSerialNumber
+
+                b.chipPackaging.chipBackgroundColor = ColorStateList.valueOf(bgColor)
+                b.chipPackaging.setTextColor(textColor)
+                b.chipPackaging.chipIconTint = ColorStateList.valueOf(textColor)
+
+                b.chipPackaging.chipStrokeWidth = 2f
+                b.chipPackaging.chipStrokeColor = ColorStateList.valueOf(textColor)
+            } else {
+                b.chipPackaging.visibility = View.GONE
+            }
+
             val step = state.selectedStep ?: return@collectFlow
             val uiStepStatus = step.toUiStatus()
 
@@ -94,7 +107,6 @@ class ProductFragment : Fragment() {
             b.cardRoot.setBackgroundColor(ContextCompat.getColor(ctx, uiStepStatus.bgColorRes))
         }
     }
-
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
             when (event) {
@@ -108,6 +120,12 @@ class ProductFragment : Fragment() {
                     findNavController().navigateSafely(
                         R.id.action_productFragment_to_editProductStatusFragment
                     )
+                }
+
+                is ProductEvent.NavigateToPackaging -> {
+                    val action =
+                        ProductFragmentDirections.actionProductFragmentToPackagingFragment(event.packagingSerialNumber)
+                    findNavController().navigateSafely(action)
                 }
 
                 is ProductEvent.ShowError -> {
@@ -129,7 +147,6 @@ class ProductFragment : Fragment() {
     // ---------- Clicks ----------
 
     private fun setupClickListeners() {
-        // Fragment не содержит бизнес-логики — он только делегирует клики во ViewModel
         binding.btnAllStages.setOnClickListener {
             findNavController().navigate(R.id.action_productFragment_to_productFullFragment)
         }
@@ -141,6 +158,9 @@ class ProductFragment : Fragment() {
         }
         binding.btnDone.setOnClickListener {
             viewModel.onCloseStepClicked()
+        }
+        binding.chipPackaging.setOnClickListener {
+            viewModel.onPackagingClicked()
         }
     }
 

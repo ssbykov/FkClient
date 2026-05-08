@@ -100,8 +100,8 @@ class ProductViewModel @Inject constructor(
     }
 
     fun onChangeProcessClicked() {
-        if (!_uiState.value.userRole.canEditProduct()) return
-        _uiState.value.product ?: return
+        val product = _uiState.value.product ?: return
+        if (!_uiState.value.userRole.canEditProduct() || product.packagingSerialNumber != null) return
 
         viewModelScope.launch {
             _events.send(
@@ -169,6 +169,14 @@ class ProductViewModel @Inject constructor(
             ConfirmationActionType.CLOSE_STEP -> {
                 step?.let { closeStep(it) }
             }
+        }
+    }
+
+    fun onPackagingClicked() {
+        val packagingSerial = _uiState.value.product?.packagingSerialNumber ?: return
+
+        viewModelScope.launch {
+            _events.send(ProductEvent.NavigateToPackaging(packagingSerial))
         }
     }
 
