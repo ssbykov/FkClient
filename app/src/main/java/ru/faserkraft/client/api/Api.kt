@@ -14,8 +14,6 @@ import ru.faserkraft.client.dto.DailyPlanCopyDto
 import ru.faserkraft.client.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
 import ru.faserkraft.client.dto.DayPlanDto
-import ru.faserkraft.client.dto.DeviceRequestDto
-import ru.faserkraft.client.dto.DeviceResponseDto
 import ru.faserkraft.client.dto.EmployeeDto
 import ru.faserkraft.client.dto.FinishedProductDto
 import ru.faserkraft.client.dto.OrderCreateDto
@@ -193,11 +191,6 @@ interface Api {
 
     @GET(BASE_URL + "employees/")
     suspend fun getEmployees(): Response<List<EmployeeDto>>
-
-    @POST(BASE_URL + "users/new-device")
-    suspend fun postDevice(
-        @Body device: DeviceRequestDto
-    ): Response<DeviceResponseDto>
 
     @POST("users/get-qr-code")
     suspend fun getQrCode(

@@ -10,13 +10,3 @@ data class Step(
 )
 
 enum class StepStatus { DONE, PENDING }
-
-// Sentinel — заменяет emptyStep из StepDto
-val EmptyStep = Step(
-    id = 0,
-    productId = 0,
-    definition = StepDefinition(id = 0, order = 0, name = "", nameGenitive = ""),
-    status = StepStatus.PENDING,
-    performedBy = null,
-    performedAt = null,
-)

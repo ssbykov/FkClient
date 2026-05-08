@@ -2,10 +2,11 @@ package ru.faserkraft.client.data.qr
 
 import com.google.gson.Gson
 import com.google.gson.JsonParser
+import ru.faserkraft.client.data.mapper.toDomain
+import ru.faserkraft.client.domain.model.DeviceRequest
 import ru.faserkraft.client.domain.qr.QrClassifier
 import ru.faserkraft.client.domain.qr.QrParseResult
 import ru.faserkraft.client.dto.DeviceRegisterDto
-import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.deviceRegisterBuilder
 import ru.faserkraft.client.utils.isUfCode
 import ru.faserkraft.client.utils.isUfPkgCode
@@ -24,12 +25,11 @@ class QrClassifierImpl @Inject constructor(
         }
     }
 
-    private fun decodeRegistration(jsonString: String): DeviceRequestDto? {
+    private fun decodeRegistration(jsonString: String): DeviceRequest? {
         return runCatching {
             val obj = JsonParser.parseString(jsonString).asJsonObject
-            val dataIn: DeviceRegisterDto =
-                gson.fromJson(obj, DeviceRegisterDto::class.java)
-            deviceRegisterBuilder(dataIn)
+            val dataIn: DeviceRegisterDto = gson.fromJson(obj, DeviceRegisterDto::class.java)
+            deviceRegisterBuilder(dataIn).toDomain()
         }.getOrNull()
     }
 }

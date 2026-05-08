@@ -14,7 +14,7 @@ import com.google.android.material.chip.Chip
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemOrderBinding
 import ru.faserkraft.client.databinding.ItemOrderHeaderBinding
-import ru.faserkraft.client.dto.ModuleTypeDto
+import ru.faserkraft.client.domain.model.ModuleType
 import ru.faserkraft.client.utils.formatIsoToUi
 
 sealed class OrderListItem {
@@ -35,7 +35,7 @@ data class OrderUiItem(
     val requiredModulesCount: Int,
     val packedModulesCount: Int,
     val packagingCount: Int,
-    val moduleTypes: List<ModuleTypeDto>
+    val moduleTypes: List<ModuleType>
 ) : OrderListItem() {
     override val itemId: String = "order_$orderId"
 }

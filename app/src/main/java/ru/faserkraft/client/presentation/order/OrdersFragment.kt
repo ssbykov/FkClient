@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentOrdersBinding
-import ru.faserkraft.client.dto.ModuleTypeDto
+import ru.faserkraft.client.domain.model.ModuleType
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.convertDate
 import ru.faserkraft.client.utils.navigateSafely
@@ -179,7 +179,7 @@ class OrdersFragment : Fragment() {
                 packedModulesCount = order.packaging.sumOf { it.products.size },
                 packagingCount = order.packaging.size,
                 moduleTypes = order.items.map { item ->
-                    ModuleTypeDto(
+                    ModuleType(
                         type = item.workProcess.name,
                         requiredCount = item.quantity,
                         packedCount = packedByType[item.workProcess.name] ?: 0

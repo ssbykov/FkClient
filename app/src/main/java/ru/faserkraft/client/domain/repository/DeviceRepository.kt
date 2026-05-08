@@ -1,9 +1,9 @@
 package ru.faserkraft.client.domain.repository
 
+import ru.faserkraft.client.domain.model.DeviceRequest
 import ru.faserkraft.client.domain.model.UserRegistration
-import ru.faserkraft.client.dto.DeviceRequestDto
 
 interface DeviceRepository {
-    suspend fun registerDevice(request: DeviceRequestDto): UserRegistration
+    suspend fun registerDevice(request: DeviceRequest): UserRegistration
     suspend fun getQrCode(employeeId: Int): String
 }

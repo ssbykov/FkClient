@@ -1,6 +1,8 @@
 package ru.faserkraft.client.data.mapper
 
+import ru.faserkraft.client.domain.model.DeviceRequest
 import ru.faserkraft.client.domain.model.UserRegistration
+import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.DeviceResponseDto
 
 fun DeviceResponseDto.toDomain(password: String): UserRegistration = UserRegistration(
@@ -8,4 +10,22 @@ fun DeviceResponseDto.toDomain(password: String): UserRegistration = UserRegistr
     userName = userName,
     userRole = userRole,
     password = password,
+)
+
+fun DeviceRequest.toDto() = DeviceRequestDto(
+    deviceId = deviceId,
+    model = model,
+    manufacturer = manufacturer,
+    token = token,
+    password = password,
+    userId = userId,
+)
+
+fun DeviceRequestDto.toDomain() = DeviceRequest(
+    deviceId = deviceId,
+    model = model,
+    manufacturer = manufacturer,
+    token = token,
+    password = password,
+    userId = userId,
 )

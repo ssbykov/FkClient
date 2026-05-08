@@ -139,16 +139,6 @@
         android:name="ru.faserkraft.client.presentation.plan.AddDayPlanFragment"
         android:label="fragment_add_day_plan"
         tools:layout="@layout/fragment_add_day_plan">
-        <argument
-            android:name="plan"
-            android:defaultValue="@null"
-            app:argType="ru.faserkraft.client.dto.EmployeePlanDto"
-            app:nullable="true" />
-        <argument
-            android:name="planDate"
-            android:defaultValue="@null"
-            app:argType="string"
-            app:nullable="true" />
     </fragment>
 
     <fragment
@@ -244,9 +234,6 @@
         android:name="ru.faserkraft.client.presentation.plan.EmployeePlanProductsFragment"
         android:label="fragment_employee_plan_products"
         tools:layout="@layout/fragment_employee_plan_products">
-        <argument
-            android:name="employeePlanDto"
-            app:argType="ru.faserkraft.client.dto.EmployeePlanDto" />
         <action
             android:id="@+id/action_employeePlanProductsFragment_to_productFullFragment"
             app:destination="@id/productFullFragment" />

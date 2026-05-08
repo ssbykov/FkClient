@@ -5,7 +5,7 @@ import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import ru.faserkraft.client.domain.model.UserData
 import ru.faserkraft.client.domain.model.UserRole
-import ru.faserkraft.client.dto.LoginData
+import ru.faserkraft.client.dto.LoginRequestDto
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,12 +42,12 @@ class AppAuthImpl @Inject constructor(
         )
     }
 
-    override fun getLoginData(): LoginData? {
+    override fun getLoginData(): LoginRequestDto? {
         val login = prefs.getString(LOGIN, null)
         val password = prefs.getString(PASSWORD, null)
 
         return if (!login.isNullOrBlank() && !password.isNullOrBlank()) {
-            LoginData(username = login, password = password)
+            LoginRequestDto(username = login, password = password)
         } else {
             null
         }

@@ -17,8 +17,3 @@ data class DailyPlanStep(
     val workProcess: String,
     val stepDefinition: StepDefinition,
 )
-
-data class DayPlans(
-    val date: String,
-    val plans: List<DailyPlan>?,
-)

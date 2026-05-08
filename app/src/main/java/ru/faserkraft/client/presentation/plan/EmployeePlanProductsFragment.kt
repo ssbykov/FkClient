@@ -106,7 +106,6 @@ class EmployeePlanProductsFragment : Fragment() {
 
             // Прогресс
             b.swipeRefreshDetail.isRefreshing = state.isLoading
-            // b.swipeRefreshDetail.isEnabled = !state.isLoading // <- Убрано
 
             // Список продуктов
             val currentStep = step ?: return@collectFlow

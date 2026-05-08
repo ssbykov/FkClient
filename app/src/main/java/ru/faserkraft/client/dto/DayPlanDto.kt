@@ -11,11 +11,6 @@ data class DayPlanDto(
     val steps: List<DayPlanStepDto>
 )
 
-data class DayPlansDto(
-    val date: String,
-    val plans: List<DayPlanDto>?,
-)
-
 data class DailyPlanCopyDto(
     @SerializedName("from_date")
     val fromDate: String,

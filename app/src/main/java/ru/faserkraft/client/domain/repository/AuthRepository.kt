@@ -1,8 +1,7 @@
 package ru.faserkraft.client.domain.repository
 
-import ru.faserkraft.client.dto.LoginData
-import ru.faserkraft.client.dto.LoginDto
+import ru.faserkraft.client.domain.model.LoginCredentials
 
 interface AuthRepository {
-    suspend fun login(loginData: LoginData): LoginDto
+    suspend fun login(credentials: LoginCredentials): String
 }

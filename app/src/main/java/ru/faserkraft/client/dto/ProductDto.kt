@@ -65,13 +65,6 @@ enum class ProductStatusDto(
 }
 
 
-fun ProductStatusDto.toUiProductStatus(): ProductStatusDto = when (name) {
-    "NORMAL" -> ProductStatusDto.NORMAL
-    "REWORK" -> ProductStatusDto.REWORK
-    "SCRAP" -> ProductStatusDto.SCRAP
-    else -> ProductStatusDto.NORMAL
-}
-
 fun ProductStatusDto.toBackendValue(): String = when (this) {
     ProductStatusDto.NORMAL -> "normal"
     ProductStatusDto.REWORK -> "rework"

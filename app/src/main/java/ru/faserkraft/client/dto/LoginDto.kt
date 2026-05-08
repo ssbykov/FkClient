@@ -10,7 +10,7 @@ data class LoginDto(
     val tokenType: String
 ) : ItemDto()
 
-data class LoginData(
+data class LoginRequestDto(
     val username: String,
     val password: String
 ) : ItemDto()

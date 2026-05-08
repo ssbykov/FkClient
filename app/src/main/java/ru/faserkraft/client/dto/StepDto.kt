@@ -1,10 +1,6 @@
 package ru.faserkraft.client.dto
 
-import androidx.annotation.ColorRes
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import com.google.gson.annotations.SerializedName
-import ru.faserkraft.client.R
 
 data class StepDto(
     val id: Int,
@@ -20,45 +16,3 @@ data class StepDto(
     @SerializedName("performed_at")
     val performedAt: String?
 ) : ItemDto(), java.io.Serializable
-
-enum class StepStatusUi(
-    @field:StringRes val statusTitleRes: Int,
-    @field:StringRes val statusDescRes: Int,
-    @field:DrawableRes val iconRes: Int,
-    @field:ColorRes val bgColorRes: Int
-) {
-    DONE(
-        statusTitleRes = R.string.step_last_status_done,
-        statusDescRes = R.string.step_last_desc_done,
-        iconRes = R.drawable.status_done,
-        bgColorRes = R.color.step_done_bg
-    ),
-    PENDING(
-        statusTitleRes = R.string.step_last_status_pending,
-        statusDescRes = R.string.step_last_desc_pending,
-        iconRes = R.drawable.status_pending,
-        bgColorRes = R.color.step_pending_bg
-    );
-}
-
-enum class StepStatusBackend(val raw: String) {
-    DONE("done"),
-    PENDING("pending")
-}
-
-fun StepDto.toUiStatus(): StepStatusUi =
-    when (status.lowercase()) {
-        StepStatusBackend.DONE.raw -> StepStatusUi.DONE
-        StepStatusBackend.PENDING.raw -> StepStatusUi.PENDING
-        else -> StepStatusUi.PENDING
-    }
-
-val emptyStep = StepDto(
-    id = 0,
-    productId = 0,
-    stepDefinition = StepDefinitionDto(0, 0, TemplateDto("", "")),
-    status = "",
-    performedById = null,
-    performedBy = null,
-    performedAt = null
-)
