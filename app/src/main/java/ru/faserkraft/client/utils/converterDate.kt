@@ -4,26 +4,27 @@ import android.annotation.SuppressLint
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
-import kotlin.text.format
 
 
 @SuppressLint("ConstantLocale")
 val apiFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
 @SuppressLint("ConstantLocale")
-val uiFormat  = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+val uiFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
 
 val apiPattern = Regex("""\d{4}-\d{2}-\d{2}""")   // yyyy-MM-dd
-val uiPattern  = Regex("""\d{2}\.\d{2}\.\d{4}""") // dd.MM.yyyy
+val uiPattern = Regex("""\d{2}\.\d{2}\.\d{4}""") // dd.MM.yyyy
 
 fun convertDate(dateStr: String): String {
     return when {
         apiPattern.matches(dateStr) -> {
             uiFormat.format(apiFormat.parse(dateStr)!!)
         }
+
         uiPattern.matches(dateStr) -> {
             apiFormat.format(uiFormat.parse(dateStr)!!)
         }
+
         else -> dateStr
     }
 }
@@ -42,7 +43,7 @@ fun formatPlanDate(timeMillis: Long): Pair<String, String> {
     return apiDate to uiDate
 }
 
-fun getToday(): String{
+fun getToday(): String {
     val apiFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     return apiFormat.format(Date())
 }

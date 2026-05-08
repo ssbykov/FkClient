@@ -1,6 +1,5 @@
 package ru.faserkraft.client.presentation.registration
 
-import QrGenerationEvent
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater

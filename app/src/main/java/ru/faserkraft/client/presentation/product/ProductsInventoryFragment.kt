@@ -9,8 +9,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import ru.faserkraft.client.adapter.ProductsInventoryAdapter
-import ru.faserkraft.client.adapter.ProductsInventoryUiItem
 import ru.faserkraft.client.databinding.FragmentProductsInventoryBinding
 import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.presentation.ui.collectFlow

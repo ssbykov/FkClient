@@ -72,5 +72,5 @@ suspend fun <R> callApi(block: suspend () -> Response<R>): R? {
 }
 
 suspend fun callApiUnit(block: suspend () -> Response<Unit>) {
-    callApi<Unit>(block)
+    callApi(block)
 }

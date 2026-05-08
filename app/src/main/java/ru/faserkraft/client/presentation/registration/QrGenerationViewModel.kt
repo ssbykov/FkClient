@@ -1,7 +1,5 @@
 package ru.faserkraft.client.presentation.registration
 
-import QrGenerationEvent
-import QrGenerationUiState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel

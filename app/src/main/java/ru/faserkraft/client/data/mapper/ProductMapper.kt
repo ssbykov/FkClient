@@ -7,7 +7,6 @@ import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.domain.model.Step
 import ru.faserkraft.client.domain.model.StepStatus
 import ru.faserkraft.client.dto.FinishedProductDto
-import ru.faserkraft.client.dto.ProductCreateDto
 import ru.faserkraft.client.dto.ProductDto
 import ru.faserkraft.client.dto.ProductStatusDto
 import ru.faserkraft.client.dto.ProductsInventoryDto
@@ -62,15 +61,6 @@ fun ProductsInventoryDto.toDomain(): ProductsInventory = ProductsInventory(
     count = count,
 )
 
-fun Product.toCreateDto(processId: Int): ProductCreateDto = ProductCreateDto(
-    processId = processId,
-    serialNumber = serialNumber,
-)
-
-fun String.toStepStatus(): StepStatus = when (lowercase()) {
-    "done" -> StepStatus.DONE
-    else -> StepStatus.PENDING
-}
 
 fun ProductStatus.toDisplayString(): String = when (this) {
     ProductStatus.NORMAL -> "Норма"

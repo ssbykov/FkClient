@@ -30,5 +30,4 @@ sealed class AppError(
         cause = error,
     )
 
-    data object DaoError : AppError("dao_error")
 }

@@ -1,7 +1,6 @@
 package ru.faserkraft.client.presentation.common.adapter
 
 
-import android.R
 import android.content.Context
 import android.widget.ArrayAdapter
 
@@ -15,7 +14,7 @@ data class EmployeeUi(
 class EmployeesAdapter(
     context: Context,
     items: MutableList<EmployeeUi> = mutableListOf()
-) : ArrayAdapter<EmployeeUi>(context, R.layout.simple_list_item_1, items) {
+) : ArrayAdapter<EmployeeUi>(context, android.R.layout.simple_list_item_1, items) {
 
     fun setItems(newItems: List<EmployeeUi>) {
         clear()

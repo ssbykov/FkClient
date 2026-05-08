@@ -7,7 +7,6 @@ import ru.faserkraft.client.data.mapper.toDto
 import ru.faserkraft.client.domain.model.DeviceRequest
 import ru.faserkraft.client.domain.model.UserRegistration
 import ru.faserkraft.client.domain.repository.DeviceRepository
-import ru.faserkraft.client.dto.DeviceRequestDto
 import ru.faserkraft.client.dto.toQrContent
 import javax.inject.Inject
 
