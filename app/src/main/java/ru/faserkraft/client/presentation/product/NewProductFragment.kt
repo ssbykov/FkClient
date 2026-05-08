@@ -1,6 +1,5 @@
 package ru.faserkraft.client.presentation.product
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -27,7 +26,7 @@ class NewProductFragment : Fragment() {
     private var processes: List<ProcessUi> = emptyList()
     private var selectedIndex: Int? = null
 
-    private var activeDialog: AlertDialog? = null
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,6 +50,11 @@ class NewProductFragment : Fragment() {
         observeState()
         observeEvents()
         setupSaveButton()
+    }
+
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
     }
 
     // ---------- Observe ----------
@@ -95,29 +99,22 @@ class NewProductFragment : Fragment() {
             val processId = processes[index].id
 
             viewModel.createProduct(serialNumber, processId)
-            // Навигация произойдёт через ProductEvent.NavigateToProduct
         }
     }
 
     // ---------- Навигация ----------
 
     private fun navigateToProduct() {
-        val b = _binding ?: return
+        if (_binding == null) return
+
         val navOptions = NavOptions.Builder()
             .setPopUpTo(R.id.scannerFragment, inclusive = false)
             .build()
+
         findNavController().navigate(
             R.id.action_newProductFragment_to_productFragment,
             null,
             navOptions,
         )
-    }
-
-
-    override fun onDestroyView() {
-        activeDialog?.dismiss()
-        activeDialog = null
-        _binding = null
-        super.onDestroyView()
     }
 }

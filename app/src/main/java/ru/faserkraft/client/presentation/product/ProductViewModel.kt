@@ -81,7 +81,6 @@ class ProductViewModel @Inject constructor(
         return _uiState.value.userRole ?: appAuth.getRegistrationData()?.role
     }
 
-
     // ---------- UI actions ----------
 
     fun onChangeStatusClicked() {
@@ -195,7 +194,11 @@ class ProductViewModel @Inject constructor(
                         }
                         _events.send(ProductEvent.NavigateToNewProduct)
                     } else {
-                        setProduct(product)
+                        updateProductState(product)
+                        // Сбрасываем pendingSerialNumber
+                        _uiState.update { it.copy(pendingSerialNumber = null) }
+                        // Навигируемся только при первичной загрузке
+                        _events.send(ProductEvent.NavigateToProduct)
                     }
                 }
                 .onFailure { emitError(it) }
@@ -204,7 +207,11 @@ class ProductViewModel @Inject constructor(
         }
     }
 
-    fun setProduct(product: Product) {
+    /**
+     * Только обновляет стейт, без навигации.
+     * Используется для реактивного обновления экрана.
+     */
+    private fun updateProductState(product: Product) {
         val selected = product.steps.firstOrNull { it.status != StepStatus.DONE }
             ?: product.steps.lastOrNull()
 
@@ -214,10 +221,6 @@ class ProductViewModel @Inject constructor(
                 selectedStep = selected,
                 userRole = currentRole(),
             )
-        }
-
-        viewModelScope.launch {
-            _events.send(ProductEvent.NavigateToProduct)
         }
     }
 
@@ -232,42 +235,35 @@ class ProductViewModel @Inject constructor(
     // ---------- Create product ----------
 
     fun createProduct(serialNumber: String, processId: Int) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isActionInProgress = true) }
-
+        withActionProgress {
             runCatching { createProductUseCase(serialNumber, processId) }
-                .onSuccess { setProduct(it) }
+                .onSuccess { product ->
+                    updateProductState(product)
+                    _uiState.update { it.copy(pendingSerialNumber = null) }
+                    // Для нового продукта нам нужна навигация на его экран
+                    _events.send(ProductEvent.NavigateToProduct)
+                }
                 .onFailure { emitError(it) }
-
-            _uiState.update { it.copy(isActionInProgress = false) }
         }
     }
 
     // ---------- Change status ----------
 
     fun changeStatus(productId: Long, status: ProductStatus) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isActionInProgress = true) }
-
+        withActionProgress {
             runCatching { changeProductStatusUseCase(productId, status) }
-                .onSuccess { setProduct(it) }
+                .onSuccess { updateProductState(it) }
                 .onFailure { emitError(it) }
-
-            _uiState.update { it.copy(isActionInProgress = false) }
         }
     }
 
     // ---------- Change process ----------
 
     fun changeProcess(productId: Long, newProcessId: Int) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isActionInProgress = true) }
-
+        withActionProgress {
             runCatching { changeProductProcessUseCase(productId, newProcessId) }
-                .onSuccess { setProduct(it) }
+                .onSuccess { updateProductState(it) }
                 .onFailure { emitError(it) }
-
-            _uiState.update { it.copy(isActionInProgress = false) }
         }
     }
 
@@ -276,9 +272,7 @@ class ProductViewModel @Inject constructor(
     fun closeStep(step: Step) {
         if (step.id == 0) return
 
-        viewModelScope.launch {
-            _uiState.update { it.copy(isActionInProgress = true) }
-
+        withActionProgress {
             runCatching { closeStepUseCase(step.id) }
                 .onSuccess { product ->
                     val updatedStep = product.steps
@@ -293,15 +287,11 @@ class ProductViewModel @Inject constructor(
                     }
                 }
                 .onFailure { emitError(it) }
-
-            _uiState.update { it.copy(isActionInProgress = false) }
         }
     }
 
     fun changeStepPerformer(stepId: Int, newEmployeeId: Int) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isActionInProgress = true) }
-
+        withActionProgress {
             runCatching { changeStepPerformerUseCase(stepId, newEmployeeId) }
                 .onSuccess { product ->
                     _uiState.update {
@@ -312,8 +302,6 @@ class ProductViewModel @Inject constructor(
                     }
                 }
                 .onFailure { emitError(it) }
-
-            _uiState.update { it.copy(isActionInProgress = false) }
         }
     }
 
@@ -392,7 +380,19 @@ class ProductViewModel @Inject constructor(
         }
     }
 
-    // ---------- Private ----------
+    // ---------- Private Helpers ----------
+
+    /**
+     * Обертка для всех мутирующих операций (изменение статуса, создание продукта и т.д.).
+     * Автоматически управляет флагом isActionInProgress.
+     */
+    private fun withActionProgress(block: suspend () -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isActionInProgress = true) }
+            block()
+            _uiState.update { it.copy(isActionInProgress = false) }
+        }
+    }
 
     private suspend fun emitError(e: Throwable) {
         _events.send(ProductEvent.ShowError(e.toErrorMessage()))

@@ -1,6 +1,5 @@
 package ru.faserkraft.client.presentation.product
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -26,7 +25,10 @@ class EditProductFragment : Fragment() {
     private var selectedIndex: Int? = null
     private var prefillDone = false
 
-    private var activeDialog: AlertDialog? = null
+    // Флаг для безопасного возврата после успешного сохранения
+    private var isWaitingForResult = false
+
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,6 +54,11 @@ class EditProductFragment : Fragment() {
         setupSaveButton()
     }
 
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
+    }
+
     // ---------- Observe ----------
 
     private fun observeState() {
@@ -62,6 +69,12 @@ class EditProductFragment : Fragment() {
             b.btnEdit.isEnabled = !state.isActionInProgress
             b.progressEdit.visibility =
                 if (state.isActionInProgress) View.VISIBLE else View.GONE
+
+            // Навигация при успешном сохранении (если ждали результата и загрузка кончилась)
+            if (isWaitingForResult && !state.isActionInProgress) {
+                isWaitingForResult = false
+                findNavController().navigateUp()
+            }
 
             // Серийный номер
             b.tvSerial.text = state.product?.serialNumber ?: "Не определен"
@@ -79,7 +92,11 @@ class EditProductFragment : Fragment() {
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
             when (event) {
-                is ProductEvent.ShowError -> showErrorSnackbar(event.message)
+                is ProductEvent.ShowError -> {
+                    // Сбрасываем флаг при ошибке, чтобы фрагмент не закрылся
+                    isWaitingForResult = false
+                    showErrorSnackbar(event.message)
+                }
                 else -> Unit
             }
         }
@@ -118,23 +135,8 @@ class EditProductFragment : Fragment() {
                 return@setOnClickListener
             }
 
+            isWaitingForResult = true
             viewModel.changeProcess(productId, newProcessId)
-            navigateUpOnComplete()
         }
-    }
-
-    private fun navigateUpOnComplete() {
-        collectFlow(viewModel.uiState) { state ->
-            if (!state.isActionInProgress && _binding != null) {
-                findNavController().navigateUp()
-            }
-        }
-    }
-
-    override fun onDestroyView() {
-        activeDialog?.dismiss()
-        activeDialog = null
-        _binding = null
-        super.onDestroyView()
     }
 }

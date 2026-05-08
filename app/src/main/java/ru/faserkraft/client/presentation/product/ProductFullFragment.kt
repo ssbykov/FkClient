@@ -13,6 +13,7 @@ import ru.faserkraft.client.databinding.FragmentProductFullBinding
 import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.formatIsoToUi
+import ru.faserkraft.client.utils.navigateSafely // <- Добавлен импорт безопасной навигации
 
 class ProductFullFragment : Fragment() {
 
@@ -36,7 +37,8 @@ class ProductFullFragment : Fragment() {
         val adapter = StepsAdapter { stepUiItem ->
             viewModel.selectStep(stepUiItem.step)
             viewModel.loadEmployees()
-            findNavController().navigate(
+
+            findNavController().navigateSafely(
                 ProductFullFragmentDirections
                     .actionProductFullFragmentToEditStepFragment()
             )
