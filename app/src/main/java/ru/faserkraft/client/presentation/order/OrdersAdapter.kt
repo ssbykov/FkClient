@@ -1,12 +1,10 @@
 package ru.faserkraft.client.presentation.order
 
 import android.content.res.ColorStateList
-import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
-import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -73,15 +71,16 @@ class OrdersAdapter(
                 val binding = ItemOrderHeaderBinding.inflate(inflater, parent, false)
                 HeaderVH(binding)
             }
+
             TYPE_ORDER -> {
                 val binding = ItemOrderBinding.inflate(inflater, parent, false)
                 OrderVH(binding, listener)
             }
+
             else -> throw IllegalArgumentException("Unknown view type")
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = getItem(position)) {
             is OrderHeader -> (holder as HeaderVH).bind(item)
@@ -101,7 +100,6 @@ class OrdersAdapter(
         private val listener: OrderActionsListener
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        @RequiresApi(Build.VERSION_CODES.O)
         fun bind(item: OrderUiItem) = with(binding) {
             val context = itemView.context
 
@@ -207,18 +205,22 @@ class OrdersAdapter(
                             listener.onEditOrderClick(item)
                             true
                         }
+
                         R.id.action_add_packaging -> {
                             listener.onAddPackagingClick(item)
                             true
                         }
+
                         R.id.action_close_order -> {
                             listener.onCloseOrderClick(item)
                             true
                         }
+
                         R.id.action_delete_order -> {
                             listener.onDeleteOrderClick(item)
                             true
                         }
+
                         else -> false
                     }
                 }
