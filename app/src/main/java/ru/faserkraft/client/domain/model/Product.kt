@@ -5,7 +5,7 @@ data class Product(
     val serialNumber: String,
     val process: Process,
     val createdAt: String,
-    val packagingId: Int?,
+    val packagingSerialNumber: String?,
     val status: ProductStatus,
     val steps: List<Step>,
 )
