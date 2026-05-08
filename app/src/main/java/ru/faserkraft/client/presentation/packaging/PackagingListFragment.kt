@@ -9,12 +9,12 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
-import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentPackagingListBinding
 import ru.faserkraft.client.presentation.common.adapter.PackagingListAdapter
 import ru.faserkraft.client.presentation.common.adapter.PackagingListUiItem
 import ru.faserkraft.client.presentation.order.ModuleTypeUi
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.navigateSafely
 import ru.faserkraft.client.utils.showErrorSnackbar
 
 class PackagingListFragment : Fragment() {
@@ -26,6 +26,8 @@ class PackagingListFragment : Fragment() {
 
     private val args: PackagingListFragmentArgs by navArgs()
     private lateinit var adapter: PackagingListAdapter
+
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,9 +51,18 @@ class PackagingListFragment : Fragment() {
         viewModel.loadPackagingInStorage()
     }
 
+    override fun onDestroyView() {
+        binding.rvProducts.adapter = null
+        _binding = null
+        super.onDestroyView()
+    }
+
+    // ---------- Setup & Observe ----------
+
     private fun setupRecyclerView() {
         adapter = PackagingListAdapter(
             onItemClick = { item ->
+                // Загружаем упаковку во ViewModel перед переходом
                 viewModel.loadPackaging(item.serialNumber)
             }
         )
@@ -86,25 +97,21 @@ class PackagingListFragment : Fragment() {
     }
 
     private fun observeEvents() {
-
         collectFlow(viewModel.events) { event ->
             when (event) {
                 is PackagingEvent.ShowError -> showErrorSnackbar(event.message)
-                PackagingEvent.NavigateToPackaging ->
-                    findNavController().navigate(
-                        R.id.action_packagingListFragment_to_packagingFragment
-                    )
+                PackagingEvent.NavigateToPackaging -> {
+                    val action =
+                        PackagingListFragmentDirections.actionPackagingListFragmentToPackagingFragment(
+                            null
+                        )
+                    findNavController().navigateSafely(action)
+                }
 
                 PackagingEvent.NavigateToNewPackaging,
                 PackagingEvent.NavigateToEdit,
                 PackagingEvent.PackagingDeleted -> Unit
             }
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        binding.rvProducts.adapter = null
-        _binding = null
     }
 }

@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import ru.faserkraft.client.databinding.FragmentProductsStorageBinding
 import ru.faserkraft.client.domain.model.Packaging
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.navigateSafely
 
 class StorageFragment : Fragment() {
 
@@ -20,6 +21,8 @@ class StorageFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var adapter: ProductsStorageAdapter
+
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,11 +44,20 @@ class StorageFragment : Fragment() {
         viewModel.loadPackagingInStorage()
     }
 
+    override fun onDestroyView() {
+        binding.rvProductsStats.adapter = null
+        _binding = null
+        super.onDestroyView()
+    }
+
+    // ---------- Setup & Observe ----------
+
     private fun setupAdapter() {
         adapter = ProductsStorageAdapter { item ->
             val action = StorageContainerFragmentDirections
                 .actionStorageContainerFragmentToPackagingListFragment(item.process)
-            findNavController().navigate(action)
+
+            findNavController().navigateSafely(action)
         }
     }
 
@@ -65,12 +77,12 @@ class StorageFragment : Fragment() {
             val b = _binding ?: return@collectFlow
 
             b.swipeRefreshStats.isRefreshing = state.isLoading
-            b.swipeRefreshStats.isEnabled = !state.isLoading
-
             val uiList = mapToUiItems(state.packagingInStorage)
             adapter.submitList(uiList) { checkEmpty() }
         }
     }
+
+    // ---------- Helpers ----------
 
     private fun mapToUiItems(list: List<Packaging>): List<ProductsStorageUiItem> {
         if (list.isEmpty()) return emptyList()
@@ -90,12 +102,6 @@ class StorageFragment : Fragment() {
                     packagingCount = packagingCount
                 )
             }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        binding.rvProductsStats.adapter = null
-        _binding = null
     }
 
     private fun checkEmpty() {

@@ -3,10 +3,10 @@ package ru.faserkraft.client.presentation.packaging
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.auth.AppAuth
@@ -35,8 +35,9 @@ class PackagingViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PackagingUiState())
     val uiState: StateFlow<PackagingUiState> = _uiState
 
-    private val _events = MutableSharedFlow<PackagingEvent>(extraBufferCapacity = 1)
-    val events: SharedFlow<PackagingEvent> = _events
+    // Используем Channel вместо MutableSharedFlow для Single Live Events
+    private val _events = Channel<PackagingEvent>()
+    val events = _events.receiveAsFlow()
 
     init {
         viewModelScope.launch {
@@ -84,7 +85,7 @@ class PackagingViewModel @Inject constructor(
 
     fun setPackaging(packaging: Packaging) {
         _uiState.update { it.copy(currentPackaging = packaging) }
-        viewModelScope.launch { _events.emit(PackagingEvent.NavigateToPackaging) }
+        viewModelScope.launch { _events.send(PackagingEvent.NavigateToPackaging) }
     }
 
     private fun newPackaging(serialNumber: String) {
@@ -102,7 +103,7 @@ class PackagingViewModel @Inject constructor(
         }
         viewModelScope.launch {
             loadAvailableProducts()
-            _events.emit(PackagingEvent.NavigateToNewPackaging)
+            _events.send(PackagingEvent.NavigateToNewPackaging)
         }
     }
 
@@ -122,7 +123,7 @@ class PackagingViewModel @Inject constructor(
 
     fun onEditClicked() {
         viewModelScope.launch {
-            _events.emit(PackagingEvent.NavigateToEdit)
+            _events.send(PackagingEvent.NavigateToEdit)
         }
     }
 
@@ -134,7 +135,7 @@ class PackagingViewModel @Inject constructor(
             runCatching { deletePackagingUseCase(serialNumber) }
                 .onSuccess {
                     _uiState.update { state -> state.copy(currentPackaging = null) }
-                    _events.emit(PackagingEvent.PackagingDeleted)
+                    _events.send(PackagingEvent.PackagingDeleted)
                 }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }
@@ -166,7 +167,6 @@ class PackagingViewModel @Inject constructor(
     // ---------- Вспомогательное ----------
 
     private suspend fun emitError(e: Throwable) {
-        _events.emit(PackagingEvent.ShowError(e.toErrorMessage()))
+        _events.send(PackagingEvent.ShowError(e.toErrorMessage()))
     }
-
 }

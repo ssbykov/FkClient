@@ -23,6 +23,8 @@ class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
     private var tabLayoutMediator: TabLayoutMediator? = null
     private var activeDialog: AlertDialog? = null
 
+    // ---------- Lifecycle ----------
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentStorageContainerBinding.bind(view)
@@ -31,10 +33,23 @@ class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
         observeErrors()
     }
 
+    override fun onDestroyView() {
+        activeDialog?.dismiss()
+        activeDialog = null
+        tabLayoutMediator?.detach()
+        tabLayoutMediator = null
+        binding.viewPagerStorage.adapter = null
+        _binding = null
+        super.onDestroyView()
+    }
+
+    // ---------- Observers ----------
+
     private fun observeUser() {
         collectFlow(appViewModel.userData) { user ->
-            val hasAccess = user?.role == UserRole.MASTER
             val b = _binding ?: return@collectFlow
+
+            val hasAccess = user?.role == UserRole.MASTER || user?.role == UserRole.ADMIN
 
             b.noAccessContainer.isVisible = !hasAccess
             b.viewPagerStorage.isVisible = hasAccess
@@ -53,14 +68,7 @@ class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
         }
     }
 
-    private fun showErrorDialog(message: String) {
-        activeDialog?.dismiss()
-        activeDialog = AlertDialog.Builder(requireContext())
-            .setMessage(message)
-            .setPositiveButton("ОК") { dialog, _ -> dialog.dismiss() }
-            .setOnDismissListener { activeDialog = null }
-            .show()
-    }
+    // ---------- UI Setup ----------
 
     private fun setupViewPager() {
         binding.viewPagerStorage.adapter = StoragePageAdapter(this)
@@ -76,13 +84,18 @@ class StorageContainerFragment : Fragment(R.layout.fragment_storage_container) {
         }.also { it.attach() }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    // ---------- Dialogs ----------
+
+    private fun showErrorDialog(message: String) {
         activeDialog?.dismiss()
-        activeDialog = null
-        tabLayoutMediator?.detach()
-        tabLayoutMediator = null
-        binding.viewPagerStorage.adapter = null
-        _binding = null
+        activeDialog = AlertDialog.Builder(requireContext())
+            .setMessage(message)
+            .setPositiveButton("ОК") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setOnDismissListener {
+                activeDialog = null
+            }
+            .show()
     }
 }
