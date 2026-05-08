@@ -3,10 +3,10 @@ package ru.faserkraft.client.presentation.order
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.domain.model.OrderItem
@@ -40,8 +40,9 @@ class OrderViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(OrderUiState())
     val uiState: StateFlow<OrderUiState> = _uiState
 
-    private val _events = MutableSharedFlow<OrderEvent>(extraBufferCapacity = 1)
-    val events: SharedFlow<OrderEvent> = _events
+    // Используем Channel для событий (Single Live Event)
+    private val _events = Channel<OrderEvent>()
+    val events = _events.receiveAsFlow()
 
     // ---------- Список заказов ----------
 
@@ -65,10 +66,6 @@ class OrderViewModel @Inject constructor(
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isLoading = false) }
         }
-    }
-
-    fun clearCurrentOrder() {
-        _uiState.update { it.copy(currentOrder = null) }
     }
 
     // ---------- Создание ----------
@@ -95,7 +92,7 @@ class OrderViewModel @Inject constructor(
             }
                 .onSuccess {
                     loadOrders()
-                    _events.emit(OrderEvent.OrderCreated)
+                    _events.send(OrderEvent.OrderCreated)
                 }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }
@@ -120,7 +117,7 @@ class OrderViewModel @Inject constructor(
                 .onSuccess { updatedOrder ->
                     _uiState.update { state -> state.copy(currentOrder = updatedOrder) }
                     loadOrders()
-                    _events.emit(OrderEvent.OrderUpdated)
+                    _events.send(OrderEvent.OrderUpdated)
                 }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }
@@ -136,7 +133,7 @@ class OrderViewModel @Inject constructor(
                 .onSuccess { order ->
                     _uiState.update { it.copy(currentOrder = order) }
                     loadOrders()
-                    _events.emit(OrderEvent.OrderClosed)
+                    _events.send(OrderEvent.OrderClosed)
                 }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }
@@ -157,7 +154,7 @@ class OrderViewModel @Inject constructor(
                         )
                     }
                     loadOrders()
-                    _events.emit(OrderEvent.OrderDeleted)
+                    _events.send(OrderEvent.OrderDeleted)
                 }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }
@@ -173,7 +170,7 @@ class OrderViewModel @Inject constructor(
                 .onSuccess {
                     loadOrders()
                     loadOrder(orderId)
-                    _events.emit(OrderEvent.PackagingAdded)
+                    _events.send(OrderEvent.PackagingAdded)
                 }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }
@@ -196,6 +193,6 @@ class OrderViewModel @Inject constructor(
     // ---------- Вспомогательное ----------
 
     private suspend fun emitError(e: Throwable) {
-        _events.emit(OrderEvent.ShowError(e.toErrorMessage()))
+        _events.send(OrderEvent.ShowError(e.toErrorMessage()))
     }
 }

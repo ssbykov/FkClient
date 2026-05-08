@@ -6,15 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentOrderPackagingBinding
 import ru.faserkraft.client.domain.model.Order
@@ -22,6 +18,8 @@ import ru.faserkraft.client.presentation.common.adapter.PackagingListAdapter
 import ru.faserkraft.client.presentation.common.adapter.PackagingListUiItem
 import ru.faserkraft.client.presentation.packaging.PackagingEvent
 import ru.faserkraft.client.presentation.packaging.PackagingViewModel
+import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.navigateSafely
 import ru.faserkraft.client.utils.showErrorSnackbar
 
 class OrderPackagingFragment : Fragment() {
@@ -34,6 +32,8 @@ class OrderPackagingFragment : Fragment() {
 
     private lateinit var adapter: PackagingListAdapter
     private var itemTouchHelper: ItemTouchHelper? = null
+
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,6 +54,16 @@ class OrderPackagingFragment : Fragment() {
         observePackagingEvents()
     }
 
+    override fun onDestroyView() {
+        itemTouchHelper?.attachToRecyclerView(null)
+        itemTouchHelper = null
+        binding.rvPackagingStats.adapter = null
+        _binding = null
+        super.onDestroyView()
+    }
+
+    // ---------- Setup & Observe ----------
+
     private fun setupAdapter() {
         adapter = PackagingListAdapter { item ->
             packagingViewModel.loadPackaging(item.serialNumber)
@@ -66,54 +76,44 @@ class OrderPackagingFragment : Fragment() {
     }
 
     private fun observeState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                orderViewModel.uiState.collect { state ->
-                    val b = _binding ?: return@collect
-                    val order = state.currentOrder
-                    if (order != null) {
-                        renderOrder(order)
-                    } else {
-                        b.tvEmptyStorage.visibility = View.VISIBLE
-                        b.rvPackagingStats.visibility = View.GONE
-                    }
-                }
+        collectFlow(orderViewModel.uiState) { state ->
+            val b = _binding ?: return@collectFlow
+            val order = state.currentOrder
+            if (order != null) {
+                renderOrder(order)
+            } else {
+                b.tvEmptyStorage.visibility = View.VISIBLE
+                b.rvPackagingStats.visibility = View.GONE
             }
         }
     }
 
     private fun observeOrderEvents() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                orderViewModel.events.collect { event ->
-                    when (event) {
-                        is OrderEvent.ShowError -> showErrorSnackbar(event.message)
-                        OrderEvent.OrderClosed,
-                        OrderEvent.OrderDeleted,
-                        OrderEvent.OrderUpdated,
-                        OrderEvent.OrderCreated,
-                        OrderEvent.PackagingAdded -> Unit
-                    }
-                }
+        collectFlow(orderViewModel.events) { event ->
+            when (event) {
+                is OrderEvent.ShowError -> showErrorSnackbar(event.message)
+                OrderEvent.OrderClosed,
+                OrderEvent.OrderDeleted,
+                OrderEvent.OrderUpdated,
+                OrderEvent.OrderCreated,
+                OrderEvent.PackagingAdded -> Unit
             }
         }
     }
 
     private fun observePackagingEvents() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                packagingViewModel.events.collect { event ->
-                    when (event) {
-                        is PackagingEvent.NavigateToPackaging ->
-                            findNavController().navigate(
-                                R.id.action_orderPackagingFragment_to_packagingFragment
-                            )
-                        else -> Unit
-                    }
+        collectFlow(packagingViewModel.events) { event ->
+            when (event) {
+                is PackagingEvent.NavigateToPackaging -> {
+                    val action = OrderPackagingFragmentDirections.actionOrderPackagingFragmentToPackagingFragment(null)
+                    findNavController().navigateSafely(action)
                 }
+                else -> Unit
             }
         }
     }
+
+    // ---------- Helpers ----------
 
     private fun renderOrder(order: Order) {
         val b = _binding ?: return
@@ -178,13 +178,4 @@ class OrderPackagingFragment : Fragment() {
                     .show()
             }
         }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        orderViewModel.clearCurrentOrder()
-        itemTouchHelper?.attachToRecyclerView(null)
-        itemTouchHelper = null
-        binding.rvPackagingStats.adapter = null
-        _binding = null
-    }
 }

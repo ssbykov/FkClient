@@ -9,17 +9,12 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResultListener
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import kotlinx.coroutines.launch
-import ru.faserkraft.client.presentation.order.LocalOrderItem
-import ru.faserkraft.client.presentation.order.OrderItemsAdapter
 import ru.faserkraft.client.databinding.FragmentNewOrderBinding
 import ru.faserkraft.client.domain.model.OrderItem
 import ru.faserkraft.client.domain.model.Process
+import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.apiFormat
 import ru.faserkraft.client.utils.formatPlanDate
 import ru.faserkraft.client.utils.showErrorSnackbar
@@ -37,6 +32,8 @@ class NewOrderFragment : Fragment() {
 
     private val orderItemsList = mutableListOf<LocalOrderItem>()
     private lateinit var itemsAdapter: OrderItemsAdapter
+
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -66,76 +63,17 @@ class NewOrderFragment : Fragment() {
         binding.btnSave.setOnClickListener { saveOrder() }
     }
 
+    override fun onDestroyView() {
+        binding.rvOrderItems.adapter = null
+        _binding = null
+        super.onDestroyView()
+    }
+
+    // ---------- Setup & Observe ----------
+
     private fun setupUI() {
         binding.toolbar.title = "Новый заказ"
         binding.btnSave.text = "Создать заказ"
-    }
-
-    private fun observeState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    val b = _binding ?: return@collect
-                    val isLoading = state.isLoading || state.isActionInProgress
-                    b.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-                    b.btnSave.isEnabled = !isLoading
-                    b.btnAddItem.isEnabled = !isLoading
-                    b.etContractNumber.isEnabled = !isLoading
-                    b.etContractDate.isEnabled = !isLoading
-                    b.etPlannedDate.isEnabled = !isLoading
-                }
-            }
-        }
-    }
-
-    private fun observeEvents() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.events.collect { event ->
-                    when (event) {
-                        is OrderEvent.ShowError -> showErrorSnackbar(event.message)
-                        OrderEvent.OrderCreated -> findNavController().popBackStack()
-                        OrderEvent.OrderClosed,
-                        OrderEvent.OrderDeleted,
-                        OrderEvent.OrderUpdated,
-                        OrderEvent.PackagingAdded -> Unit
-                    }
-                }
-            }
-        }
-    }
-
-    private fun saveOrder() {
-        val contractNumber = binding.etContractNumber.text?.toString()?.trim()
-
-        if (contractNumber.isNullOrEmpty() || selectedContractDate == null || selectedPlannedDate == null) {
-            showErrorSnackbar("Заполните основные параметры")
-            return
-        }
-        if (orderItemsList.isEmpty()) {
-            showErrorSnackbar("Добавьте хотя бы одну позицию в заказ")
-            return
-        }
-
-        val domainItems = orderItemsList.map { item ->
-            OrderItem(
-                id = 0,
-                quantity = item.quantity,
-                workProcess = Process(
-                    id = item.processId,
-                    name = item.type,
-                    description = "",
-                    steps = emptyList()
-                )
-            )
-        }
-
-        viewModel.createOrder(
-            contractNumber = contractNumber,
-            contractDate = selectedContractDate!!,
-            plannedShipmentDate = selectedPlannedDate!!,
-            items = domainItems
-        )
     }
 
     private fun setupRecyclerView() {
@@ -181,6 +119,67 @@ class NewOrderFragment : Fragment() {
         }
     }
 
+    private fun observeState() {
+        collectFlow(viewModel.uiState) { state ->
+            val b = _binding ?: return@collectFlow
+            val isLoading = state.isLoading || state.isActionInProgress
+            b.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            b.btnSave.isEnabled = !isLoading
+            b.btnAddItem.isEnabled = !isLoading
+            b.etContractNumber.isEnabled = !isLoading
+            b.etContractDate.isEnabled = !isLoading
+            b.etPlannedDate.isEnabled = !isLoading
+        }
+    }
+
+    private fun observeEvents() {
+        collectFlow(viewModel.events) { event ->
+            when (event) {
+                is OrderEvent.ShowError -> showErrorSnackbar(event.message)
+                OrderEvent.OrderCreated -> findNavController().popBackStack()
+                OrderEvent.OrderClosed,
+                OrderEvent.OrderDeleted,
+                OrderEvent.OrderUpdated,
+                OrderEvent.PackagingAdded -> Unit
+            }
+        }
+    }
+
+    // ---------- Actions ----------
+
+    private fun saveOrder() {
+        val contractNumber = binding.etContractNumber.text?.toString()?.trim()
+
+        if (contractNumber.isNullOrEmpty() || selectedContractDate == null || selectedPlannedDate == null) {
+            showErrorSnackbar("Заполните основные параметры")
+            return
+        }
+        if (orderItemsList.isEmpty()) {
+            showErrorSnackbar("Добавьте хотя бы одну позицию в заказ")
+            return
+        }
+
+        val domainItems = orderItemsList.map { item ->
+            OrderItem(
+                id = 0,
+                quantity = item.quantity,
+                workProcess = Process(
+                    id = item.processId,
+                    name = item.type,
+                    description = "",
+                    steps = emptyList()
+                )
+            )
+        }
+
+        viewModel.createOrder(
+            contractNumber = contractNumber,
+            contractDate = selectedContractDate!!,
+            plannedShipmentDate = selectedPlannedDate!!,
+            items = domainItems
+        )
+    }
+
     private fun showDatePicker(currentApiDate: String?, onDateSelected: (String, String) -> Unit) {
         val calendar = Calendar.getInstance()
         if (!currentApiDate.isNullOrEmpty()) {
@@ -201,11 +200,5 @@ class NewOrderFragment : Fragment() {
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         ).show()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        binding.rvOrderItems.adapter = null
-        _binding = null
     }
 }

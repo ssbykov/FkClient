@@ -7,18 +7,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.launch
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentOrdersBinding
 import ru.faserkraft.client.dto.ModuleTypeDto
+import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.convertDate
+import ru.faserkraft.client.utils.navigateSafely
 import ru.faserkraft.client.utils.showErrorSnackbar
 
 class OrdersFragment : Fragment() {
@@ -30,6 +28,8 @@ class OrdersFragment : Fragment() {
 
     private lateinit var adapter: OrdersAdapter
     private lateinit var emptyObserver: RecyclerView.AdapterDataObserver
+
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,13 +52,24 @@ class OrdersFragment : Fragment() {
         viewModel.loadOrders()
     }
 
+    override fun onDestroyView() {
+        if (::emptyObserver.isInitialized) {
+            adapter.unregisterAdapterDataObserver(emptyObserver)
+        }
+        binding.rvOrders.adapter = null
+        _binding = null
+        super.onDestroyView()
+    }
+
+    // ---------- Setup & Observe ----------
+
     private fun setupAdapter() {
         adapter = OrdersAdapter(object : OrderActionsListener {
 
             override fun onOrderClick(item: OrderUiItem) {
                 if (_binding == null) return
                 viewModel.loadOrder(item.orderId)
-                findNavController().navigate(
+                findNavController().navigateSafely(
                     R.id.action_storageContainerFragment_to_orderPackagingFragment
                 )
             }
@@ -66,13 +77,13 @@ class OrdersFragment : Fragment() {
             override fun onEditOrderClick(item: OrderUiItem) {
                 if (_binding == null) return
                 viewModel.loadOrder(item.orderId)
-                findNavController().navigate(R.id.action_global_editOrderFragment)
+                findNavController().navigateSafely(R.id.action_global_editOrderFragment)
             }
 
             override fun onAddPackagingClick(item: OrderUiItem) {
                 if (_binding == null) return
                 viewModel.loadOrder(item.orderId)
-                findNavController().navigate(
+                findNavController().navigateSafely(
                     R.id.action_storageContainerFragment_to_orderAddPackagingFragment
                 )
             }
@@ -112,7 +123,7 @@ class OrdersFragment : Fragment() {
 
     private fun setupListeners() {
         binding.fabAddOrder.setOnClickListener {
-            findNavController().navigate(R.id.action_storageContainerFragment_to_newOrderFragment)
+            findNavController().navigateSafely(R.id.action_storageContainerFragment_to_newOrderFragment)
         }
         binding.swipeRefresh.setOnRefreshListener {
             viewModel.loadOrders()
@@ -120,38 +131,33 @@ class OrdersFragment : Fragment() {
     }
 
     private fun observeState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    binding.swipeRefresh.isRefreshing = state.isLoading
-                    binding.swipeRefresh.isEnabled = !state.isLoading
+        collectFlow(viewModel.uiState) { state ->
+            val b = _binding ?: return@collectFlow
 
-                    val items = mapOrdersToUiItems(state.orders)
-                    adapter.submitList(items) { checkEmpty() }
-                }
-            }
+            b.swipeRefresh.isRefreshing = state.isLoading
+
+            val items = mapOrdersToUiItems(state.orders)
+            adapter.submitList(items) { checkEmpty() }
         }
     }
 
     private fun observeEvents() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.events.collect { event ->
-                    when (event) {
-                        is OrderEvent.ShowError -> {
-                            Log.e("OrdersFragment", "Order error: ${event.message}")
-                            showErrorSnackbar(event.message)
-                        }
-                        OrderEvent.OrderClosed,
-                        OrderEvent.OrderDeleted,
-                        OrderEvent.OrderUpdated,
-                        OrderEvent.OrderCreated,
-                        OrderEvent.PackagingAdded -> Unit
-                    }
+        collectFlow(viewModel.events) { event ->
+            when (event) {
+                is OrderEvent.ShowError -> {
+                    Log.e("OrdersFragment", "Order error: ${event.message}")
+                    showErrorSnackbar(event.message)
                 }
+                OrderEvent.OrderClosed,
+                OrderEvent.OrderDeleted,
+                OrderEvent.OrderUpdated,
+                OrderEvent.OrderCreated,
+                OrderEvent.PackagingAdded -> Unit
             }
         }
     }
+
+    // ---------- Helpers ----------
 
     private fun mapOrdersToUiItems(
         orders: List<ru.faserkraft.client.domain.model.Order>
@@ -202,14 +208,5 @@ class OrdersFragment : Fragment() {
         val isEmpty = adapter.itemCount == 0
         b.tvEmpty.visibility = if (isEmpty) View.VISIBLE else View.GONE
         b.rvOrders.visibility = if (isEmpty) View.GONE else View.VISIBLE
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        if (::emptyObserver.isInitialized) {
-            adapter.unregisterAdapterDataObserver(emptyObserver)
-        }
-        binding.rvOrders.adapter = null
-        _binding = null
     }
 }
