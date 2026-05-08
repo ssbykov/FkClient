@@ -1,7 +1,5 @@
 package ru.faserkraft.client.presentation.plan
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,7 +27,9 @@ import ru.faserkraft.client.presentation.base.toErrorMessage
 import ru.faserkraft.client.utils.apiPattern
 import ru.faserkraft.client.utils.getToday
 import ru.faserkraft.client.utils.isPlanDateEditable
-import java.time.LocalDate
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -204,12 +204,26 @@ class PlanViewModel @Inject constructor(
 
     // ---------- Навигационные хелперы ----------
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun shiftDate(days: Long) {
         val current = _uiState.value.date
         if (!apiPattern.matches(current)) return
-        val newDate = LocalDate.parse(current).plusDays(days).toString()
-        loadPlans(newDate) // loadPlans вызывает recomputeCanEdit внутри
+
+        try {
+            val format = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+
+            val parsedDate = format.parse(current) ?: return
+
+            val calendar = Calendar.getInstance().apply {
+                time = parsedDate
+                add(Calendar.DAY_OF_MONTH, days.toInt())
+            }
+
+            val newDate = format.format(calendar.time)
+
+            loadPlans(newDate)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun selectPlanStep(plan: DailyPlan, step: DailyPlanStep) {
