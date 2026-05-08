@@ -30,7 +30,7 @@ fun ProductDto.toDomain(): Product = Product(
     serialNumber = serialNumber,
     process = process.toDomain(),
     createdAt = createdAt,
-    packagingId = packagingId,
+    packagingSerialNumber = packaging?.serialNumber,
     status = status.toDomain(),
     steps = steps.map { it.toDomain() },
 )
