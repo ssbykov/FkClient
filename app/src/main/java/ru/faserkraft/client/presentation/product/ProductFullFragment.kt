@@ -1,12 +1,9 @@
 package ru.faserkraft.client.presentation.product
 
-import android.annotation.SuppressLint
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -33,8 +30,6 @@ class ProductFullFragment : Fragment() {
         return binding.root
     }
 
-    @SuppressLint("SetTextI18n")
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -62,7 +57,6 @@ class ProductFullFragment : Fragment() {
             val stepItems = product.steps.map { step ->
                 StepUiItem(
                     isEditable = isMaster
-                            && product.packagingId == null
                             && step.performedAt != null,
                     step = step,
                 )
