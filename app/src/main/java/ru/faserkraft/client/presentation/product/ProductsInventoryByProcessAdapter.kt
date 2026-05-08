@@ -1,9 +1,7 @@
 package ru.faserkraft.client.presentation.product
 
-import android.os.Build
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -11,10 +9,12 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemProductDetailBinding
 import ru.faserkraft.client.utils.formatIsoToUi
 
-class ProductsInventoryByProcessAdapter (
+class ProductsInventoryByProcessAdapter(
     private val onItemClick: (String) -> Unit
 ) :
-    ListAdapter<ProductsInventoryByProcessUiItem, ProductsInventoryByProcessAdapter.ContentVH>(ContentDiff()) {
+    ListAdapter<ProductsInventoryByProcessUiItem, ProductsInventoryByProcessAdapter.ContentVH>(
+        ContentDiff()
+    ) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContentVH {
         val binding = ItemProductDetailBinding.inflate(
@@ -25,7 +25,6 @@ class ProductsInventoryByProcessAdapter (
         return ContentVH(binding, onItemClick)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: ContentVH, position: Int) {
         holder.bind(getItem(position))
     }
@@ -35,7 +34,6 @@ class ProductsInventoryByProcessAdapter (
         private val onStageClick: (String) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        @RequiresApi(Build.VERSION_CODES.O)
         fun bind(item: ProductsInventoryByProcessUiItem) = with(binding) {
             tvProductSerial.text = item.serialNumber
             tvCreated.text = binding.root.context.getString(
