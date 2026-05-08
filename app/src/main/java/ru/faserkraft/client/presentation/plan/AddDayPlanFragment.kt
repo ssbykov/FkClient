@@ -223,7 +223,6 @@ class AddDayPlanFragment : Fragment() {
     }
 
     private fun onUpdateClicked() {
-        val plan = editingPlan ?: return
         val step = editingStep ?: return
         val (empIndex, stepIndex, qty) = validateSelection() ?: return
         val planDate = convertDate(binding.etDate.text.toString())
