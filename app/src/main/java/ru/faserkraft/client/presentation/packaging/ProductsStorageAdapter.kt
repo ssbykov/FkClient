@@ -1,9 +1,7 @@
 package ru.faserkraft.client.presentation.packaging
 
-import android.os.Build
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -23,7 +21,6 @@ class ProductsStorageAdapter(
         return ContentVH(binding, onItemClick)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: ContentVH, position: Int) {
         holder.bind(getItem(position))
     }
@@ -33,7 +30,6 @@ class ProductsStorageAdapter(
         private val onItemClick: (ProductsStorageUiItem) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        @RequiresApi(Build.VERSION_CODES.O)
         fun bind(item: ProductsStorageUiItem) = with(binding) {
             binding.tvWorkProcess.text = item.process
             binding.tvModuleCount.text = itemView.context.getString(
