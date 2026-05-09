@@ -40,10 +40,10 @@ fun ProductStatusDto.toDomain(): ProductStatus = when (this) {
     ProductStatusDto.SCRAP -> ProductStatus.SCRAP
 }
 
-fun ProductStatus.toDto(): ProductStatusDto = when (this) {
-    ProductStatus.NORMAL -> ProductStatusDto.NORMAL
-    ProductStatus.REWORK -> ProductStatusDto.REWORK
-    ProductStatus.SCRAP -> ProductStatusDto.SCRAP
+fun ProductStatus.toDto(): String = when (this) {
+    ProductStatus.NORMAL -> "normal"
+    ProductStatus.REWORK -> "rework"
+    ProductStatus.SCRAP -> "scrap"
 }
 
 fun FinishedProductDto.toDomain(): FinishedProduct = FinishedProduct(

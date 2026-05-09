@@ -10,7 +10,6 @@ import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.domain.repository.ProductRepository
 import ru.faserkraft.client.dto.ProductCreateDto
-import ru.faserkraft.client.dto.toBackendValue
 import ru.faserkraft.client.error.AppError
 import ru.faserkraft.client.utils.nowIsoUtc
 import javax.inject.Inject
@@ -41,7 +40,7 @@ class ProductRepositoryImpl @Inject constructor(
 
     override suspend fun changeStatus(productId: Long, status: ProductStatus): Product =
         requireNotNull(
-            callApi { api.changeProductStatus(productId, status.toDto().toBackendValue()) }
+            callApi { api.changeProductStatus(productId, status.toDto()) }
         ).toDomain()
 
     override suspend fun changeProcess(productId: Long, newProcessId: Int): Product =

@@ -1,7 +1,6 @@
 package ru.faserkraft.client.dto
 
 import com.google.gson.annotations.SerializedName
-import ru.faserkraft.client.R
 import java.io.Serializable
 
 
@@ -22,7 +21,7 @@ data class ProductDto(
     val process: ProcessDto,
     @SerializedName("created_at")
     val createdAt: String,
-   @SerializedName("packaging")
+    @SerializedName("packaging")
     val packaging: PackagingShortDto?,
     val status: ProductStatusDto,
     val steps: List<StepDto>
@@ -37,39 +36,17 @@ data class FinishedProductDto(
 ) : ItemDto()
 
 
-enum class ProductStatusDto(
-    val titleRes: Int,
-    val bgColorRes: Int,
-    val textColorRes: Int,
-) {
+enum class ProductStatusDto {
     @SerializedName("normal")
-    NORMAL(
-        R.string.normal,
-        R.color.status_success_bg,
-        R.color.status_success_text,
-    ),
+    NORMAL,
 
     @SerializedName("rework")
-    REWORK(
-        R.string.rework,
-        R.color.status_rework_bg,
-        R.color.status_rework_text,
-    ),
+    REWORK,
 
     @SerializedName("scrap")
-    SCRAP(
-        R.string.scrap,
-        R.color.status_scrap_bg,
-        R.color.status_scrap_text,
-    );
+    SCRAP;
 }
 
-
-fun ProductStatusDto.toBackendValue(): String = when (this) {
-    ProductStatusDto.NORMAL -> "normal"
-    ProductStatusDto.REWORK -> "rework"
-    ProductStatusDto.SCRAP -> "scrap"
-}
 
 data class ProductsInventoryDto(
     @SerializedName("process_id")
