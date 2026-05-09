@@ -132,11 +132,11 @@ class PlansAdapter(
         override fun areItemsTheSame(
             oldItem: EmployeePlanUiItem,
             newItem: EmployeePlanUiItem,
-        ): Boolean = when {
-            oldItem is EmployeePlanUiItem.Header && newItem is EmployeePlanUiItem.Header ->
+        ): Boolean = when (oldItem) {
+            is EmployeePlanUiItem.Header if newItem is EmployeePlanUiItem.Header ->
                 oldItem.employeeId == newItem.employeeId
 
-            oldItem is EmployeePlanUiItem.Step && newItem is EmployeePlanUiItem.Step ->
+            is EmployeePlanUiItem.Step if newItem is EmployeePlanUiItem.Step ->
                 oldItem.step.id == newItem.step.id
 
             else -> false

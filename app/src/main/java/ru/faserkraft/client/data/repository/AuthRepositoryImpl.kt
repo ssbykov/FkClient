@@ -1,6 +1,6 @@
 package ru.faserkraft.client.data.repository
 
-import ru.faserkraft.client.api.AuthApi
+import ru.faserkraft.client.data.network.AuthApi
 import ru.faserkraft.client.data.callApi
 import ru.faserkraft.client.data.mapper.toDto
 import ru.faserkraft.client.domain.model.LoginCredentials

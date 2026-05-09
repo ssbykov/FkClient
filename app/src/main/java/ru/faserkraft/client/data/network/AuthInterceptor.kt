@@ -1,4 +1,4 @@
-package ru.faserkraft.client.api
+package ru.faserkraft.client.data.network
 
 import okhttp3.Interceptor
 import okhttp3.Response

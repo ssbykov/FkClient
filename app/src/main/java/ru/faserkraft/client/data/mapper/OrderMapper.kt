@@ -2,9 +2,9 @@ package ru.faserkraft.client.data.mapper
 
 import ru.faserkraft.client.domain.model.Order
 import ru.faserkraft.client.domain.model.OrderItem
-import ru.faserkraft.client.dto.OrderDto
-import ru.faserkraft.client.dto.OrderItemCreateDto
-import ru.faserkraft.client.dto.OrderItemDto
+import ru.faserkraft.client.data.dto.OrderDto
+import ru.faserkraft.client.data.dto.OrderItemCreateDto
+import ru.faserkraft.client.data.dto.OrderItemDto
 
 fun OrderItemDto.toDomain(): OrderItem = OrderItem(
     id = id,

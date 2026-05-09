@@ -73,13 +73,11 @@ class ProductsInventoryAdapter(
         override fun areItemsTheSame(
             oldItem: ProductsInventoryUiItem,
             newItem: ProductsInventoryUiItem,
-        ) = when {
-            oldItem is ProductsInventoryUiItem.ProcessHeader &&
-                    newItem is ProductsInventoryUiItem.ProcessHeader ->
+        ) = when (oldItem) {
+            is ProductsInventoryUiItem.ProcessHeader if newItem is ProductsInventoryUiItem.ProcessHeader ->
                 oldItem.processName == newItem.processName
 
-            oldItem is ProductsInventoryUiItem.StageItem &&
-                    newItem is ProductsInventoryUiItem.StageItem ->
+            is ProductsInventoryUiItem.StageItem if newItem is ProductsInventoryUiItem.StageItem ->
                 oldItem.item.processId == newItem.item.processId &&
                         oldItem.item.stepDefinitionId == newItem.item.stepDefinitionId
 

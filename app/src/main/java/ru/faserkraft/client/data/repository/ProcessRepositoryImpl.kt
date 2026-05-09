@@ -1,6 +1,6 @@
 package ru.faserkraft.client.data.repository
 
-import ru.faserkraft.client.api.Api
+import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.data.callApi
 import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.domain.model.Process

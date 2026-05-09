@@ -1,13 +1,13 @@
-package ru.faserkraft.client.api
+package ru.faserkraft.client.data.network
 
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
-import ru.faserkraft.client.dto.DeviceRequestDto
-import ru.faserkraft.client.dto.DeviceResponseDto
-import ru.faserkraft.client.dto.LoginRequestDto
-import ru.faserkraft.client.dto.LoginDto
+import ru.faserkraft.client.data.dto.DeviceRequestDto
+import ru.faserkraft.client.data.dto.DeviceResponseDto
+import ru.faserkraft.client.data.dto.LoginRequestDto
+import ru.faserkraft.client.data.dto.LoginDto
 
 interface AuthApi {
 

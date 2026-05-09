@@ -1,6 +1,6 @@
 package ru.faserkraft.client.data.repository
 
-import ru.faserkraft.client.api.Api
+import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.data.callApi
 import ru.faserkraft.client.data.callApiUnit
 import ru.faserkraft.client.data.mapper.toCreateDto
@@ -8,8 +8,8 @@ import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.domain.model.Order
 import ru.faserkraft.client.domain.model.OrderItem
 import ru.faserkraft.client.domain.repository.OrderRepository
-import ru.faserkraft.client.dto.OrderCreateDto
-import ru.faserkraft.client.dto.OrderUpdateDto
+import ru.faserkraft.client.data.dto.OrderCreateDto
+import ru.faserkraft.client.data.dto.OrderUpdateDto
 import javax.inject.Inject
 
 class OrderRepositoryImpl @Inject constructor(

@@ -1,13 +1,13 @@
 package ru.faserkraft.client.data.repository
 
-import ru.faserkraft.client.api.Api
+import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.data.callApi
 import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.domain.model.DailyPlan
 import ru.faserkraft.client.domain.repository.DailyPlanRepository
-import ru.faserkraft.client.dto.DailyPlanCopyDto
-import ru.faserkraft.client.dto.DailyPlanStepCreateDto
-import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
+import ru.faserkraft.client.data.dto.DailyPlanCopyDto
+import ru.faserkraft.client.data.dto.DailyPlanStepCreateDto
+import ru.faserkraft.client.data.dto.DailyPlanStepUpdateDto
 import javax.inject.Inject
 
 class DailyPlanRepositoryImpl @Inject constructor(

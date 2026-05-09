@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import ru.faserkraft.client.data.mapper.toDisplayString
 import ru.faserkraft.client.databinding.FragmentEditStatusProductBinding
 import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.presentation.ui.collectFlow
@@ -65,7 +64,7 @@ class EditProductStatusFragment : Fragment() {
             val product = state.product ?: return@collectFlow
             b.tvSerial.text = product.serialNumber
             b.tvProcess.text = product.process.name
-            b.tvCurrentStatus.text = product.status.toDisplayString()
+            b.tvCurrentStatus.text = getString(product.status.toUiProductStatus().titleRes)
         }
     }
 
@@ -77,6 +76,7 @@ class EditProductStatusFragment : Fragment() {
                     isWaitingForResult = false
                     showErrorSnackbar(event.message)
                 }
+
                 else -> Unit
             }
         }

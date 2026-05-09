@@ -6,11 +6,11 @@ import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.domain.model.Step
 import ru.faserkraft.client.domain.model.StepStatus
-import ru.faserkraft.client.dto.FinishedProductDto
-import ru.faserkraft.client.dto.ProductDto
-import ru.faserkraft.client.dto.ProductStatusDto
-import ru.faserkraft.client.dto.ProductsInventoryDto
-import ru.faserkraft.client.dto.StepDto
+import ru.faserkraft.client.data.dto.FinishedProductDto
+import ru.faserkraft.client.data.dto.ProductDto
+import ru.faserkraft.client.data.dto.ProductStatusDto
+import ru.faserkraft.client.data.dto.ProductsInventoryDto
+import ru.faserkraft.client.data.dto.StepDto
 
 fun StepDto.toDomain(): Step = Step(
     id = id,
@@ -60,10 +60,3 @@ fun ProductsInventoryDto.toDomain(): ProductsInventory = ProductsInventory(
     stepNameGenitive = stepNameGenitive,
     count = count,
 )
-
-
-fun ProductStatus.toDisplayString(): String = when (this) {
-    ProductStatus.NORMAL -> "Норма"
-    ProductStatus.REWORK -> "Ремонт"
-    ProductStatus.SCRAP -> "Брак"
-}

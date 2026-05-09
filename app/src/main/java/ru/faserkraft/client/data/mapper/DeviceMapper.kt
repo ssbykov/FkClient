@@ -2,8 +2,8 @@ package ru.faserkraft.client.data.mapper
 
 import ru.faserkraft.client.domain.model.DeviceRequest
 import ru.faserkraft.client.domain.model.UserRegistration
-import ru.faserkraft.client.dto.DeviceRequestDto
-import ru.faserkraft.client.dto.DeviceResponseDto
+import ru.faserkraft.client.data.dto.DeviceRequestDto
+import ru.faserkraft.client.data.dto.DeviceResponseDto
 
 fun DeviceResponseDto.toDomain(password: String): UserRegistration = UserRegistration(
     userEmail = userEmail,

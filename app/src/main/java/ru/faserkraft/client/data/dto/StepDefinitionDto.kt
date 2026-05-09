@@ -1,4 +1,4 @@
-package ru.faserkraft.client.dto
+package ru.faserkraft.client.data.dto
 
 data class StepDefinitionDto(
     val id: Int,

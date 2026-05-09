@@ -2,7 +2,7 @@ package ru.faserkraft.client.data.repository
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import ru.faserkraft.client.api.UpdateApi
+import ru.faserkraft.client.data.network.UpdateApi
 import ru.faserkraft.client.data.callApi
 import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.domain.model.VersionInfo

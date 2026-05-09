@@ -1,4 +1,4 @@
-package ru.faserkraft.client.dto
+package ru.faserkraft.client.data.dto
 
 import android.os.Build
 import com.google.gson.annotations.SerializedName

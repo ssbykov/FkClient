@@ -6,8 +6,8 @@ import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.domain.model.DeviceRequest
 import ru.faserkraft.client.domain.qr.QrClassifier
 import ru.faserkraft.client.domain.qr.QrParseResult
-import ru.faserkraft.client.dto.DeviceRegisterDto
-import ru.faserkraft.client.dto.deviceRegisterBuilder
+import ru.faserkraft.client.data.dto.DeviceRegisterDto
+import ru.faserkraft.client.data.dto.deviceRegisterBuilder
 import ru.faserkraft.client.utils.isUfCode
 import ru.faserkraft.client.utils.isUfPkgCode
 import javax.inject.Inject

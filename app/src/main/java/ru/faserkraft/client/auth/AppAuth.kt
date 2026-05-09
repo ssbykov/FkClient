@@ -1,7 +1,7 @@
 package ru.faserkraft.client.auth
 
 import ru.faserkraft.client.domain.model.UserData
-import ru.faserkraft.client.dto.LoginRequestDto
+import ru.faserkraft.client.data.dto.LoginRequestDto
 
 interface AppAuth {
     fun saveUserData(userData: UserData)

@@ -1,10 +1,10 @@
-package ru.faserkraft.client.api
+package ru.faserkraft.client.data.network
 
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Streaming
-import ru.faserkraft.client.dto.VersionInfoDto
+import ru.faserkraft.client.data.dto.VersionInfoDto
 
 
 interface UpdateApi {

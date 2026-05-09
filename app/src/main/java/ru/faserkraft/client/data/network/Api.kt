@@ -1,4 +1,4 @@
-package ru.faserkraft.client.api
+package ru.faserkraft.client.data.network
 
 
 import retrofit2.Response
@@ -10,23 +10,23 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 import ru.faserkraft.client.BuildConfig
-import ru.faserkraft.client.dto.DailyPlanCopyDto
-import ru.faserkraft.client.dto.DailyPlanStepCreateDto
-import ru.faserkraft.client.dto.DailyPlanStepUpdateDto
-import ru.faserkraft.client.dto.DayPlanDto
-import ru.faserkraft.client.dto.EmployeeDto
-import ru.faserkraft.client.dto.FinishedProductDto
-import ru.faserkraft.client.dto.OrderCreateDto
-import ru.faserkraft.client.dto.OrderDto
-import ru.faserkraft.client.dto.OrderItemCreateDto
-import ru.faserkraft.client.dto.OrderUpdateDto
-import ru.faserkraft.client.dto.PackagingCreateDto
-import ru.faserkraft.client.dto.PackagingDto
-import ru.faserkraft.client.dto.ProcessDto
-import ru.faserkraft.client.dto.ProductCreateDto
-import ru.faserkraft.client.dto.ProductDto
-import ru.faserkraft.client.dto.ProductsInventoryDto
-import ru.faserkraft.client.dto.QrDataResponseDto
+import ru.faserkraft.client.data.dto.DailyPlanCopyDto
+import ru.faserkraft.client.data.dto.DailyPlanStepCreateDto
+import ru.faserkraft.client.data.dto.DailyPlanStepUpdateDto
+import ru.faserkraft.client.data.dto.DayPlanDto
+import ru.faserkraft.client.data.dto.EmployeeDto
+import ru.faserkraft.client.data.dto.FinishedProductDto
+import ru.faserkraft.client.data.dto.OrderCreateDto
+import ru.faserkraft.client.data.dto.OrderDto
+import ru.faserkraft.client.data.dto.OrderItemCreateDto
+import ru.faserkraft.client.data.dto.OrderUpdateDto
+import ru.faserkraft.client.data.dto.PackagingCreateDto
+import ru.faserkraft.client.data.dto.PackagingDto
+import ru.faserkraft.client.data.dto.ProcessDto
+import ru.faserkraft.client.data.dto.ProductCreateDto
+import ru.faserkraft.client.data.dto.ProductDto
+import ru.faserkraft.client.data.dto.ProductsInventoryDto
+import ru.faserkraft.client.data.dto.QrDataResponseDto
 
 const val BASE_URL = BuildConfig.BASE_URL
 

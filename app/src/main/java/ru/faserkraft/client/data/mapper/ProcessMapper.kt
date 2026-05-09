@@ -3,9 +3,9 @@ package ru.faserkraft.client.data.mapper
 import ru.faserkraft.client.domain.model.FinishedProcess
 import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.domain.model.StepDefinition
-import ru.faserkraft.client.dto.FinishedProcessDto
-import ru.faserkraft.client.dto.ProcessDto
-import ru.faserkraft.client.dto.StepDefinitionDto
+import ru.faserkraft.client.data.dto.FinishedProcessDto
+import ru.faserkraft.client.data.dto.ProcessDto
+import ru.faserkraft.client.data.dto.StepDefinitionDto
 
 fun StepDefinitionDto.toDomain(): StepDefinition = StepDefinition(
     id = id,
