@@ -19,7 +19,7 @@ plugins {
 
 android {
     namespace = "ru.faserkraft.client"
-    compileSdk = 36
+    compileSdk = 37
 
     buildFeatures {
         viewBinding = true

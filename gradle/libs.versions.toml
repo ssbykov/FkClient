@@ -1,16 +1,16 @@
 [versions]
 # Плагины
-agp = "9.0.1"
-kotlin = "2.3.10"
-ksp = "2.3.6"
+agp = "9.2.1"
+kotlin = "2.3.21"
+ksp = "2.3.7"
 hiltAndroid = "2.59.2"
-navigation = "2.9.7"  # Объединил все navigation версии в одну
+navigation = "2.9.8"  # Объединил все navigation версии в одну
 
 # AndroidX
-coreKtx = "1.17.0"
+coreKtx = "1.18.0"
 appcompat = "1.7.1"
 material = "1.13.0"
-activity = "1.12.4"
+activity = "1.13.0"
 constraintlayout = "2.2.1"
 fragmentKtx = "1.8.9"
 room = "2.8.4"
@@ -21,13 +21,13 @@ junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 
 # Библиотеки
-coroutines = "1.10.2"
+coroutines = "1.11.0"
 retrofit = "3.0.0"
 okhttp = "5.3.2"
 zxing = "4.3.0"
 mapstruct = "1.6.3"
 swiperefreshlayout = "1.2.0"
-serializationJson = "1.10.0"
+serializationJson = "1.11.0"
 lottie = "6.7.1"
 
 [libraries]
