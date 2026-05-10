@@ -14,13 +14,14 @@ import kotlinx.coroutines.withContext
 import ru.faserkraft.client.domain.usecase.employee.GetEmployeeQrContentUseCase
 import ru.faserkraft.client.domain.usecase.employee.GetEmployeesUseCase
 import ru.faserkraft.client.presentation.base.toErrorMessage
-import ru.faserkraft.client.utils.QrCodeGenerator
+import ru.faserkraft.client.utils.QrCodeGeneratorWrapper
 import javax.inject.Inject
 
 @HiltViewModel
 class QrGenerationViewModel @Inject constructor(
     private val getEmployeesUseCase: GetEmployeesUseCase,
     private val getEmployeeQrContentUseCase: GetEmployeeQrContentUseCase,
+    private val qrCodeGenerator: QrCodeGeneratorWrapper,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QrGenerationUiState())
@@ -49,14 +50,10 @@ class QrGenerationViewModel @Inject constructor(
     fun generateQr(employeeId: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isActionInProgress = true) }
-
             runCatching {
-                // 1. Получаем чистую строку из Domain-слоя (сетевой запрос, IO-bound)
                 val qrContent = getEmployeeQrContentUseCase(employeeId)
-
-                // 2. Переключаемся на фоновый поток для тяжелой работы с графикой (CPU-bound)
                 withContext(Dispatchers.Default) {
-                    QrCodeGenerator.generate(qrContent)
+                    qrCodeGenerator.generate(qrContent)
                 }
             }
                 .onSuccess { bitmap ->
@@ -65,7 +62,6 @@ class QrGenerationViewModel @Inject constructor(
                 .onFailure { error ->
                     _events.send(QrGenerationEvent.ShowError(error.toErrorMessage()))
                 }
-
             _uiState.update { it.copy(isActionInProgress = false) }
         }
     }

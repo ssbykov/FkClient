@@ -1,6 +1,5 @@
 package ru.faserkraft.client.presentation.app
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +18,7 @@ import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.domain.usecase.auth.LoginUseCase
 import ru.faserkraft.client.domain.usecase.device.RegisterDeviceUseCase
 import ru.faserkraft.client.presentation.base.toErrorMessage
+import ru.faserkraft.client.utils.Logger
 import javax.inject.Inject
 
 private const val TAG = "AppViewModel"
@@ -30,6 +30,7 @@ class AppViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val registerDeviceUseCase: RegisterDeviceUseCase,
     private val sessionCoordinator: AppSessionCoordinator,
+    private val logger: Logger,
 ) : ViewModel() {
 
     private val _userData = MutableStateFlow<UserData?>(null)
@@ -74,10 +75,10 @@ class AppViewModel @Inject constructor(
                 appAuth.saveToken(token)
                 _userData.value = appAuth.getRegistrationData()
 
-                Log.i(TAG, "Device registration and auto-login completed")
+                logger.i(TAG, "Device registration and auto-login completed")
                 _events.send(AppEvent.RegistrationCompleted)
             }.onFailure { error ->
-                Log.e(TAG, "registerDevice failed", error)
+                logger.e(TAG, "registerDevice failed", error)
                 _errorState.send(error.toErrorMessage())
             }
         }
