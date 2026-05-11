@@ -30,7 +30,3 @@ fun formatIsoToUi(iso: String?): String {
         iso ?: "-"
     }
 }
-
-fun nowIsoUtc(): String {
-    return isoParser.format(Date())
-}

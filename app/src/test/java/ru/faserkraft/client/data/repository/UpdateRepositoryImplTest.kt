@@ -2,8 +2,6 @@ package ru.faserkraft.client.data.repository
 
 import io.mockk.coEvery
 import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
