@@ -35,6 +35,7 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
+            android:id="@+id/llProductInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -44,7 +45,7 @@
                 android:id="@+id/tvProductNumber"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
+                android:textSize="16sp"
                 tools:text="Модуль: uf-000000003" />
 
             <TextView
@@ -63,6 +64,21 @@
                 android:layout_marginTop="12dp"
                 android:textSize="12sp"
                 tools:text="Запуск: 07-12-2025 12:22" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipProductStatus"
+                style="@style/Widget.FK.ProductStatusChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_gravity="end"
+                android:checkable="false"
+                android:clickable="false"
+                android:focusable="false"
+                android:textAllCaps="false"
+                android:textAppearance="?attr/textAppearanceBody2"
+                tools:text="В работе" />
+
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
