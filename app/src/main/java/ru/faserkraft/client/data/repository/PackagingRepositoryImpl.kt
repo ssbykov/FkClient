@@ -1,18 +1,19 @@
 package ru.faserkraft.client.data.repository
 
-import ru.faserkraft.client.data.network.Api
-import ru.faserkraft.client.data.callApi
-import ru.faserkraft.client.data.callApiUnit
+
 import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.domain.model.Packaging
 import ru.faserkraft.client.domain.repository.PackagingRepository
 import ru.faserkraft.client.data.dto.PackagingCreateDto
+import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.error.AppError
+import ru.faserkraft.client.utils.Logger
 import javax.inject.Inject
 
 class PackagingRepositoryImpl @Inject constructor(
     private val api: Api,
-) : PackagingRepository {
+    logger: Logger,
+) : BaseRepository(logger), PackagingRepository {
 
     override suspend fun getPackaging(serialNumber: String): Packaging? =
         try {

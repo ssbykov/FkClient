@@ -2,18 +2,19 @@ package ru.faserkraft.client.data.repository
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import ru.faserkraft.client.data.network.UpdateApi
-import ru.faserkraft.client.data.callApi
 import ru.faserkraft.client.data.mapper.toDomain
+import ru.faserkraft.client.data.network.UpdateApi
 import ru.faserkraft.client.domain.model.VersionInfo
 import ru.faserkraft.client.domain.repository.UpdateRepository
 import ru.faserkraft.client.error.AppError
+import ru.faserkraft.client.utils.Logger
 import java.io.File
 import javax.inject.Inject
 
 class UpdateRepositoryImpl @Inject constructor(
-    private val api: UpdateApi
-) : UpdateRepository {
+    private val api: UpdateApi,
+    logger: Logger,
+) : BaseRepository(logger), UpdateRepository {
     override suspend fun getLatestVersion(): VersionInfo =
         callApi { api.getLatestVersion() }
             ?.toDomain()

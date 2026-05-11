@@ -1,22 +1,25 @@
 package ru.faserkraft.client.data.repository
 
-import ru.faserkraft.client.data.network.Api
-import ru.faserkraft.client.data.callApi
+
+import ru.faserkraft.client.data.dto.ProductCreateDto
 import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.data.mapper.toDto
+import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.domain.model.FinishedProduct
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.domain.repository.ProductRepository
-import ru.faserkraft.client.data.dto.ProductCreateDto
 import ru.faserkraft.client.error.AppError
-import ru.faserkraft.client.utils.nowIsoUtc
+import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.TimeProvider
 import javax.inject.Inject
 
 class ProductRepositoryImpl @Inject constructor(
     private val api: Api,
-) : ProductRepository {
+    private val timeProvider: TimeProvider,
+    logger: Logger,
+) : BaseRepository(logger), ProductRepository {
 
     override suspend fun getProduct(serialNumber: String): Product? =
         try {
@@ -32,7 +35,7 @@ class ProductRepositoryImpl @Inject constructor(
                     ProductCreateDto(
                         processId = processId,
                         serialNumber = serialNumber,
-                        createdAt = nowIsoUtc()
+                        createdAt = timeProvider.nowIsoUtc()
                     )
                 )
             }

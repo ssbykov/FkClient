@@ -1,10 +1,9 @@
 package ru.faserkraft.client.data
 
-import android.util.Log
-import org.json.JSONArray
-import org.json.JSONObject
+import com.google.gson.JsonParser
 import retrofit2.Response
 import ru.faserkraft.client.error.AppError
+import ru.faserkraft.client.utils.Logger
 import java.io.IOException
 
 private const val TAG = "BaseRequest"
@@ -12,65 +11,45 @@ private const val TAG = "BaseRequest"
 private fun parseApiErrorBody(raw: String): Pair<String?, String?> {
     return try {
         if (raw.isBlank()) return null to null
-
-        val json = JSONObject(raw)
-        var detail: String? = null
-
-        if (json.has("detail")) {
-            val detailElement = json.get("detail")
-            detail = if (detailElement is JSONArray) {
-                if (detailElement.length() > 0) {
-                    detailElement.getJSONObject(0).optString("msg")
-                } else {
-                    null
-                }
-            } else {
-                detailElement.toString()
-            }
+        val json = JsonParser.parseString(raw).asJsonObject
+        val detail = json.get("detail")?.let { d ->
+            if (d.isJsonArray) d.asJsonArray.firstOrNull()?.asJsonObject?.get("msg")?.asString
+            else d.asString
         }
-
-        val code = json.optString("code").takeIf { it.isNotBlank() }
+        val code = json.get("code")?.asString?.takeIf { it.isNotBlank() }
         code to detail
     } catch (e: Exception) {
-        Log.w(TAG, "Failed to parse api error body: $raw", e)
         null to null
     }
 }
 
-suspend fun <R> callApi(block: suspend () -> Response<R>): R? {
+suspend fun <R> callApi(logger: Logger, block: suspend () -> Response<R>): R? {
     return try {
         val response = block()
-
         if (!response.isSuccessful) {
             val raw = response.errorBody()?.string().orEmpty()
             val (serverCode, serverDetail) = parseApiErrorBody(raw)
             val errorMessage = serverDetail?.takeIf { it.isNotBlank() } ?: response.message()
             val uiCode = serverCode ?: "error_api_${response.code()}"
-
-            Log.e(
-                TAG,
-                "HTTP ${response.code()} ${response.message()} body=$raw"
-            )
-
+            logger.e(TAG, "HTTP ${response.code()} ${response.message()} body=$raw")
             throw AppError.ApiError(
                 status = response.code(),
                 uiCode = uiCode,
-                message = errorMessage,
+                message = errorMessage
             )
         }
-
         response.body()
     } catch (e: IOException) {
-        Log.e(TAG, "Network IO error", e)
+        logger.e(TAG, "Network IO error", e)
         throw AppError.NetworkError(e)
     } catch (e: AppError) {
         throw e
     } catch (e: Exception) {
-        Log.e(TAG, "Unexpected error in callApi", e)
+        logger.e(TAG, "Unexpected error in callApi", e)
         throw AppError.UnknownError(e)
     }
 }
 
-suspend fun callApiUnit(block: suspend () -> Response<Unit>) {
-    callApi(block)
+suspend fun callApiUnit(logger: Logger, block: suspend () -> Response<Unit>) {
+    callApi(logger, block)
 }

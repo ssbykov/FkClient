@@ -1,18 +1,19 @@
 package ru.faserkraft.client.data.repository
 
-import ru.faserkraft.client.data.network.Api
-import ru.faserkraft.client.data.callApi
-import ru.faserkraft.client.data.mapper.toDomain
-import ru.faserkraft.client.domain.model.DailyPlan
-import ru.faserkraft.client.domain.repository.DailyPlanRepository
 import ru.faserkraft.client.data.dto.DailyPlanCopyDto
 import ru.faserkraft.client.data.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.data.dto.DailyPlanStepUpdateDto
+import ru.faserkraft.client.data.mapper.toDomain
+import ru.faserkraft.client.data.network.Api
+import ru.faserkraft.client.domain.model.DailyPlan
+import ru.faserkraft.client.domain.repository.DailyPlanRepository
+import ru.faserkraft.client.utils.Logger
 import javax.inject.Inject
 
 class DailyPlanRepositoryImpl @Inject constructor(
     private val api: Api,
-) : DailyPlanRepository {
+    logger: Logger,
+) : BaseRepository(logger), DailyPlanRepository {
 
     override suspend fun getDayPlans(date: String): List<DailyPlan> =
         callApi { api.getDayPlans(date) }.orEmpty().map { it.toDomain() }

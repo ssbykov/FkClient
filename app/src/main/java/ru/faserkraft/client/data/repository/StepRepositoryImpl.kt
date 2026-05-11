@@ -1,15 +1,17 @@
 package ru.faserkraft.client.data.repository
 
-import ru.faserkraft.client.data.network.Api
-import ru.faserkraft.client.data.callApi
+
 import ru.faserkraft.client.data.mapper.toDomain
+import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.repository.StepRepository
+import ru.faserkraft.client.utils.Logger
 import javax.inject.Inject
 
 class StepRepositoryImpl @Inject constructor(
     private val api: Api,
-) : StepRepository {
+    logger: Logger,
+) : BaseRepository(logger), StepRepository {
 
     override suspend fun closeStep(stepId: Int): Product =
         requireNotNull(callApi { api.postStep(stepId) }).toDomain()
