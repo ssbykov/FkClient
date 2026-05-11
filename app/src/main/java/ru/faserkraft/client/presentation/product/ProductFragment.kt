@@ -65,7 +65,7 @@ class ProductFragment : Fragment() {
 
             b.progressEdit.visibility = if (state.isActionInProgress) View.VISIBLE else View.GONE
             b.btnEdit.visibility = if (canEdit) View.VISIBLE else View.GONE
-            b.chipProductStatus.isClickable = canEdit
+            b.chipProductStatus.isClickable = canEditByRole
 
             if (product == null) return@collectFlow
 
