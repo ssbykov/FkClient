@@ -13,7 +13,7 @@ import ru.faserkraft.client.databinding.FragmentNewProductBinding
 import ru.faserkraft.client.presentation.common.adapter.ProcessAdapter
 import ru.faserkraft.client.presentation.common.adapter.ProcessUi
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.showErrorSnackbar
+import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class NewProductFragment : Fragment() {
 

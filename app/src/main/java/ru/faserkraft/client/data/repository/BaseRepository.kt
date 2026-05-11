@@ -3,7 +3,7 @@ package ru.faserkraft.client.data.repository
 import retrofit2.Response
 import ru.faserkraft.client.data.callApi
 import ru.faserkraft.client.data.callApiUnit
-import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.logger.Logger
 
 abstract class BaseRepository(
     protected val logger: Logger

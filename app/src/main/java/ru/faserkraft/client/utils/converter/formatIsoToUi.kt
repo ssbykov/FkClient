@@ -1,4 +1,4 @@
-package ru.faserkraft.client.utils
+package ru.faserkraft.client.utils.converter
 
 import java.text.SimpleDateFormat
 import java.util.Date

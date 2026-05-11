@@ -17,8 +17,8 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentNewPackagingBinding
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.presentation.ui.hideKeyboard
-import ru.faserkraft.client.utils.navigateSafely
-import ru.faserkraft.client.utils.showErrorSnackbar
+import ru.faserkraft.client.utils.ext.navigateSafely
+import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class NewPackagingFragment : Fragment() {
 

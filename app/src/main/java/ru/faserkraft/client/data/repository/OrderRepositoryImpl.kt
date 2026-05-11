@@ -8,7 +8,7 @@ import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.domain.model.Order
 import ru.faserkraft.client.domain.model.OrderItem
 import ru.faserkraft.client.domain.repository.OrderRepository
-import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.logger.Logger
 import javax.inject.Inject
 
 class OrderRepositoryImpl @Inject constructor(

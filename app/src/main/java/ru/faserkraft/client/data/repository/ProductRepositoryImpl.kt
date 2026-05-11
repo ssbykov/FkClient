@@ -11,8 +11,8 @@ import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.domain.repository.ProductRepository
 import ru.faserkraft.client.error.AppError
-import ru.faserkraft.client.utils.Logger
-import ru.faserkraft.client.utils.TimeProvider
+import ru.faserkraft.client.utils.logger.Logger
+import ru.faserkraft.client.utils.timeprovider.TimeProvider
 import javax.inject.Inject
 
 class ProductRepositoryImpl @Inject constructor(

@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import ru.faserkraft.client.databinding.FragmentProductsStorageBinding
 import ru.faserkraft.client.domain.model.Packaging
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.navigateSafely
+import ru.faserkraft.client.utils.ext.navigateSafely
 
 class StorageFragment : Fragment() {
 

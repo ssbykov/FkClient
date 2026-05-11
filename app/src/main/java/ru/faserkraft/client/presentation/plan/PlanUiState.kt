@@ -6,7 +6,7 @@ import ru.faserkraft.client.domain.model.Employee
 import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.UserRole
-import ru.faserkraft.client.utils.getToday
+import ru.faserkraft.client.utils.converter.getToday
 
 data class PlanUiState(
     val isLoading: Boolean = false,

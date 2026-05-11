@@ -15,9 +15,9 @@ import ru.faserkraft.client.databinding.FragmentNewOrderBinding
 import ru.faserkraft.client.domain.model.OrderItem
 import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.apiFormat
-import ru.faserkraft.client.utils.formatPlanDate
-import ru.faserkraft.client.utils.showErrorSnackbar
+import ru.faserkraft.client.utils.converter.apiFormat
+import ru.faserkraft.client.utils.converter.formatPlanDate
+import ru.faserkraft.client.utils.ext.showErrorSnackbar
 import java.util.Calendar
 
 class NewOrderFragment : Fragment() {

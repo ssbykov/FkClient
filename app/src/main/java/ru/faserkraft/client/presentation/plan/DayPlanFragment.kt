@@ -17,11 +17,11 @@ import ru.faserkraft.client.databinding.FragmentDayPlanBinding
 import ru.faserkraft.client.domain.model.DailyPlan
 import ru.faserkraft.client.domain.model.DailyPlanStep
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.convertDate
-import ru.faserkraft.client.utils.formatPlanDate
-import ru.faserkraft.client.utils.getToday
-import ru.faserkraft.client.utils.navigateSafely
-import ru.faserkraft.client.utils.showErrorSnackbar
+import ru.faserkraft.client.utils.converter.convertDate
+import ru.faserkraft.client.utils.converter.formatPlanDate
+import ru.faserkraft.client.utils.converter.getToday
+import ru.faserkraft.client.utils.ext.navigateSafely
+import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class DayPlanFragment : Fragment() {
 

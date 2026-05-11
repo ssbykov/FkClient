@@ -21,8 +21,8 @@ import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.error.AppError
-import ru.faserkraft.client.utils.Logger
-import ru.faserkraft.client.utils.TimeProvider
+import ru.faserkraft.client.utils.logger.Logger
+import ru.faserkraft.client.utils.timeprovider.TimeProvider
 
 class ProductRepositoryImplTest {
 

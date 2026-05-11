@@ -5,7 +5,7 @@ import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.domain.repository.ProcessRepository
-import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.logger.Logger
 import javax.inject.Inject
 
 class ProcessRepositoryImpl @Inject constructor(

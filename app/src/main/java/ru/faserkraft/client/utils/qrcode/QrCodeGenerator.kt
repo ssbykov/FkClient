@@ -1,4 +1,4 @@
-package ru.faserkraft.client.utils
+package ru.faserkraft.client.utils.qrcode
 
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -18,9 +18,10 @@ object QrCodeGenerator {
 
         for (x in 0 until width) {
             for (y in 0 until height) {
-                bitmap[x, y] = if (bitMatrix[x, y]) Color.BLACK else Color.WHITE
+                bitmap[x, y] = if (bitMatrix.get(x, y)) Color.BLACK else Color.WHITE
             }
         }
+
         return bitmap
     }
 }

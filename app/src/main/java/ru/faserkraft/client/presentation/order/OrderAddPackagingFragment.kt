@@ -17,7 +17,7 @@ import ru.faserkraft.client.domain.model.Packaging
 import ru.faserkraft.client.presentation.packaging.PackagingEvent
 import ru.faserkraft.client.presentation.packaging.PackagingViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.showErrorSnackbar
+import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class OrderAddPackagingFragment : Fragment() {
 

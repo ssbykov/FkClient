@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemProductDetailBinding
-import ru.faserkraft.client.utils.formatIsoToUi
+import ru.faserkraft.client.utils.converter.formatIsoToUi
 
 class ProductsInventoryByProcessAdapter(
     private val onItemClick: (String) -> Unit

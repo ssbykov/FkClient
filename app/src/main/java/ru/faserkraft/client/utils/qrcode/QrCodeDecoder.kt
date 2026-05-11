@@ -1,4 +1,4 @@
-package ru.faserkraft.client.utils
+package ru.faserkraft.client.utils.qrcode
 
 fun isUfCode(str: String): Boolean {
     val pattern = Regex("^uf-\\d{7,9}$")

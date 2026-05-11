@@ -1,4 +1,4 @@
-package ru.faserkraft.client.utils
+package ru.faserkraft.client.utils.logger
 
 interface Logger {
     fun d(tag: String, message: String)

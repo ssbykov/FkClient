@@ -15,9 +15,9 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentOrdersBinding
 import ru.faserkraft.client.domain.model.ModuleType
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.convertDate
-import ru.faserkraft.client.utils.navigateSafely
-import ru.faserkraft.client.utils.showErrorSnackbar
+import ru.faserkraft.client.utils.converter.convertDate
+import ru.faserkraft.client.utils.ext.navigateSafely
+import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class OrdersFragment : Fragment() {
 

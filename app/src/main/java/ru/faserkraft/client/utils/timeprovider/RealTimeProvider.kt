@@ -1,5 +1,6 @@
-package ru.faserkraft.client.utils
+package ru.faserkraft.client.utils.timeprovider
 
+import ru.faserkraft.client.utils.timeprovider.TimeProvider
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

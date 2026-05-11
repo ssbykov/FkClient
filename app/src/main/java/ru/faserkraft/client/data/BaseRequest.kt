@@ -3,7 +3,7 @@ package ru.faserkraft.client.data
 import com.google.gson.JsonParser
 import retrofit2.Response
 import ru.faserkraft.client.error.AppError
-import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.logger.Logger
 import java.io.IOException
 
 private const val TAG = "BaseRequest"

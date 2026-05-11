@@ -10,7 +10,7 @@ import androidx.navigation.fragment.findNavController
 import ru.faserkraft.client.databinding.FragmentEditStatusProductBinding
 import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.showErrorSnackbar
+import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class EditProductStatusFragment : Fragment() {
 

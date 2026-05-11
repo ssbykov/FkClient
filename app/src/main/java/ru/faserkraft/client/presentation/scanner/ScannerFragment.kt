@@ -24,8 +24,8 @@ import ru.faserkraft.client.presentation.packaging.PackagingViewModel
 import ru.faserkraft.client.presentation.product.ProductEvent
 import ru.faserkraft.client.presentation.product.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.navigateSafely
-import ru.faserkraft.client.utils.showErrorSnackbar
+import ru.faserkraft.client.utils.ext.navigateSafely
+import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 @AndroidEntryPoint
 class ScannerFragment : Fragment() {

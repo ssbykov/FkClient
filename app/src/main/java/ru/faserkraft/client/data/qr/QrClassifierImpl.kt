@@ -8,8 +8,8 @@ import ru.faserkraft.client.domain.qr.QrClassifier
 import ru.faserkraft.client.domain.qr.QrParseResult
 import ru.faserkraft.client.data.dto.DeviceRegisterDto
 import ru.faserkraft.client.data.dto.deviceRegisterBuilder
-import ru.faserkraft.client.utils.isUfCode
-import ru.faserkraft.client.utils.isUfPkgCode
+import ru.faserkraft.client.utils.qrcode.isUfCode
+import ru.faserkraft.client.utils.qrcode.isUfPkgCode
 import javax.inject.Inject
 
 class QrClassifierImpl @Inject constructor(

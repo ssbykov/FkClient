@@ -1,4 +1,4 @@
-package ru.faserkraft.client.utils
+package ru.faserkraft.client.utils.logger
 
 import android.util.Log
 import javax.inject.Inject

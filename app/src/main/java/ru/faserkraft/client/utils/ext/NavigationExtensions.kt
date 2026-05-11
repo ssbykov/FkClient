@@ -1,4 +1,4 @@
-package ru.faserkraft.client.utils
+package ru.faserkraft.client.utils.ext
 
 import androidx.navigation.NavController
 import androidx.navigation.NavDirections

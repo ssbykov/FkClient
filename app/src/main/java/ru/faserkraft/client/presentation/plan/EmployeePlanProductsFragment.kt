@@ -18,8 +18,8 @@ import ru.faserkraft.client.presentation.product.ProductViewModel
 import ru.faserkraft.client.presentation.product.ProductsInventoryByProcessAdapter
 import ru.faserkraft.client.presentation.product.ProductsInventoryByProcessUiItem
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.convertDate
-import ru.faserkraft.client.utils.navigateSafely
+import ru.faserkraft.client.utils.converter.convertDate
+import ru.faserkraft.client.utils.ext.navigateSafely
 
 class EmployeePlanProductsFragment : Fragment() {
 

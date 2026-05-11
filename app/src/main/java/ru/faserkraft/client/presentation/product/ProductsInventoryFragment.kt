@@ -12,8 +12,8 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.databinding.FragmentProductsInventoryBinding
 import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.navigateSafely
-import ru.faserkraft.client.utils.showErrorSnackbar
+import ru.faserkraft.client.utils.ext.navigateSafely
+import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class ProductsInventoryFragment : Fragment() {
 

@@ -15,7 +15,7 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemOrderBinding
 import ru.faserkraft.client.databinding.ItemOrderHeaderBinding
 import ru.faserkraft.client.domain.model.ModuleType
-import ru.faserkraft.client.utils.formatIsoToUi
+import ru.faserkraft.client.utils.converter.formatIsoToUi
 
 sealed class OrderListItem {
     abstract val itemId: String

@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemStepBinding
 import ru.faserkraft.client.domain.model.Step
-import ru.faserkraft.client.utils.formatIsoToUi
+import ru.faserkraft.client.utils.converter.formatIsoToUi
 
 class StepsAdapter(
     private val onItemClick: (StepUiItem) -> Unit,

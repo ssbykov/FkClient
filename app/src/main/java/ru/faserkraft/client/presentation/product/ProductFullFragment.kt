@@ -12,8 +12,8 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductFullBinding
 import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.formatIsoToUi
-import ru.faserkraft.client.utils.navigateSafely // <- Добавлен импорт безопасной навигации
+import ru.faserkraft.client.utils.converter.formatIsoToUi
+import ru.faserkraft.client.utils.ext.navigateSafely // <- Добавлен импорт безопасной навигации
 
 class ProductFullFragment : Fragment() {
 

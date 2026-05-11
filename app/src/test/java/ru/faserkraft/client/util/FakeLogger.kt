@@ -1,6 +1,6 @@
 package ru.faserkraft.client.util
 
-import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.logger.Logger
 
 class FakeLogger : Logger {
 

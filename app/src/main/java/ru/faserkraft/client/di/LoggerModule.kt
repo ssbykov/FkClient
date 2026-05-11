@@ -4,8 +4,8 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import ru.faserkraft.client.utils.AndroidLogger
-import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.logger.AndroidLogger
+import ru.faserkraft.client.utils.logger.Logger
 
 import javax.inject.Singleton
 

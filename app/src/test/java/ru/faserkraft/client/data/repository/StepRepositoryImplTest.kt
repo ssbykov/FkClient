@@ -14,7 +14,7 @@ import ru.faserkraft.client.data.dto.ProductStatusDto
 import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.error.AppError
-import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.logger.Logger
 
 class StepRepositoryImplTest {
 

@@ -1,4 +1,4 @@
-package ru.faserkraft.client.utils
+package ru.faserkraft.client.utils.qrcode
 
 import android.graphics.Bitmap
 

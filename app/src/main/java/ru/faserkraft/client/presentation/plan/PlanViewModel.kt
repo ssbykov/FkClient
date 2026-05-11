@@ -24,9 +24,9 @@ import ru.faserkraft.client.domain.usecase.product.GetProductsByStepEmployeeDayU
 import ru.faserkraft.client.presentation.app.AppSessionCoordinator
 import ru.faserkraft.client.presentation.app.AppSessionEvent
 import ru.faserkraft.client.presentation.base.toErrorMessage
-import ru.faserkraft.client.utils.apiPattern
-import ru.faserkraft.client.utils.getToday
-import ru.faserkraft.client.utils.isPlanDateEditable
+import ru.faserkraft.client.utils.converter.apiPattern
+import ru.faserkraft.client.utils.converter.getToday
+import ru.faserkraft.client.utils.converter.isPlanDateEditable
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale

@@ -16,7 +16,7 @@ import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.presentation.app.AppViewModel
 import ru.faserkraft.client.presentation.scanner.ScannerViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.navigateSafely
+import ru.faserkraft.client.utils.ext.navigateSafely
 
 @AndroidEntryPoint
 class RegistrationFragment : Fragment() {

@@ -1,5 +1,4 @@
-package ru.faserkraft.client.utils
-
+package ru.faserkraft.client.utils.timeprovider
 
 interface TimeProvider {
     fun nowIsoUtc(): String

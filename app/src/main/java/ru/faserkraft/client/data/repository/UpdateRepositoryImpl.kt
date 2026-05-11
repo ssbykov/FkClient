@@ -7,7 +7,7 @@ import ru.faserkraft.client.data.network.UpdateApi
 import ru.faserkraft.client.domain.model.VersionInfo
 import ru.faserkraft.client.domain.repository.UpdateRepository
 import ru.faserkraft.client.error.AppError
-import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.logger.Logger
 import java.io.File
 import javax.inject.Inject
 

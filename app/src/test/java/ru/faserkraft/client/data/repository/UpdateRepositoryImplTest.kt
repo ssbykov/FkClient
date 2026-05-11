@@ -18,7 +18,7 @@ import ru.faserkraft.client.data.dto.VersionInfoDto
 import ru.faserkraft.client.data.network.UpdateApi
 import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.error.AppError
-import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.logger.Logger
 
 class UpdateRepositoryImplTest {
 

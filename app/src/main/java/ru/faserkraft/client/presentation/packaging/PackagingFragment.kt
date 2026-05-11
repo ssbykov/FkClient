@@ -14,9 +14,9 @@ import ru.faserkraft.client.databinding.FragmentPackagingBinding
 import ru.faserkraft.client.presentation.product.ProductEvent
 import ru.faserkraft.client.presentation.product.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.formatIsoToUi
-import ru.faserkraft.client.utils.navigateSafely
-import ru.faserkraft.client.utils.showErrorSnackbar
+import ru.faserkraft.client.utils.converter.formatIsoToUi
+import ru.faserkraft.client.utils.ext.navigateSafely
+import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class PackagingFragment : Fragment() {
 

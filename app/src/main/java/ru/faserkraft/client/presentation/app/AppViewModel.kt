@@ -18,7 +18,7 @@ import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.domain.usecase.auth.LoginUseCase
 import ru.faserkraft.client.domain.usecase.device.RegisterDeviceUseCase
 import ru.faserkraft.client.presentation.base.toErrorMessage
-import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.logger.Logger
 import javax.inject.Inject
 
 private const val TAG = "AppViewModel"

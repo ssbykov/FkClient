@@ -14,8 +14,8 @@ import ru.faserkraft.client.presentation.common.adapter.PackagingListAdapter
 import ru.faserkraft.client.presentation.common.adapter.PackagingListUiItem
 import ru.faserkraft.client.presentation.order.ModuleTypeUi
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.navigateSafely
-import ru.faserkraft.client.utils.showErrorSnackbar
+import ru.faserkraft.client.utils.ext.navigateSafely
+import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class PackagingListFragment : Fragment() {
 

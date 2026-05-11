@@ -14,7 +14,7 @@ import kotlinx.coroutines.withContext
 import ru.faserkraft.client.domain.usecase.employee.GetEmployeeQrContentUseCase
 import ru.faserkraft.client.domain.usecase.employee.GetEmployeesUseCase
 import ru.faserkraft.client.presentation.base.toErrorMessage
-import ru.faserkraft.client.utils.QrCodeGeneratorWrapper
+import ru.faserkraft.client.utils.qrcode.QrCodeGeneratorWrapper
 import javax.inject.Inject
 
 @HiltViewModel

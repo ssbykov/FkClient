@@ -13,9 +13,9 @@ import androidx.navigation.fragment.findNavController
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductBinding
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.formatIsoToUi
-import ru.faserkraft.client.utils.navigateSafely
-import ru.faserkraft.client.utils.showErrorSnackbar
+import ru.faserkraft.client.utils.converter.formatIsoToUi
+import ru.faserkraft.client.utils.ext.navigateSafely
+import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class ProductFragment : Fragment() {
 

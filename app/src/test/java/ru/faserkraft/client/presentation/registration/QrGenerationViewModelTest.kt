@@ -21,7 +21,7 @@ import ru.faserkraft.client.domain.model.Employee
 import ru.faserkraft.client.domain.usecase.employee.GetEmployeeQrContentUseCase
 import ru.faserkraft.client.domain.usecase.employee.GetEmployeesUseCase
 import ru.faserkraft.client.util.MainDispatcherRule
-import ru.faserkraft.client.utils.QrCodeGeneratorWrapper
+import ru.faserkraft.client.utils.qrcode.QrCodeGeneratorWrapper
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class QrGenerationViewModelTest {

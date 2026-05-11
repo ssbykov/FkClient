@@ -7,7 +7,7 @@ import ru.faserkraft.client.data.network.AuthApi
 import ru.faserkraft.client.domain.model.DeviceRequest
 import ru.faserkraft.client.domain.model.UserRegistration
 import ru.faserkraft.client.domain.repository.DeviceRepository
-import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.logger.Logger
 import javax.inject.Inject
 
 class DeviceRepositoryImpl @Inject constructor(

@@ -11,7 +11,7 @@ import ru.faserkraft.client.databinding.FragmentEditStepBinding
 import ru.faserkraft.client.presentation.common.adapter.EmployeeUi
 import ru.faserkraft.client.presentation.common.adapter.EmployeesAdapter
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.showErrorSnackbar
+import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class EditStepFragment : Fragment() {
 

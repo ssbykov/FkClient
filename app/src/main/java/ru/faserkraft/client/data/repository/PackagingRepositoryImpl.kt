@@ -7,7 +7,7 @@ import ru.faserkraft.client.domain.repository.PackagingRepository
 import ru.faserkraft.client.data.dto.PackagingCreateDto
 import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.error.AppError
-import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.logger.Logger
 import javax.inject.Inject
 
 class PackagingRepositoryImpl @Inject constructor(

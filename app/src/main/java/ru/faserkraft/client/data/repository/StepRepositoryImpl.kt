@@ -5,7 +5,7 @@ import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.repository.StepRepository
-import ru.faserkraft.client.utils.Logger
+import ru.faserkraft.client.utils.logger.Logger
 import javax.inject.Inject
 
 class StepRepositoryImpl @Inject constructor(

@@ -1,4 +1,4 @@
-package ru.faserkraft.client.utils
+package ru.faserkraft.client.utils.ext
 
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
