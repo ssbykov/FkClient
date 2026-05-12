@@ -1,13 +1,17 @@
 package ru.faserkraft.client.presentation.packaging
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat.getColor
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.databinding.ItemPackagingContentProductBinding
+import ru.faserkraft.client.domain.model.ProductStatus
+import ru.faserkraft.client.presentation.product.toUiProductStatus
 
-class PackagingContentAdapter (
+class PackagingContentAdapter(
     private val onItemClick: (String) -> Unit
 ) :
     ListAdapter<PackagingContentUiItem, PackagingContentAdapter.ContentVH>(ContentDiff()) {
@@ -34,6 +38,11 @@ class PackagingContentAdapter (
             tvProductSerial.text = item.serialNumber
             tvProcessName.text = item.processName
 
+            val uiStatus = item.status.toUiProductStatus()
+            val ctx = root.context
+            val bgColor = getColor(ctx, uiStatus.bgColorRes)
+            root.setCardBackgroundColor(bgColor)
+
             root.setOnClickListener {
                 onItemClick(item.serialNumber)
             }
@@ -57,4 +66,5 @@ data class PackagingContentUiItem(
     val id: Int,
     val serialNumber: String,
     val processName: String,
+    val status: ProductStatus,
 )

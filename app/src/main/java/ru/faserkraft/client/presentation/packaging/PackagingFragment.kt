@@ -90,7 +90,8 @@ class PackagingFragment : Fragment() {
                         PackagingContentUiItem(
                             id = p.id,
                             serialNumber = p.serialNumber,
-                            processName = p.process.name
+                            processName = p.process.name,
+                            status = p.status,
                         )
                     }
                     .sortedBy { it.serialNumber }
