@@ -27,12 +27,13 @@ data class ProductDto(
     val steps: List<StepDto>
 ) : ItemDto()
 
-data class FinishedProductDto(
+data class ProductShortDto(
     val id: Int = 0,
     @SerializedName("serial_number")
     val serialNumber: String,
     @SerializedName("work_process")
     val process: FinishedProcessDto,
+    val status: ProductStatusDto,
 ) : ItemDto()
 
 

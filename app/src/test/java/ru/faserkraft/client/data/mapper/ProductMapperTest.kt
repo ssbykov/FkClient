@@ -6,11 +6,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import ru.faserkraft.client.data.dto.EmployeeDto
 import ru.faserkraft.client.data.dto.FinishedProcessDto
-import ru.faserkraft.client.data.dto.FinishedProductDto
 import ru.faserkraft.client.data.dto.PackagingShortDto
 import ru.faserkraft.client.data.dto.ProcessDto
 import ru.faserkraft.client.data.dto.ProductDto
 import ru.faserkraft.client.data.dto.ProductStatusDto
+import ru.faserkraft.client.data.dto.ProductShortDto
 import ru.faserkraft.client.data.dto.ProductsInventoryDto
 import ru.faserkraft.client.data.dto.StepDefinitionDto
 import ru.faserkraft.client.data.dto.StepDto
@@ -192,14 +192,15 @@ class ProductMapperTest {
         assertEquals("scrap", ProductStatus.SCRAP.toDto())
     }
 
-    // ── FinishedProductDto.toDomain() ─────────────────────────────────────────
+    // ── ProductShortDto.toDomain() ────────────────────────────────────────────
 
     @Test
-    fun `FinishedProductDto toDomain - maps id and serialNumber`() {
-        val dto = FinishedProductDto(
+    fun `ProductShortDto toDomain - maps id and serialNumber`() {
+        val dto = ProductShortDto(
             id = 5,
             serialNumber = "FIN-001",
-            process = FinishedProcessDto(id = 3, name = "Финальный", type = null)
+            process = FinishedProcessDto(id = 3, name = "Финальный", type = null),
+            status = ProductStatusDto.NORMAL
         )
 
         val result = dto.toDomain()
@@ -209,15 +210,28 @@ class ProductMapperTest {
     }
 
     @Test
-    fun `FinishedProductDto toDomain - process is mapped`() {
-        val dto = FinishedProductDto(
+    fun `ProductShortDto toDomain - process is mapped`() {
+        val dto = ProductShortDto(
             id = 5,
             serialNumber = "FIN-001",
-            process = FinishedProcessDto(id = 3, name = "Финальный", type = null)
+            process = FinishedProcessDto(id = 3, name = "Финальный", type = null),
+            status = ProductStatusDto.NORMAL
         )
 
         assertEquals(3, dto.toDomain().process.id)
         assertEquals("Финальный", dto.toDomain().process.name)
+    }
+
+    @Test
+    fun `ProductShortDto toDomain - status is mapped`() {
+        val dto = ProductShortDto(
+            id = 5,
+            serialNumber = "FIN-001",
+            process = FinishedProcessDto(id = 3, name = "Финальный", type = null),
+            status = ProductStatusDto.REWORK
+        )
+
+        assertEquals(ProductStatus.REWORK, dto.toDomain().status)
     }
 
     // ── ProductsInventoryDto.toDomain() ───────────────────────────────────────

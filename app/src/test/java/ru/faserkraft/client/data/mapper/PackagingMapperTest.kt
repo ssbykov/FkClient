@@ -6,8 +6,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import ru.faserkraft.client.data.dto.EmployeeDto
 import ru.faserkraft.client.data.dto.FinishedProcessDto
-import ru.faserkraft.client.data.dto.FinishedProductDto
 import ru.faserkraft.client.data.dto.PackagingDto
+import ru.faserkraft.client.data.dto.ProductShortDto
+import ru.faserkraft.client.data.dto.ProductStatusDto
 import ru.faserkraft.client.data.dto.UserDto
 
 class PackagingMapperTest {
@@ -20,10 +21,11 @@ class PackagingMapperTest {
         user = UserDto(id = 1, email = "ivan@faserkraft.ru")
     )
 
-    private val finishedProductDto = FinishedProductDto(
+    private val productShortDto = ProductShortDto(
         id = 10,
         serialNumber = "FIN-001",
-        process = FinishedProcessDto(id = 3, name = "Финальный", type = null)
+        process = FinishedProcessDto(id = 3, name = "Финальный", type = null),
+        status = ProductStatusDto.NORMAL
     )
 
     private val fullDto = PackagingDto(
@@ -32,7 +34,7 @@ class PackagingMapperTest {
         performedBy = employeeDto,
         performedAt = "2024-06-01T12:00:00",
         orderId = 7,
-        products = listOf(finishedProductDto)
+        products = listOf(productShortDto)
     )
 
     // ── id, serialNumber ──────────────────────────────────────────────────────
@@ -103,6 +105,12 @@ class PackagingMapperTest {
         assertEquals("FIN-001", fullDto.toDomain().products.first().serialNumber)
     }
 
+    // Опционально: можно добавить тест на маппинг нового статуса
+    @Test
+    fun `toDomain - maps product status`() {
+        assertEquals(ProductStatusDto.NORMAL.name, fullDto.toDomain().products.first().status.name)
+    }
+
     @Test
     fun `toDomain - null products returns empty list`() {
         val dto = fullDto.copy(products = null)
@@ -119,8 +127,8 @@ class PackagingMapperTest {
     fun `toDomain - multiple products are all mapped`() {
         val dto = fullDto.copy(
             products = listOf(
-                finishedProductDto,
-                finishedProductDto.copy(id = 11, serialNumber = "FIN-002")
+                productShortDto,
+                productShortDto.copy(id = 11, serialNumber = "FIN-002")
             )
         )
         assertEquals(2, dto.toDomain().products.size)

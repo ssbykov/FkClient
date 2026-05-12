@@ -1,6 +1,6 @@
 package ru.faserkraft.client.presentation.packaging
 
-import ru.faserkraft.client.domain.model.FinishedProduct
+import ru.faserkraft.client.domain.model.ProductShort
 import ru.faserkraft.client.domain.model.Packaging
 import ru.faserkraft.client.domain.model.UserData
 import ru.faserkraft.client.domain.model.UserRole
@@ -13,7 +13,7 @@ import java.util.TimeZone
 data class PackagingUiState(
     val currentPackaging: Packaging? = null,
     val packagingInStorage: List<Packaging> = emptyList(),
-    val availableProducts: List<FinishedProduct> = emptyList(),
+    val availableProducts: List<ProductShort> = emptyList(),
     val currentUser: UserData? = null,
     val isLoading: Boolean = false,
     val isActionInProgress: Boolean = false,

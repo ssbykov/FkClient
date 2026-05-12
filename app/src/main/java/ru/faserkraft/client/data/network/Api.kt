@@ -15,7 +15,7 @@ import ru.faserkraft.client.data.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.data.dto.DailyPlanStepUpdateDto
 import ru.faserkraft.client.data.dto.DayPlanDto
 import ru.faserkraft.client.data.dto.EmployeeDto
-import ru.faserkraft.client.data.dto.FinishedProductDto
+import ru.faserkraft.client.data.dto.ProductShortDto
 import ru.faserkraft.client.data.dto.OrderCreateDto
 import ru.faserkraft.client.data.dto.OrderDto
 import ru.faserkraft.client.data.dto.OrderItemCreateDto
@@ -53,7 +53,7 @@ interface Api {
     ): Response<List<ProductDto>>
 
     @GET(BASE_URL + "products/finished")
-    suspend fun getFinishedProduct(): Response<List<FinishedProductDto>>
+    suspend fun getFinishedProduct(): Response<List<ProductShortDto>>
 
     @POST(BASE_URL + "products")
     suspend fun postProduct(

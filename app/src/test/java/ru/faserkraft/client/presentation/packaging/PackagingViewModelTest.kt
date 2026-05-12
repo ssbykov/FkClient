@@ -19,8 +19,9 @@ import org.junit.Test
 import retrofit2.HttpException
 import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.domain.model.FinishedProcess
-import ru.faserkraft.client.domain.model.FinishedProduct
 import ru.faserkraft.client.domain.model.Packaging
+import ru.faserkraft.client.domain.model.ProductShort          // ← заменён импорт
+import ru.faserkraft.client.domain.model.ProductStatus         // ← добавлен импорт
 import ru.faserkraft.client.domain.model.UserData
 import ru.faserkraft.client.domain.usecase.packaging.CreatePackagingUseCase
 import ru.faserkraft.client.domain.usecase.packaging.DeletePackagingUseCase
@@ -64,7 +65,6 @@ class PackagingViewModelTest {
     )
     private val dummyPackagingList = listOf(dummyPackaging)
 
-    // Используем реальные объекты вместо моков
     private val dummyProcess = FinishedProcess(
         id = 1,
         name = "Сборка",
@@ -72,10 +72,11 @@ class PackagingViewModelTest {
         sizeTypeName = "Стандарт",
         packagingCount = 10
     )
-    private val dummyProduct = FinishedProduct(
+    private val dummyProduct = ProductShort(      // ← FinishedProduct → ProductShort
         id = 1,
         serialNumber = "PRD-001",
-        process = dummyProcess
+        process = dummyProcess,
+        status = ProductStatus.NORMAL             // ← добавлен статус
     )
     private val dummyProductList = listOf(dummyProduct)
 
@@ -99,7 +100,7 @@ class PackagingViewModelTest {
 
     @Test
     fun `init - loads currentUser from appAuth`() = runTest {
-        advanceUntilIdle() // Ждём завершения корутин в init {}
+        advanceUntilIdle()
 
         val state = viewModel.uiState.value
         assertEquals(dummyUserData, state.currentUser)

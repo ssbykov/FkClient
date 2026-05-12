@@ -5,7 +5,7 @@ import ru.faserkraft.client.data.dto.ProductCreateDto
 import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.data.mapper.toDto
 import ru.faserkraft.client.data.network.Api
-import ru.faserkraft.client.domain.model.FinishedProduct
+import ru.faserkraft.client.domain.model.ProductShort
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.model.ProductsInventory
@@ -52,7 +52,7 @@ class ProductRepositoryImpl @Inject constructor(
     override suspend fun getProductsInventory(): List<ProductsInventory> =
         callApi { api.getProductsInventory() }.orEmpty().map { it.toDomain() }
 
-    override suspend fun getFinishedProducts(): List<FinishedProduct> =
+    override suspend fun getFinishedProducts(): List<ProductShort> =
         callApi { api.getFinishedProduct() }.orEmpty().map { it.toDomain() }
 
     override suspend fun getProductsByLastCompletedStep(

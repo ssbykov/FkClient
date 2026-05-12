@@ -1,12 +1,12 @@
 package ru.faserkraft.client.data.mapper
 
-import ru.faserkraft.client.domain.model.FinishedProduct
+import ru.faserkraft.client.domain.model.ProductShort
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.domain.model.Step
 import ru.faserkraft.client.domain.model.StepStatus
-import ru.faserkraft.client.data.dto.FinishedProductDto
+import ru.faserkraft.client.data.dto.ProductShortDto
 import ru.faserkraft.client.data.dto.ProductDto
 import ru.faserkraft.client.data.dto.ProductStatusDto
 import ru.faserkraft.client.data.dto.ProductsInventoryDto
@@ -46,10 +46,11 @@ fun ProductStatus.toDto(): String = when (this) {
     ProductStatus.SCRAP -> "scrap"
 }
 
-fun FinishedProductDto.toDomain(): FinishedProduct = FinishedProduct(
+fun ProductShortDto.toDomain(): ProductShort = ProductShort(
     id = id,
     serialNumber = serialNumber,
     process = process.toDomain(),
+    status = status.toDomain(),
 )
 
 fun ProductsInventoryDto.toDomain(): ProductsInventory = ProductsInventory(

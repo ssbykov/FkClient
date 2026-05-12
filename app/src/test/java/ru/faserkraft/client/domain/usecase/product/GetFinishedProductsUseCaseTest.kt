@@ -8,8 +8,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import ru.faserkraft.client.domain.model.FinishedProduct
 import ru.faserkraft.client.domain.model.FinishedProcess
+import ru.faserkraft.client.domain.model.ProductShort
+import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.repository.ProductRepository
 
 class GetFinishedProductsUseCaseTest {
@@ -28,15 +29,17 @@ class GetFinishedProductsUseCaseTest {
     )
 
     private val products = listOf(
-        FinishedProduct(
+        ProductShort(
             id = 1,
             serialNumber = "SN-PROD-001",
-            process = finishedProcess
+            process = finishedProcess,
+            status = ProductStatus.NORMAL
         ),
-        FinishedProduct(
+        ProductShort(
             id = 2,
             serialNumber = "SN-PROD-002",
-            process = finishedProcess.copy(id = 2, name = "Покраска")
+            process = finishedProcess.copy(id = 2, name = "Покраска"),
+            status = ProductStatus.NORMAL
         )
     )
 
@@ -48,7 +51,7 @@ class GetFinishedProductsUseCaseTest {
     // ── invoke() ──────────────────────────────────────────────────────────────
 
     @Test
-    fun `invoke - returns list of finished products from repository`() = runTest {
+    fun `invoke - returns list of products from repository`() = runTest {
         coEvery { repository.getFinishedProducts() } returns products
 
         val result = useCase()
@@ -108,6 +111,20 @@ class GetFinishedProductsUseCaseTest {
         assertEquals(null, result[0].process.sizeTypeId)
         assertEquals(null, result[0].process.sizeTypeName)
         assertEquals(null, result[0].process.packagingCount)
+    }
+
+    @Test
+    fun `invoke - returns products with correct status`() = runTest {
+        val productsWithStatuses = listOf(
+            products[0].copy(status = ProductStatus.NORMAL),
+            products[1].copy(status = ProductStatus.REWORK)
+        )
+        coEvery { repository.getFinishedProducts() } returns productsWithStatuses
+
+        val result = useCase()
+
+        assertEquals(ProductStatus.NORMAL, result[0].status)
+        assertEquals(ProductStatus.REWORK, result[1].status)
     }
 
     @Test

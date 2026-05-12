@@ -11,10 +11,10 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
 import ru.faserkraft.client.data.dto.FinishedProcessDto
-import ru.faserkraft.client.data.dto.FinishedProductDto
 import ru.faserkraft.client.data.dto.ProcessDto
 import ru.faserkraft.client.data.dto.ProductCreateDto
 import ru.faserkraft.client.data.dto.ProductDto
+import ru.faserkraft.client.data.dto.ProductShortDto          // ← заменён импорт
 import ru.faserkraft.client.data.dto.ProductStatusDto
 import ru.faserkraft.client.data.dto.ProductsInventoryDto
 import ru.faserkraft.client.data.network.Api
@@ -26,7 +26,6 @@ import ru.faserkraft.client.utils.timeprovider.TimeProvider
 
 class ProductRepositoryImplTest {
 
-    // relaxed = true — чтобы не настраивать каждый вызов logger.e(...)
     private val mockApi: Api = mockk()
     private val mockLogger: Logger = mockk(relaxed = true)
 
@@ -254,16 +253,17 @@ class ProductRepositoryImplTest {
 
     @Test
     fun `getFinishedProducts returns mapped list`() = runTest {
-        val finishedDto = FinishedProductDto(
+        val productShortDto = ProductShortDto(   // ← FinishedProductDto → ProductShortDto
             id = 7,
             serialNumber = "SN-FIN-001",
             process = FinishedProcessDto(
                 id = 1,
                 name = "Process A",
-                type = null          // или SizeType.SMALL если нужно проверить маппинг
-            )
+                type = null
+            ),
+            status = ProductStatusDto.NORMAL     // ← добавлен обязательный статус
         )
-        coEvery { mockApi.getFinishedProduct() } returns Response.success(listOf(finishedDto))
+        coEvery { mockApi.getFinishedProduct() } returns Response.success(listOf(productShortDto))
 
         val result = repository.getFinishedProducts()
 

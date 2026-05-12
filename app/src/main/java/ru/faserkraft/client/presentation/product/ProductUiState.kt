@@ -1,7 +1,7 @@
 package ru.faserkraft.client.presentation.product
 
 import ru.faserkraft.client.domain.model.Employee
-import ru.faserkraft.client.domain.model.FinishedProduct
+import ru.faserkraft.client.domain.model.ProductShort
 import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductsInventory
@@ -18,7 +18,7 @@ data class ProductUiState(
     val employees: List<Employee> = emptyList(),
     val productsInventory: List<ProductsInventory> = emptyList(),
     val productsInventoryByProcess: List<Product> = emptyList(),
-    val availableProductsForPackaging: List<FinishedProduct> = emptyList(),
+    val availableProductsForPackaging: List<ProductShort> = emptyList(),
     val userRole: UserRole? = null,
     val selectedInventoryItem: ProductsInventory? = null,
 )

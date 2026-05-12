@@ -12,10 +12,11 @@ data class Product(
 
 enum class ProductStatus { NORMAL, REWORK, SCRAP }
 
-data class FinishedProduct(
+data class ProductShort(
     val id: Int,
     val serialNumber: String,
     val process: FinishedProcess,
+    val status: ProductStatus,
 )
 
 data class ProductsInventory(
