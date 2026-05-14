@@ -13,6 +13,7 @@ import ru.faserkraft.client.data.update.AppUpdateManager
 import ru.faserkraft.client.data.update.UpdateStatus
 import ru.faserkraft.client.domain.model.UserData
 import ru.faserkraft.client.domain.model.VersionInfo
+import ru.faserkraft.client.utils.ext.isNewerThan
 import ru.faserkraft.client.domain.repository.UpdateRepository
 import javax.inject.Inject
 
@@ -40,7 +41,7 @@ class UpdateViewModel @Inject constructor(
 
                 if (
                     !updateDialogShown &&
-                    latest.versionName > BuildConfig.VERSION_NAME &&
+                    latest.versionName.isNewerThan(BuildConfig.VERSION_NAME) &&
                     user.role in latest.roles
                 ) {
                     updateDialogShown = true
