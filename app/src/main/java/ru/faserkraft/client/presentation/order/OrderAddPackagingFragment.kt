@@ -14,6 +14,7 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentOrderAddPackagingBinding
 import ru.faserkraft.client.domain.model.Order
 import ru.faserkraft.client.domain.model.Packaging
+import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.presentation.packaging.PackagingEvent
 import ru.faserkraft.client.presentation.packaging.PackagingViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
@@ -103,11 +104,35 @@ class OrderAddPackagingFragment : Fragment() {
         collectFlow(orderViewModel.events) { event ->
             when (event) {
                 is OrderEvent.ShowError -> showErrorSnackbar(event.message)
+
+                is OrderEvent.AddPackagingDenied -> {
+                    if (_binding == null) return@collectFlow
+                    val serials = event.invalidPackagingSerials.joinToString(", ")
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("Невозможно добавить упаковки")
+                        .setMessage(
+                            "Нельзя добавить упаковки, в которых есть изделия со статусом, отличным от NORMAL.\n\n" +
+                                    "Проблемные упаковки: $serials"
+                        )
+                        .setPositiveButton("ОК", null)
+                        .show()
+                }
+
+                is OrderEvent.ConfirmAddPackaging -> {
+                    if (_binding == null) return@collectFlow
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("Подтверждение")
+                        .setMessage("Добавить ${event.packagingCount} упаковок в заказ?")
+                        .setNegativeButton("Отмена", null)
+                        .setPositiveButton("OK") { _, _ ->
+                            orderViewModel.addPackagingToOrder(event.orderId, event.packagingIds)
+                        }
+                        .show()
+                }
+
                 OrderEvent.PackagingAdded -> showPackagingAddedDialog()
-                OrderEvent.OrderClosed,
-                OrderEvent.OrderDeleted,
-                OrderEvent.OrderUpdated,
-                OrderEvent.OrderCreated -> Unit
+
+                else -> Unit
             }
         }
 
@@ -138,8 +163,11 @@ class OrderAddPackagingFragment : Fragment() {
                     id = box.id,
                     serialNumber = box.serialNumber,
                     totalCount = box.products.size,
-                    types = groups.map { (name, list) -> ModuleTypeUi(name = name, count = list.size) },
-                    isSelected = false
+                    types = groups.map { (name, list) ->
+                        ModuleTypeUi(name = name, count = list.size)
+                    },
+                    isSelected = false,
+                    hasNonNormalProducts = box.products.any { it.status != ProductStatus.NORMAL }
                 )
             }
 
@@ -148,26 +176,11 @@ class OrderAddPackagingFragment : Fragment() {
     }
 
     private fun onSaveClick() {
-        val selectedItems = adapter.currentList.filter { it.isSelected }
         val orderId = orderViewModel.uiState.value.currentOrder?.id ?: return
+        val selectedItems = adapter.currentList.filter { it.isSelected }
 
-        if (selectedItems.isEmpty()) {
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Внимание")
-                .setMessage("Вы не выбрали ни одной упаковки для добавления")
-                .setPositiveButton("ОК", null)
-                .show()
-            return
-        }
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Подтверждение")
-            .setMessage("Добавить ${selectedItems.size} упаковок в заказ?")
-            .setNegativeButton("Отмена", null)
-            .setPositiveButton("OK") { _, _ ->
-                orderViewModel.addPackagingToOrder(orderId, selectedItems.map { it.id })
-            }
-            .show()
+        // Вся логика валидации делегируется во ViewModel
+        orderViewModel.requestAddPackaging(orderId, selectedItems)
     }
 
     private fun showPackagingAddedDialog() {

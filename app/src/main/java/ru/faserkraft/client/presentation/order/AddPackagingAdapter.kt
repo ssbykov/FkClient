@@ -87,10 +87,11 @@ data class PackagingShipmentUiItem(
     val serialNumber: String,
     val totalCount: Int,
     val types: List<ModuleTypeUi>,
-    val isSelected: Boolean
+    val isSelected: Boolean = false,
+    val hasNonNormalProducts: Boolean = false,
 )
 
 data class ModuleTypeUi(
-    val name: String,  // "UF‑3‑20‑ПС"
-    val count: Int     // 4
+    val name: String,
+    val count: Int
 )

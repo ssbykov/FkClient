@@ -90,12 +90,7 @@ class OrdersFragment : Fragment() {
 
             override fun onCloseOrderClick(item: OrderUiItem) {
                 if (_binding == null) return
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Закрытие заказа")
-                    .setMessage("Вы уверены, что хотите закрыть заказ по договору №${item.contractNumber}?")
-                    .setPositiveButton("Закрыть") { _, _ -> viewModel.closeOrder(item.orderId) }
-                    .setNegativeButton("Отмена", null)
-                    .show()
+                viewModel.requestCloseOrder(item.orderId)
             }
 
             override fun onDeleteOrderClick(item: OrderUiItem) {
@@ -148,11 +143,32 @@ class OrdersFragment : Fragment() {
                     Log.e("OrdersFragment", "Order error: ${event.message}")
                     showErrorSnackbar(event.message)
                 }
-                OrderEvent.OrderClosed,
-                OrderEvent.OrderDeleted,
-                OrderEvent.OrderUpdated,
-                OrderEvent.OrderCreated,
-                OrderEvent.PackagingAdded -> Unit
+
+                is OrderEvent.CloseOrderDenied -> {
+                    if (_binding == null) return@collectFlow
+                    val serials = event.invalidPackagingSerials.joinToString(", ")
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("Невозможно закрыть заказ")
+                        .setMessage(
+                            "Заказ нельзя закрыть, так как в следующих упаковках есть изделия со статусом, отличным от NORMAL:\n\n$serials"
+                        )
+                        .setPositiveButton("ОК", null)
+                        .show()
+                }
+
+                is OrderEvent.ConfirmCloseOrder -> {
+                    if (_binding == null) return@collectFlow
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("Закрытие заказа")
+                        .setMessage("Вы уверены, что хотите закрыть заказ по договору №${event.contractNumber}?")
+                        .setPositiveButton("Закрыть") { _, _ ->
+                            viewModel.closeOrder(event.orderId)
+                        }
+                        .setNegativeButton("Отмена", null)
+                        .show()
+                }
+
+                else -> Unit
             }
         }
     }

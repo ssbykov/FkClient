@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.domain.model.OrderItem
+import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.usecase.order.AddPackagingToOrderUseCase
 import ru.faserkraft.client.domain.usecase.order.CloseOrderUseCase
 import ru.faserkraft.client.domain.usecase.order.CreateOrderUseCase
@@ -40,7 +41,6 @@ class OrderViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(OrderUiState())
     val uiState: StateFlow<OrderUiState> = _uiState
 
-    // Используем Channel для событий (Single Live Event)
     private val _events = Channel<OrderEvent>()
     val events = _events.receiveAsFlow()
 
@@ -126,6 +126,36 @@ class OrderViewModel @Inject constructor(
 
     // ---------- Закрытие ----------
 
+    fun requestCloseOrder(orderId: Int) {
+        viewModelScope.launch {
+            val order = uiState.value.orders.firstOrNull { it.id == orderId }
+            if (order == null) {
+                _events.send(OrderEvent.ShowError("Не удалось найти заказ"))
+                return@launch
+            }
+
+            // Ищем серийники упаковок, где есть хотя бы один продукт со статусом не NORMAL
+            val invalidPackagingSerials = order.packaging
+                .filter { packaging ->
+                    packaging.products.any { product ->
+                        product.status != ProductStatus.NORMAL
+                    }
+                }
+                .map { it.serialNumber }
+
+            if (invalidPackagingSerials.isNotEmpty()) {
+                _events.send(OrderEvent.CloseOrderDenied(invalidPackagingSerials))
+            } else {
+                _events.send(
+                    OrderEvent.ConfirmCloseOrder(
+                        orderId = order.id,
+                        contractNumber = order.contractNumber
+                    )
+                )
+            }
+        }
+    }
+
     fun closeOrder(orderId: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isActionInProgress = true) }
@@ -187,6 +217,31 @@ class OrderViewModel @Inject constructor(
                 }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }
+        }
+    }
+
+    fun requestAddPackaging(orderId: Int, selectedPackaging: List<PackagingShipmentUiItem>) {
+        viewModelScope.launch {
+            if (selectedPackaging.isEmpty()) {
+                _events.send(OrderEvent.ShowError("Вы не выбрали ни одной упаковки для добавления"))
+                return@launch
+            }
+
+            val invalidSerials = selectedPackaging
+                .filter { it.hasNonNormalProducts }
+                .map { it.serialNumber }
+
+            if (invalidSerials.isNotEmpty()) {
+                _events.send(OrderEvent.AddPackagingDenied(invalidSerials))
+            } else {
+                _events.send(
+                    OrderEvent.ConfirmAddPackaging(
+                        orderId = orderId,
+                        packagingIds = selectedPackaging.map { it.id },
+                        packagingCount = selectedPackaging.size
+                    )
+                )
+            }
         }
     }
 
