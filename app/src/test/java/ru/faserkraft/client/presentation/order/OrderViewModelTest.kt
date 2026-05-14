@@ -15,6 +15,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import ru.faserkraft.client.domain.model.OrderItem
+import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.usecase.order.AddPackagingToOrderUseCase
 import ru.faserkraft.client.domain.usecase.order.CloseOrderUseCase
 import ru.faserkraft.client.domain.usecase.order.CreateOrderUseCase
@@ -186,6 +187,93 @@ class OrderViewModelTest {
         }
     }
 
+    // ── requestCloseOrder ────────────────────────────────────────────────────
+
+    @Test
+    fun `requestCloseOrder - emits ShowError if order not found`() = runTest {
+        coEvery { getOrdersUseCase() } returns emptyList()
+        viewModel.loadOrders()
+        advanceUntilIdle()
+
+        viewModel.events.test {
+            viewModel.requestCloseOrder(999)
+            advanceUntilIdle()
+
+            assertEquals(OrderEvent.ShowError("Не удалось найти заказ"), awaitItem())
+        }
+    }
+
+    @Test
+    fun `requestCloseOrder - emits CloseOrderDenied if packaging contains non-normal products`() =
+        runTest {
+            // Создаем продукт с браком
+            val badProduct = mockk<ru.faserkraft.client.domain.model.ProductShort> {
+                every { status } returns ProductStatus.SCRAP
+            }
+            val goodProduct = mockk<ru.faserkraft.client.domain.model.ProductShort> {
+                every { status } returns ProductStatus.NORMAL
+            }
+
+            // Упаковка с браком
+            val badPackaging = mockk<ru.faserkraft.client.domain.model.Packaging> {
+                every { serialNumber } returns "BOX-001"
+                every { products } returns listOf(goodProduct, badProduct)
+            }
+
+            // Упаковка без брака
+            val goodPackaging = mockk<ru.faserkraft.client.domain.model.Packaging> {
+                every { serialNumber } returns "BOX-002"
+                every { products } returns listOf(goodProduct)
+            }
+
+            val order = mockk<ru.faserkraft.client.domain.model.Order> {
+                every { id } returns 1
+                every { contractNumber } returns "123"
+                every { packaging } returns listOf(goodPackaging, badPackaging)
+            }
+
+            coEvery { getOrdersUseCase() } returns listOf(order)
+            viewModel.loadOrders()
+            advanceUntilIdle()
+
+            viewModel.events.test {
+                viewModel.requestCloseOrder(1)
+                advanceUntilIdle()
+
+                // Ожидаем отказ с указанием серийника плохой коробки
+                assertEquals(OrderEvent.CloseOrderDenied(listOf("BOX-001")), awaitItem())
+            }
+        }
+
+    @Test
+    fun `requestCloseOrder - emits ConfirmCloseOrder if all products are normal`() = runTest {
+        val goodProduct = mockk<ru.faserkraft.client.domain.model.ProductShort> {
+            every { status } returns ProductStatus.NORMAL
+        }
+
+        val goodPackaging = mockk<ru.faserkraft.client.domain.model.Packaging> {
+            every { serialNumber } returns "BOX-002"
+            every { products } returns listOf(goodProduct, goodProduct)
+        }
+
+        val order = mockk<ru.faserkraft.client.domain.model.Order> {
+            every { id } returns 1
+            every { contractNumber } returns "CONTRACT-777"
+            every { packaging } returns listOf(goodPackaging)
+        }
+
+        coEvery { getOrdersUseCase() } returns listOf(order)
+        viewModel.loadOrders()
+        advanceUntilIdle()
+
+        viewModel.events.test {
+            viewModel.requestCloseOrder(1)
+            advanceUntilIdle()
+
+            assertEquals(OrderEvent.ConfirmCloseOrder(1, "CONTRACT-777"), awaitItem())
+        }
+    }
+
     // ── closeOrder ───────────────────────────────────────────────────────────
 
     @Test
@@ -208,26 +296,27 @@ class OrderViewModelTest {
     // ── deleteOrder ──────────────────────────────────────────────────────────
 
     @Test
-    fun `deleteOrder - deletes order, clears currentOrder if matched, reloads and emits OrderDeleted`() = runTest {
-        // Подготавливаем state так, будто удаляемый заказ сейчас открыт
-        coEvery { getOrderUseCase(1) } returns dummyOrder
-        viewModel.loadOrder(1)
-        advanceUntilIdle()
-
-        coEvery { deleteOrderUseCase(1) } returns Unit
-        coEvery { getOrdersUseCase() } returns dummyOrdersList
-
-        viewModel.events.test {
-            viewModel.deleteOrder(1)
+    fun `deleteOrder - deletes order, clears currentOrder if matched, reloads and emits OrderDeleted`() =
+        runTest {
+            // Подготавливаем state так, будто удаляемый заказ сейчас открыт
+            coEvery { getOrderUseCase(1) } returns dummyOrder
+            viewModel.loadOrder(1)
             advanceUntilIdle()
 
-            val state = viewModel.uiState.value
-            assertNull(state.currentOrder) // Текущий заказ должен сброситься в null
-            assertFalse(state.isActionInProgress)
+            coEvery { deleteOrderUseCase(1) } returns Unit
+            coEvery { getOrdersUseCase() } returns dummyOrdersList
 
-            assertEquals(OrderEvent.OrderDeleted, awaitItem())
+            viewModel.events.test {
+                viewModel.deleteOrder(1)
+                advanceUntilIdle()
+
+                val state = viewModel.uiState.value
+                assertNull(state.currentOrder) // Текущий заказ должен сброситься в null
+                assertFalse(state.isActionInProgress)
+
+                assertEquals(OrderEvent.OrderDeleted, awaitItem())
+            }
         }
-    }
 
     @Test
     fun `deleteOrder - does not clear currentOrder if id does not match`() = runTest {
@@ -248,24 +337,80 @@ class OrderViewModelTest {
         assertEquals(anotherOrder, viewModel.uiState.value.currentOrder)
     }
 
+    // ── requestAddPackaging ──────────────────────────────────────────────────
+
+    @Test
+    fun `requestAddPackaging - emits ShowError if list is empty`() = runTest {
+        viewModel.events.test {
+            viewModel.requestAddPackaging(1, emptyList())
+            advanceUntilIdle()
+
+            assertEquals(
+                OrderEvent.ShowError("Вы не выбрали ни одной упаковки для добавления"),
+                awaitItem()
+            )
+        }
+    }
+
+    @Test
+    fun `requestAddPackaging - emits AddPackagingDenied if items have non-normal products`() =
+        runTest {
+            val badUiItem = mockk<PackagingShipmentUiItem> {
+                every { hasNonNormalProducts } returns true
+                every { serialNumber } returns "UI-BOX-99"
+            }
+            val goodUiItem = mockk<PackagingShipmentUiItem> {
+                every { hasNonNormalProducts } returns false
+                every { serialNumber } returns "UI-BOX-88"
+            }
+
+            viewModel.events.test {
+                viewModel.requestAddPackaging(1, listOf(badUiItem, goodUiItem))
+                advanceUntilIdle()
+
+                assertEquals(OrderEvent.AddPackagingDenied(listOf("UI-BOX-99")), awaitItem())
+            }
+        }
+
+    @Test
+    fun `requestAddPackaging - emits ConfirmAddPackaging if all items are valid`() = runTest {
+        val goodUiItem1 = mockk<PackagingShipmentUiItem> {
+            every { id } returns 101
+            every { hasNonNormalProducts } returns false
+        }
+        val goodUiItem2 = mockk<PackagingShipmentUiItem> {
+            every { id } returns 102
+            every { hasNonNormalProducts } returns false
+        }
+
+        viewModel.events.test {
+            val list = listOf(goodUiItem1, goodUiItem2)
+            viewModel.requestAddPackaging(1, list)
+            advanceUntilIdle()
+
+            assertEquals(OrderEvent.ConfirmAddPackaging(1, listOf(101, 102), 2), awaitItem())
+        }
+    }
+
     // ── addPackagingToOrder ──────────────────────────────────────────────────
 
     @Test
-    fun `addPackagingToOrder - adds packaging, reloads list and order, emits PackagingAdded`() = runTest {
-        val packIds = listOf(10, 11)
-        coEvery { addPackagingToOrderUseCase(1, packIds) } returns Unit
-        coEvery { getOrdersUseCase() } returns dummyOrdersList
-        coEvery { getOrderUseCase(1) } returns dummyOrder
+    fun `addPackagingToOrder - adds packaging, reloads list and order, emits PackagingAdded`() =
+        runTest {
+            val packIds = listOf(10, 11)
+            coEvery { addPackagingToOrderUseCase(1, packIds) } returns Unit
+            coEvery { getOrdersUseCase() } returns dummyOrdersList
+            coEvery { getOrderUseCase(1) } returns dummyOrder
 
-        viewModel.events.test {
-            viewModel.addPackagingToOrder(1, packIds)
-            advanceUntilIdle()
+            viewModel.events.test {
+                viewModel.addPackagingToOrder(1, packIds)
+                advanceUntilIdle()
 
-            coVerify(exactly = 1) { getOrdersUseCase() }
-            coVerify(exactly = 1) { getOrderUseCase(1) }
-            assertEquals(OrderEvent.PackagingAdded, awaitItem())
+                coVerify(exactly = 1) { getOrdersUseCase() }
+                coVerify(exactly = 1) { getOrderUseCase(1) }
+                assertEquals(OrderEvent.PackagingAdded, awaitItem())
+            }
         }
-    }
 
     // ── detachPackagingFromOrder ─────────────────────────────────────────────
 
