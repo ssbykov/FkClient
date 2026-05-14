@@ -92,11 +92,7 @@ class OrderPackagingFragment : Fragment() {
         collectFlow(orderViewModel.events) { event ->
             when (event) {
                 is OrderEvent.ShowError -> showErrorSnackbar(event.message)
-                OrderEvent.OrderClosed,
-                OrderEvent.OrderDeleted,
-                OrderEvent.OrderUpdated,
-                OrderEvent.OrderCreated,
-                OrderEvent.PackagingAdded -> Unit
+                else -> Unit
             }
         }
     }

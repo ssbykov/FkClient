@@ -163,10 +163,7 @@ class EditOrderFragment : Fragment() {
             when (event) {
                 is OrderEvent.ShowError -> showErrorSnackbar(event.message)
                 OrderEvent.OrderUpdated -> findNavController().popBackStack()
-                OrderEvent.OrderClosed,
-                OrderEvent.OrderDeleted,
-                OrderEvent.OrderCreated,
-                OrderEvent.PackagingAdded -> Unit
+                else -> Unit
             }
         }
     }
