@@ -28,6 +28,13 @@ class ProductRepositoryImpl @Inject constructor(
             if (e.status == 404) null else throw e
         }
 
+    override suspend fun getProductsByStatus(statuses: List<ProductStatus>): List<Product> {
+        return callApi { api.getProductsNotNormal() }
+            .orEmpty()
+            .map { it.toDomain() }
+            .filter { it.status in statuses }
+    }
+
     override suspend fun createProduct(serialNumber: String, processId: Int): Product =
         requireNotNull(
             callApi {

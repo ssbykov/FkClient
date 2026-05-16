@@ -7,6 +7,7 @@ import ru.faserkraft.client.domain.model.ProductsInventory
 
 interface ProductRepository {
     suspend fun getProduct(serialNumber: String): Product?
+    suspend fun getProductsByStatus(statuses: List<ProductStatus>): List<Product>
     suspend fun createProduct(serialNumber: String, processId: Int): Product
     suspend fun changeStatus(productId: Long, status: ProductStatus): Product
     suspend fun changeProcess(productId: Long, newProcessId: Int): Product

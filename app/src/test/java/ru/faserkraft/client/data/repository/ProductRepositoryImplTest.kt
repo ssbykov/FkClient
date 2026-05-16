@@ -7,6 +7,7 @@ import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
@@ -14,7 +15,7 @@ import ru.faserkraft.client.data.dto.FinishedProcessDto
 import ru.faserkraft.client.data.dto.ProcessDto
 import ru.faserkraft.client.data.dto.ProductCreateDto
 import ru.faserkraft.client.data.dto.ProductDto
-import ru.faserkraft.client.data.dto.ProductShortDto          // ← заменён импорт
+import ru.faserkraft.client.data.dto.ProductShortDto
 import ru.faserkraft.client.data.dto.ProductStatusDto
 import ru.faserkraft.client.data.dto.ProductsInventoryDto
 import ru.faserkraft.client.data.network.Api
@@ -153,6 +154,116 @@ class ProductRepositoryImplTest {
         coEvery { mockApi.postProduct(any()) } throws AppError.NetworkError()
 
         repository.createProduct("SN-001", processId = 1)
+    }
+
+    // ==========================================
+// getProductsByStatus
+// ==========================================
+
+    @Test
+    fun `getProductsByStatus - calls getProductsNotNormal, not a status-specific endpoint`() = runTest {
+        coEvery { mockApi.getProductsNotNormal() } returns Response.success(emptyList())
+
+        repository.getProductsByStatus(listOf(ProductStatus.REWORK))
+
+        coVerify(exactly = 1) { mockApi.getProductsNotNormal() }
+    }
+
+    @Test
+    fun `getProductsByStatus - returns only products matching requested statuses`() = runTest {
+        val reworkDto = productDto.copy(id = 2L, status = ProductStatusDto.REWORK)
+        val scrapDto  = productDto.copy(id = 3L, status = ProductStatusDto.SCRAP)
+        coEvery { mockApi.getProductsNotNormal() } returns
+                Response.success(listOf(reworkDto, scrapDto))
+
+        val result = repository.getProductsByStatus(listOf(ProductStatus.REWORK))
+
+        assertEquals(1, result.size)
+        assertEquals(2L, result[0].id)
+        assertEquals(ProductStatus.REWORK, result[0].status)
+    }
+
+    @Test
+    fun `getProductsByStatus - returns products for multiple requested statuses`() = runTest {
+        val reworkDto = productDto.copy(id = 2L, status = ProductStatusDto.REWORK)
+        val scrapDto  = productDto.copy(id = 3L, status = ProductStatusDto.SCRAP)
+        coEvery { mockApi.getProductsNotNormal() } returns
+                Response.success(listOf(reworkDto, scrapDto))
+
+        val result = repository.getProductsByStatus(
+            listOf(ProductStatus.REWORK, ProductStatus.SCRAP)
+        )
+
+        assertEquals(2, result.size)
+        assertTrue(result.any { it.status == ProductStatus.REWORK })
+        assertTrue(result.any { it.status == ProductStatus.SCRAP })
+    }
+
+    @Test
+    fun `getProductsByStatus - excludes products whose status is not in requested list`() = runTest {
+        val reworkDto = productDto.copy(id = 2L, status = ProductStatusDto.REWORK)
+        val scrapDto  = productDto.copy(id = 3L, status = ProductStatusDto.SCRAP)
+        coEvery { mockApi.getProductsNotNormal() } returns
+                Response.success(listOf(reworkDto, scrapDto))
+
+        val result = repository.getProductsByStatus(listOf(ProductStatus.SCRAP))
+
+        assertEquals(1, result.size)
+        assertEquals(ProductStatus.SCRAP, result[0].status)
+        assertTrue(result.none { it.status == ProductStatus.REWORK })
+    }
+
+    @Test
+    fun `getProductsByStatus - returns empty list when api body is null`() = runTest {
+        coEvery { mockApi.getProductsNotNormal() } returns Response.success(null)
+
+        val result = repository.getProductsByStatus(listOf(ProductStatus.REWORK))
+
+        assertEquals(emptyList<Product>(), result)
+    }
+
+    @Test
+    fun `getProductsByStatus - returns empty list when api returns empty list`() = runTest {
+        coEvery { mockApi.getProductsNotNormal() } returns Response.success(emptyList())
+
+        val result = repository.getProductsByStatus(listOf(ProductStatus.REWORK))
+
+        assertEquals(emptyList<Product>(), result)
+    }
+
+    @Test
+    fun `getProductsByStatus - returns empty list when no products match requested statuses`() = runTest {
+        val reworkDto = productDto.copy(id = 2L, status = ProductStatusDto.REWORK)
+        coEvery { mockApi.getProductsNotNormal() } returns Response.success(listOf(reworkDto))
+
+        val result = repository.getProductsByStatus(listOf(ProductStatus.SCRAP))
+
+        assertEquals(emptyList<Product>(), result)
+    }
+
+    @Test
+    fun `getProductsByStatus - returns empty list for empty statuses filter`() = runTest {
+        val reworkDto = productDto.copy(id = 2L, status = ProductStatusDto.REWORK)
+        coEvery { mockApi.getProductsNotNormal() } returns Response.success(listOf(reworkDto))
+
+        val result = repository.getProductsByStatus(emptyList())
+
+        assertEquals(emptyList<Product>(), result)
+    }
+
+    @Test(expected = AppError.ApiError::class)
+    fun `getProductsByStatus - throws ApiError on http error`() = runTest {
+        coEvery { mockApi.getProductsNotNormal() } returns
+                Response.error(500, "".toResponseBody())
+
+        repository.getProductsByStatus(listOf(ProductStatus.REWORK))
+    }
+
+    @Test(expected = AppError.NetworkError::class)
+    fun `getProductsByStatus - throws NetworkError on IOException`() = runTest {
+        coEvery { mockApi.getProductsNotNormal() } throws AppError.NetworkError()
+
+        repository.getProductsByStatus(listOf(ProductStatus.REWORK))
     }
 
     // ==========================================
