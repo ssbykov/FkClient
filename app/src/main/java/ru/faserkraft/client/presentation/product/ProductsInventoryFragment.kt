@@ -65,11 +65,10 @@ class ProductsInventoryFragment : Fragment() {
     private fun setupAdapter() {
         adapter = ProductsInventoryAdapter { item ->
             if (_binding == null) return@ProductsInventoryAdapter
-            viewModel.selectInventoryItem(item)   // ← сохраняем в state
+            viewModel.selectInventoryItem(item)
             // Используем безопасный переход вместо обычного navigate
             findNavController().navigateSafely(
-                ProductsInventoryFragmentDirections
-                    .actionProductsInventoryFragmentToProductsInventoryByProcessFragment()
+                ProductContainerFragmentDirections.actionProductContainerFragmentToProductsInventoryByProcessFragment()
             )
         }
         binding.rvProductsStats.layoutManager = LinearLayoutManager(requireContext())
