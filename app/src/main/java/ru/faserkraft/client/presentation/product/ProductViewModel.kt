@@ -23,6 +23,7 @@ import ru.faserkraft.client.domain.usecase.product.ChangeProductStatusUseCase
 import ru.faserkraft.client.domain.usecase.product.CreateProductUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductsByLastStepUseCase
+import ru.faserkraft.client.domain.usecase.product.GetProductsByStatusUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductsInventoryUseCase
 import ru.faserkraft.client.domain.usecase.step.ChangeStepPerformerUseCase
 import ru.faserkraft.client.domain.usecase.step.CloseStepUseCase
@@ -45,6 +46,7 @@ class ProductViewModel @Inject constructor(
     private val getProductsByLastStepUseCase: GetProductsByLastStepUseCase,
     private val appAuth: AppAuth,
     private val sessionCoordinator: AppSessionCoordinator,
+    private val getProductsByStatusUseCase: GetProductsByStatusUseCase,
 ) : ViewModel() {
 
     private val initialRole: UserRole? = appAuth.getRegistrationData()?.role
@@ -207,10 +209,29 @@ class ProductViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Только обновляет стейт, без навигации.
-     * Используется для реактивного обновления экрана.
-     */
+    fun loadReworkScrapProducts() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            runCatching {
+                getProductsByStatusUseCase(
+                    listOf(ProductStatus.REWORK, ProductStatus.SCRAP)
+                )
+            }
+                .onSuccess { list ->
+                    _uiState.update {
+                        it.copy(
+                            reworkScrapProducts = list,
+                            userRole = currentRole(),
+                        )
+                    }
+                }
+                .onFailure { emitError(it) }
+
+            _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+
     private fun updateProductState(product: Product) {
         val selected = product.steps.firstOrNull { it.status != StepStatus.DONE }
             ?: product.steps.lastOrNull()
@@ -230,6 +251,14 @@ class ProductViewModel @Inject constructor(
 
     fun selectInventoryItem(item: ProductsInventory) {
         _uiState.update { it.copy(selectedInventoryItem = item) }
+    }
+
+    fun selectReworkScrapProduct(processName: String, status: ProductStatus) {
+        _uiState.update { state ->
+            state.copy(
+                selectedScrapReworkItem = ReworkScrapSelection(processName, status)
+            )
+        }
     }
 
     // ---------- Create product ----------

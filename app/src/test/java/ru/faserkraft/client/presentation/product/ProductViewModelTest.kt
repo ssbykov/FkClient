@@ -34,6 +34,7 @@ import ru.faserkraft.client.domain.usecase.product.ChangeProductStatusUseCase
 import ru.faserkraft.client.domain.usecase.product.CreateProductUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductsByLastStepUseCase
+import ru.faserkraft.client.domain.usecase.product.GetProductsByStatusUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductsInventoryUseCase
 import ru.faserkraft.client.domain.usecase.step.ChangeStepPerformerUseCase
 import ru.faserkraft.client.domain.usecase.step.CloseStepUseCase
@@ -59,6 +60,7 @@ class ProductViewModelTest {
     private val getEmployeesUseCase: GetEmployeesUseCase = mockk()
     private val getProductsInventoryUseCase: GetProductsInventoryUseCase = mockk()
     private val getProductsByLastStepUseCase: GetProductsByLastStepUseCase = mockk()
+    private val getProductsByStatusUseCase: GetProductsByStatusUseCase = mockk()
     private val appAuth: AppAuth = mockk(relaxed = true)
     private val sessionCoordinator: AppSessionCoordinator = mockk(relaxed = true)
 
@@ -116,6 +118,20 @@ class ProductViewModelTest {
         steps = listOf(dummyStepPending, dummyStepDone),
     )
 
+    private val dummyReworkProduct = dummyProduct.copy(
+        id = 2L,
+        serialNumber = "SN-REWORK",
+        status = ProductStatus.REWORK,
+    )
+
+    private val dummyScrapProduct = dummyProduct.copy(
+        id = 3L,
+        serialNumber = "SN-SCRAP",
+        status = ProductStatus.SCRAP,
+    )
+
+    private val dummyNotNormalProducts = listOf(dummyReworkProduct, dummyScrapProduct)
+
     private val dummyInventory = ProductsInventory(
         processId = 1,
         processName = "Процесс 1",
@@ -143,6 +159,7 @@ class ProductViewModelTest {
             getEmployeesUseCase = getEmployeesUseCase,
             getProductsInventoryUseCase = getProductsInventoryUseCase,
             getProductsByLastStepUseCase = getProductsByLastStepUseCase,
+            getProductsByStatusUseCase = getProductsByStatusUseCase,
             appAuth = appAuth,
             sessionCoordinator = sessionCoordinator,
         )
@@ -159,7 +176,6 @@ class ProductViewModelTest {
 
     @Test
     fun `observeSessionEvents - resets state on Logout`() = runTest {
-        // Предварительно загружаем продукт в стейт
         coEvery { getProductUseCase("SN-001") } returns dummyProduct
 
         viewModel.events.test {
@@ -251,7 +267,6 @@ class ProductViewModelTest {
 
     @Test
     fun `loadProduct - selectedStep is first PENDING step`() = runTest {
-        // steps = [PENDING, DONE] → selectedStep должен быть PENDING
         coEvery { getProductUseCase("SN-001") } returns dummyProduct
 
         viewModel.events.test {
@@ -626,7 +641,7 @@ class ProductViewModelTest {
 
     @Test
     fun `onPackagingClicked - does nothing when packagingSerialNumber is null`() = runTest {
-        coEvery { getProductUseCase("SN-001") } returns dummyProduct // packagingSerialNumber = null
+        coEvery { getProductUseCase("SN-001") } returns dummyProduct
 
         viewModel.events.test {
             viewModel.loadProduct("SN-001")
@@ -655,7 +670,6 @@ class ProductViewModelTest {
             val state = viewModel.uiState.value
             assertEquals(updatedProduct, state.product)
             assertFalse(state.isActionInProgress)
-            // selectedStep обновляется на step с тем же order
             assertNotNull(state.selectedStep)
             cancelAndIgnoreRemainingEvents()
         }
@@ -748,6 +762,40 @@ class ProductViewModelTest {
         }
     }
 
+    // ── loadReworkScrapProducts ───────────────────────────────────────────────
+
+    @Test
+    fun `loadReworkScrapProducts - updates state on success`() = runTest {
+        coEvery {
+            getProductsByStatusUseCase(listOf(ProductStatus.REWORK, ProductStatus.SCRAP))
+        } returns dummyNotNormalProducts
+
+        viewModel.events.test {
+            viewModel.loadReworkScrapProducts()
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(dummyNotNormalProducts, state.reworkScrapProducts)
+            assertFalse(state.isLoading)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `loadReworkScrapProducts - emits ShowError on failure`() = runTest {
+        coEvery {
+            getProductsByStatusUseCase(any())
+        } throws RuntimeException("Network Error")
+
+        viewModel.events.test {
+            viewModel.loadReworkScrapProducts()
+            advanceUntilIdle()
+
+            assertFalse(viewModel.uiState.value.isLoading)
+            assertEquals(ProductEvent.ShowError("Неизвестная ошибка"), awaitItem())
+        }
+    }
+
     // ── loadProductsByLastStep ────────────────────────────────────────────────
 
     @Test
@@ -770,7 +818,6 @@ class ProductViewModelTest {
         coEvery { getProductsByLastStepUseCase(1, 1) } returns listOf(dummyProduct)
 
         viewModel.loadProductsByLastStep(1, 1)
-        // Сразу после вызова, до advanceUntilIdle — список должен быть пуст
         assertTrue(viewModel.uiState.value.productsInventoryByProcess.isEmpty())
     }
 
@@ -801,6 +848,7 @@ class ProductViewModelTest {
         getEmployeesUseCase = getEmployeesUseCase,
         getProductsInventoryUseCase = getProductsInventoryUseCase,
         getProductsByLastStepUseCase = getProductsByLastStepUseCase,
+        getProductsByStatusUseCase = getProductsByStatusUseCase,
         appAuth = appAuth,
         sessionCoordinator = sessionCoordinator,
     )
