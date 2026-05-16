@@ -4,6 +4,7 @@ import ru.faserkraft.client.domain.model.Employee
 import ru.faserkraft.client.domain.model.ProductShort
 import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.domain.model.Product
+import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.domain.model.Step
 import ru.faserkraft.client.domain.model.UserRole
@@ -21,4 +22,11 @@ data class ProductUiState(
     val availableProductsForPackaging: List<ProductShort> = emptyList(),
     val userRole: UserRole? = null,
     val selectedInventoryItem: ProductsInventory? = null,
+    val reworkScrapProducts: List<Product> = emptyList(),
+    val selectedScrapReworkItem: ReworkScrapSelection? = null,
+)
+
+data class ReworkScrapSelection(
+    val processName: String,
+    val status: ProductStatus
 )
