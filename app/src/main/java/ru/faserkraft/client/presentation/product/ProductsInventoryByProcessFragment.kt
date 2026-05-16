@@ -6,8 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductsInventoryByProcessBinding
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.navigateSafely
@@ -15,7 +17,11 @@ import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class ProductsInventoryByProcessFragment : Fragment() {
 
-    private val viewModel: ProductViewModel by activityViewModels()
+    private val productsViewModel: ProductsViewModel
+            by hiltNavGraphViewModels(R.id.productContainerFragment)
+
+    private val productViewModel: ProductViewModel
+            by activityViewModels()
 
     private var _binding: FragmentProductsInventoryByProcessBinding? = null
     private val binding get() = _binding!!
@@ -55,7 +61,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
 
     private fun setupAdapter() {
         adapter = ProductsInventoryByProcessAdapter { serialNumber ->
-            viewModel.loadProduct(serialNumber)
+            productViewModel.loadProduct(serialNumber)
             // Навигация произойдёт через ProductEvent.NavigateToProduct
         }
         binding.rvProductsDetail.layoutManager = LinearLayoutManager(requireContext())
@@ -65,7 +71,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
     // ---------- Observe ----------
 
     private fun observeState() {
-        collectFlow(viewModel.uiState) { state ->
+        collectFlow(productsViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
             b.swipeRefreshDetail.isRefreshing = state.isLoading
@@ -83,11 +89,16 @@ class ProductsInventoryByProcessFragment : Fragment() {
                 )
             }
             adapter.submitList(items)
+
+            state.errorMessage?.let {
+                showErrorSnackbar(it)
+                productsViewModel.clearError()
+            }
         }
     }
 
     private fun observeEvents() {
-        collectFlow(viewModel.events) { event ->
+        collectFlow(productViewModel.events) { event ->
             when (event) {
                 is ProductEvent.NavigateToProduct -> {
                     findNavController().navigateSafely(
@@ -95,6 +106,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
                             .actionProductsInventoryByProcessFragmentToProductFullFragment()
                     )
                 }
+
                 is ProductEvent.ShowError -> showErrorSnackbar(event.message)
                 else -> Unit
             }
@@ -104,7 +116,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
     // ---------- Header ----------
 
     private fun renderHeader() {
-        val item = viewModel.uiState.value.selectedInventoryItem ?: return
+        val item = productsViewModel.uiState.value.selectedInventoryItem ?: return
         binding.tvProcessName.text = item.processName
         binding.tvStageName.text = item.stepName
     }
@@ -112,8 +124,8 @@ class ProductsInventoryByProcessFragment : Fragment() {
     // ---------- Load ----------
 
     private fun loadData() {
-        val item = viewModel.uiState.value.selectedInventoryItem ?: return
+        val item = productsViewModel.uiState.value.selectedInventoryItem ?: return
         adapter.submitList(emptyList())
-        viewModel.loadProductsByLastStep(item.processId, item.stepDefinitionId)
+        productsViewModel.loadProductsByLastStep(item.processId, item.stepDefinitionId)
     }
 }

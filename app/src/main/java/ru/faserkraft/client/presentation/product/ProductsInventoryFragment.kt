@@ -5,10 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductsInventoryBinding
 import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.presentation.ui.collectFlow
@@ -17,7 +18,8 @@ import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class ProductsInventoryFragment : Fragment() {
 
-    private val viewModel: ProductViewModel by activityViewModels()
+    private val viewModel: ProductsViewModel
+            by hiltNavGraphViewModels(R.id.productContainerFragment)
 
     private var _binding: FragmentProductsInventoryBinding? = null
     private val binding get() = _binding!!
@@ -42,7 +44,6 @@ class ProductsInventoryFragment : Fragment() {
         setupAdapter()
         setupEmptyObserver()
         observeState()
-        observeEvents()
 
         binding.swipeRefreshStats.setOnRefreshListener {
             viewModel.loadProductsInventory()
@@ -66,9 +67,9 @@ class ProductsInventoryFragment : Fragment() {
         adapter = ProductsInventoryAdapter { item ->
             if (_binding == null) return@ProductsInventoryAdapter
             viewModel.selectInventoryItem(item)
-            // Используем безопасный переход вместо обычного navigate
             findNavController().navigateSafely(
-                ProductContainerFragmentDirections.actionProductContainerFragmentToProductsInventoryByProcessFragment()
+                ProductContainerFragmentDirections
+                    .actionProductContainerFragmentToProductsInventoryByProcessFragment()
             )
         }
         binding.rvProductsStats.layoutManager = LinearLayoutManager(requireContext())
@@ -94,16 +95,11 @@ class ProductsInventoryFragment : Fragment() {
             b.swipeRefreshStats.isRefreshing = state.isLoading
             b.swipeRefreshStats.isEnabled = !state.isLoading
 
-            val uiItems = buildUiItems(state.productsInventory)
-            adapter.submitList(uiItems)
-        }
-    }
+            adapter.submitList(buildUiItems(state.productsInventory))
 
-    private fun observeEvents() {
-        collectFlow(viewModel.events) { event ->
-            when (event) {
-                is ProductEvent.ShowError -> showErrorSnackbar(event.message)
-                else -> Unit
+            state.errorMessage?.let {
+                showErrorSnackbar(it)
+                viewModel.clearError()
             }
         }
     }

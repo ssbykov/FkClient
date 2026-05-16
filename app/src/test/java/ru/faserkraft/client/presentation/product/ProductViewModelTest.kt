@@ -21,7 +21,6 @@ import ru.faserkraft.client.domain.model.Employee
 import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductStatus
-import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.domain.model.Step
 import ru.faserkraft.client.domain.model.StepDefinition
 import ru.faserkraft.client.domain.model.StepStatus
@@ -33,9 +32,6 @@ import ru.faserkraft.client.domain.usecase.product.ChangeProductProcessUseCase
 import ru.faserkraft.client.domain.usecase.product.ChangeProductStatusUseCase
 import ru.faserkraft.client.domain.usecase.product.CreateProductUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductUseCase
-import ru.faserkraft.client.domain.usecase.product.GetProductsByLastStepUseCase
-import ru.faserkraft.client.domain.usecase.product.GetProductsByStatusUseCase
-import ru.faserkraft.client.domain.usecase.product.GetProductsInventoryUseCase
 import ru.faserkraft.client.domain.usecase.step.ChangeStepPerformerUseCase
 import ru.faserkraft.client.domain.usecase.step.CloseStepUseCase
 import ru.faserkraft.client.presentation.app.AppSessionCoordinator
@@ -58,9 +54,6 @@ class ProductViewModelTest {
     private val changeStepPerformerUseCase: ChangeStepPerformerUseCase = mockk()
     private val getProcessesUseCase: GetProcessesUseCase = mockk()
     private val getEmployeesUseCase: GetEmployeesUseCase = mockk()
-    private val getProductsInventoryUseCase: GetProductsInventoryUseCase = mockk()
-    private val getProductsByLastStepUseCase: GetProductsByLastStepUseCase = mockk()
-    private val getProductsByStatusUseCase: GetProductsByStatusUseCase = mockk()
     private val appAuth: AppAuth = mockk(relaxed = true)
     private val sessionCoordinator: AppSessionCoordinator = mockk(relaxed = true)
 
@@ -74,7 +67,6 @@ class ProductViewModelTest {
     }
 
     private val dummyEmployee = Employee(id = 1, name = "Иван", email = "ivan@test.com")
-    private val dummyEmployeeList = listOf(dummyEmployee)
 
     private val dummyStepDefinition = StepDefinition(
         id = 1, order = 1, name = "Шаг 1", nameGenitive = "Шага 1"
@@ -118,51 +110,11 @@ class ProductViewModelTest {
         steps = listOf(dummyStepPending, dummyStepDone),
     )
 
-    private val dummyReworkProduct = dummyProduct.copy(
-        id = 2L,
-        serialNumber = "SN-REWORK",
-        status = ProductStatus.REWORK,
-    )
-
-    private val dummyScrapProduct = dummyProduct.copy(
-        id = 3L,
-        serialNumber = "SN-SCRAP",
-        status = ProductStatus.SCRAP,
-    )
-
-    private val dummyNotNormalProducts = listOf(dummyReworkProduct, dummyScrapProduct)
-
-    private val dummyInventory = ProductsInventory(
-        processId = 1,
-        processName = "Процесс 1",
-        stepDefinitionId = 1,
-        stepName = "Шаг 1",
-        stepNameGenitive = "Шага 1",
-        count = 42,
-    )
-    private val dummyInventoryList = listOf(dummyInventory)
-
-
     @Before
     fun setUp() {
         every { appAuth.getRegistrationData() } returns masterUserData
         every { sessionCoordinator.events } returns sessionEventsFlow
-
-        viewModel = ProductViewModel(
-            getProductUseCase = getProductUseCase,
-            createProductUseCase = createProductUseCase,
-            changeProductStatusUseCase = changeProductStatusUseCase,
-            changeProductProcessUseCase = changeProductProcessUseCase,
-            closeStepUseCase = closeStepUseCase,
-            changeStepPerformerUseCase = changeStepPerformerUseCase,
-            getProcessesUseCase = getProcessesUseCase,
-            getEmployeesUseCase = getEmployeesUseCase,
-            getProductsInventoryUseCase = getProductsInventoryUseCase,
-            getProductsByLastStepUseCase = getProductsByLastStepUseCase,
-            getProductsByStatusUseCase = getProductsByStatusUseCase,
-            appAuth = appAuth,
-            sessionCoordinator = sessionCoordinator,
-        )
+        viewModel = buildViewModel()
     }
 
     // ── Init ─────────────────────────────────────────────────────────────────
@@ -196,24 +148,16 @@ class ProductViewModelTest {
     // ── canEditProduct ────────────────────────────────────────────────────────
 
     @Test
-    fun `canEditProduct - returns true for MASTER`() {
-        assertTrue(UserRole.MASTER.canEditProduct())
-    }
+    fun `canEditProduct - returns true for MASTER`() = assertTrue(UserRole.MASTER.canEditProduct())
 
     @Test
-    fun `canEditProduct - returns true for ADMIN`() {
-        assertTrue(UserRole.ADMIN.canEditProduct())
-    }
+    fun `canEditProduct - returns true for ADMIN`() = assertTrue(UserRole.ADMIN.canEditProduct())
 
     @Test
-    fun `canEditProduct - returns false for WORKER`() {
-        assertFalse(UserRole.WORKER.canEditProduct())
-    }
+    fun `canEditProduct - returns false for WORKER`() = assertFalse(UserRole.WORKER.canEditProduct())
 
     @Test
-    fun `canEditProduct - returns false for null`() {
-        assertFalse(null.canEditProduct())
-    }
+    fun `canEditProduct - returns false for null`() = assertFalse(null.canEditProduct())
 
     // ── loadProduct ───────────────────────────────────────────────────────────
 
@@ -263,8 +207,6 @@ class ProductViewModelTest {
         }
     }
 
-    // ── updateProductState / selectedStep logic ───────────────────────────────
-
     @Test
     fun `loadProduct - selectedStep is first PENDING step`() = runTest {
         coEvery { getProductUseCase("SN-001") } returns dummyProduct
@@ -281,10 +223,7 @@ class ProductViewModelTest {
     @Test
     fun `loadProduct - selectedStep is last step when all are DONE`() = runTest {
         val allDoneProduct = dummyProduct.copy(
-            steps = listOf(
-                dummyStepDone,
-                dummyStepDone.copy(id = 3, definition = dummyStepDefinition2)
-            )
+            steps = listOf(dummyStepDone, dummyStepDone.copy(id = 3, definition = dummyStepDefinition2))
         )
         coEvery { getProductUseCase("SN-001") } returns allDoneProduct
 
@@ -378,45 +317,39 @@ class ProductViewModelTest {
     // ── onChangeStatusClicked ─────────────────────────────────────────────────
 
     @Test
-    fun `onChangeStatusClicked - emits ShowConfirmationDialog when product set and role allows`() =
-        runTest {
-            coEvery { getProductUseCase("SN-001") } returns dummyProduct
-            viewModel.events.test {
-                viewModel.loadProduct("SN-001")
-                advanceUntilIdle()
-                awaitItem() // NavigateToProduct
+    fun `onChangeStatusClicked - emits ShowConfirmationDialog when product set and role allows`() = runTest {
+        coEvery { getProductUseCase("SN-001") } returns dummyProduct
 
-                viewModel.onChangeStatusClicked()
-                advanceUntilIdle()
+        viewModel.events.test {
+            viewModel.loadProduct("SN-001")
+            advanceUntilIdle()
+            awaitItem() // NavigateToProduct
 
-                val event = awaitItem()
-                assertTrue(event is ProductEvent.ShowConfirmationDialog)
-                assertEquals(
-                    ConfirmationActionType.CHANGE_STATUS,
-                    (event as ProductEvent.ShowConfirmationDialog).actionType
-                )
-            }
+            viewModel.onChangeStatusClicked()
+            advanceUntilIdle()
+
+            val event = awaitItem() as ProductEvent.ShowConfirmationDialog
+            assertEquals(ConfirmationActionType.CHANGE_STATUS, event.actionType)
         }
+    }
 
     @Test
     fun `onChangeStatusClicked - does nothing when product is null`() = runTest {
         viewModel.events.test {
             viewModel.onChangeStatusClicked()
             advanceUntilIdle()
-
             expectNoEvents()
         }
     }
 
     @Test
     fun `onChangeStatusClicked - does nothing for WORKER role`() = runTest {
-        val workerUser = mockk<UserData>(relaxed = true) {
-            every { role } returns UserRole.WORKER
-        }
+        val workerUser = mockk<UserData>(relaxed = true) { every { role } returns UserRole.WORKER }
         every { appAuth.getRegistrationData() } returns workerUser
         val vm = buildViewModel()
 
         coEvery { getProductUseCase("SN-001") } returns dummyProduct
+
         vm.events.test {
             vm.loadProduct("SN-001")
             advanceUntilIdle()
@@ -424,7 +357,6 @@ class ProductViewModelTest {
 
             vm.onChangeStatusClicked()
             advanceUntilIdle()
-
             expectNoEvents()
         }
     }
@@ -432,25 +364,21 @@ class ProductViewModelTest {
     // ── onChangeProcessClicked ────────────────────────────────────────────────
 
     @Test
-    fun `onChangeProcessClicked - emits ShowConfirmationDialog when product has no packaging`() =
-        runTest {
-            coEvery { getProductUseCase("SN-001") } returns dummyProduct
-            viewModel.events.test {
-                viewModel.loadProduct("SN-001")
-                advanceUntilIdle()
-                awaitItem() // NavigateToProduct
+    fun `onChangeProcessClicked - emits ShowConfirmationDialog when product has no packaging`() = runTest {
+        coEvery { getProductUseCase("SN-001") } returns dummyProduct
 
-                viewModel.onChangeProcessClicked()
-                advanceUntilIdle()
+        viewModel.events.test {
+            viewModel.loadProduct("SN-001")
+            advanceUntilIdle()
+            awaitItem() // NavigateToProduct
 
-                val event = awaitItem()
-                assertTrue(event is ProductEvent.ShowConfirmationDialog)
-                assertEquals(
-                    ConfirmationActionType.CHANGE_PROCESS,
-                    (event as ProductEvent.ShowConfirmationDialog).actionType
-                )
-            }
+            viewModel.onChangeProcessClicked()
+            advanceUntilIdle()
+
+            val event = awaitItem() as ProductEvent.ShowConfirmationDialog
+            assertEquals(ConfirmationActionType.CHANGE_PROCESS, event.actionType)
         }
+    }
 
     @Test
     fun `onChangeProcessClicked - does nothing when product has packagingSerialNumber`() = runTest {
@@ -464,7 +392,6 @@ class ProductViewModelTest {
 
             viewModel.onChangeProcessClicked()
             advanceUntilIdle()
-
             expectNoEvents()
         }
     }
@@ -474,6 +401,7 @@ class ProductViewModelTest {
     @Test
     fun `onCloseStepClicked - emits ShowConfirmationDialog for normal PENDING step`() = runTest {
         coEvery { getProductUseCase("SN-001") } returns dummyProduct
+
         viewModel.events.test {
             viewModel.loadProduct("SN-001")
             advanceUntilIdle()
@@ -482,19 +410,14 @@ class ProductViewModelTest {
             viewModel.onCloseStepClicked()
             advanceUntilIdle()
 
-            val event = awaitItem()
-            assertTrue(event is ProductEvent.ShowConfirmationDialog)
-            assertEquals(
-                ConfirmationActionType.CLOSE_STEP,
-                (event as ProductEvent.ShowConfirmationDialog).actionType
-            )
+            val event = awaitItem() as ProductEvent.ShowConfirmationDialog
+            assertEquals(ConfirmationActionType.CLOSE_STEP, event.actionType)
         }
     }
 
     @Test
     fun `onCloseStepClicked - emits ShowError when product is REWORK`() = runTest {
-        val reworkProduct = dummyProduct.copy(status = ProductStatus.REWORK)
-        coEvery { getProductUseCase("SN-001") } returns reworkProduct
+        coEvery { getProductUseCase("SN-001") } returns dummyProduct.copy(status = ProductStatus.REWORK)
 
         viewModel.events.test {
             viewModel.loadProduct("SN-001")
@@ -504,15 +427,13 @@ class ProductViewModelTest {
             viewModel.onCloseStepClicked()
             advanceUntilIdle()
 
-            val event = awaitItem() as ProductEvent.ShowError
-            assertTrue(event.message.contains("РЕМОНТ"))
+            assertTrue((awaitItem() as ProductEvent.ShowError).message.contains("РЕМОНТ"))
         }
     }
 
     @Test
     fun `onCloseStepClicked - emits ShowError when product is SCRAP`() = runTest {
-        val scrapProduct = dummyProduct.copy(status = ProductStatus.SCRAP)
-        coEvery { getProductUseCase("SN-001") } returns scrapProduct
+        coEvery { getProductUseCase("SN-001") } returns dummyProduct.copy(status = ProductStatus.SCRAP)
 
         viewModel.events.test {
             viewModel.loadProduct("SN-001")
@@ -522,15 +443,13 @@ class ProductViewModelTest {
             viewModel.onCloseStepClicked()
             advanceUntilIdle()
 
-            val event = awaitItem() as ProductEvent.ShowError
-            assertTrue(event.message.contains("БРАК"))
+            assertTrue((awaitItem() as ProductEvent.ShowError).message.contains("БРАК"))
         }
     }
 
     @Test
     fun `onCloseStepClicked - emits ShowError when step is already DONE`() = runTest {
-        val allDoneProduct = dummyProduct.copy(steps = listOf(dummyStepDone))
-        coEvery { getProductUseCase("SN-001") } returns allDoneProduct
+        coEvery { getProductUseCase("SN-001") } returns dummyProduct.copy(steps = listOf(dummyStepDone))
 
         viewModel.events.test {
             viewModel.loadProduct("SN-001")
@@ -545,7 +464,7 @@ class ProductViewModelTest {
     }
 
     @Test
-    fun `onCloseStepClicked - does nothing when no step selected`() = runTest {
+    fun `onCloseStepClicked - does nothing when step id is 0`() = runTest {
         coEvery { getProductUseCase("SN-001") } returns dummyProduct
 
         viewModel.events.test {
@@ -553,10 +472,9 @@ class ProductViewModelTest {
             advanceUntilIdle()
             awaitItem() // NavigateToProduct
 
-            viewModel.selectStep(dummyStepPending.copy(id = 0)) // step.id == 0
+            viewModel.selectStep(dummyStepPending.copy(id = 0))
             viewModel.onCloseStepClicked()
             advanceUntilIdle()
-
             expectNoEvents()
         }
     }
@@ -580,30 +498,27 @@ class ProductViewModelTest {
     }
 
     @Test
-    fun `onDialogConfirmed CHANGE_PROCESS - emits NavigateToEditProcess and loads processes`() =
-        runTest {
-            coEvery { getProductUseCase("SN-001") } returns dummyProduct
-            coEvery { getProcessesUseCase() } returns dummyProcessList
+    fun `onDialogConfirmed CHANGE_PROCESS - emits NavigateToEditProcess and loads processes`() = runTest {
+        coEvery { getProductUseCase("SN-001") } returns dummyProduct
+        coEvery { getProcessesUseCase() } returns dummyProcessList
 
-            viewModel.events.test {
-                viewModel.loadProduct("SN-001")
-                advanceUntilIdle()
-                awaitItem() // NavigateToProduct
+        viewModel.events.test {
+            viewModel.loadProduct("SN-001")
+            advanceUntilIdle()
+            awaitItem() // NavigateToProduct
 
-                viewModel.onDialogConfirmed(ConfirmationActionType.CHANGE_PROCESS, null)
-                advanceUntilIdle()
+            viewModel.onDialogConfirmed(ConfirmationActionType.CHANGE_PROCESS, null)
+            advanceUntilIdle()
 
-                assertEquals(dummyProcessList, viewModel.uiState.value.processes)
-                assertEquals(ProductEvent.NavigateToEditProcess(1L), awaitItem())
-            }
+            assertEquals(dummyProcessList, viewModel.uiState.value.processes)
+            assertEquals(ProductEvent.NavigateToEditProcess(1L), awaitItem())
         }
+    }
 
     @Test
-    fun `onDialogConfirmed CLOSE_STEP - calls closeStep`() = runTest {
+    fun `onDialogConfirmed CLOSE_STEP - calls closeStep and updates product`() = runTest {
         val closedStep = dummyStepPending.copy(status = StepStatus.DONE)
-        val updatedProduct = dummyProduct.copy(
-            steps = listOf(closedStep, dummyStepDone)
-        )
+        val updatedProduct = dummyProduct.copy(steps = listOf(closedStep, dummyStepDone))
         coEvery { getProductUseCase("SN-001") } returns dummyProduct
         coEvery { closeStepUseCase(dummyStepPending.id) } returns updatedProduct
 
@@ -624,8 +539,7 @@ class ProductViewModelTest {
 
     @Test
     fun `onPackagingClicked - emits NavigateToPackaging with serial`() = runTest {
-        val packedProduct = dummyProduct.copy(packagingSerialNumber = "PKG-001")
-        coEvery { getProductUseCase("SN-001") } returns packedProduct
+        coEvery { getProductUseCase("SN-001") } returns dummyProduct.copy(packagingSerialNumber = "PKG-001")
 
         viewModel.events.test {
             viewModel.loadProduct("SN-001")
@@ -650,7 +564,6 @@ class ProductViewModelTest {
 
             viewModel.onPackagingClicked()
             advanceUntilIdle()
-
             expectNoEvents()
         }
     }
@@ -680,7 +593,6 @@ class ProductViewModelTest {
         viewModel.events.test {
             viewModel.closeStep(dummyStepPending.copy(id = 0))
             advanceUntilIdle()
-
             expectNoEvents()
         }
     }
@@ -721,107 +633,18 @@ class ProductViewModelTest {
 
     @Test
     fun `loadEmployees - updates state with employee list on success`() = runTest {
-        coEvery { getEmployeesUseCase() } returns dummyEmployeeList
+        coEvery { getEmployeesUseCase() } returns listOf(dummyEmployee)
 
         viewModel.events.test {
             viewModel.loadEmployees()
             advanceUntilIdle()
 
-            assertEquals(dummyEmployeeList, viewModel.uiState.value.employees)
+            assertEquals(listOf(dummyEmployee), viewModel.uiState.value.employees)
             cancelAndIgnoreRemainingEvents()
         }
     }
 
-    // ── loadProductsInventory ─────────────────────────────────────────────────
-
-    @Test
-    fun `loadProductsInventory - updates state on success`() = runTest {
-        coEvery { getProductsInventoryUseCase() } returns dummyInventoryList
-
-        viewModel.events.test {
-            viewModel.loadProductsInventory()
-            advanceUntilIdle()
-
-            val state = viewModel.uiState.value
-            assertEquals(dummyInventoryList, state.productsInventory)
-            assertFalse(state.isLoading)
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `loadProductsInventory - emits ShowError on failure`() = runTest {
-        coEvery { getProductsInventoryUseCase() } throws RuntimeException()
-
-        viewModel.events.test {
-            viewModel.loadProductsInventory()
-            advanceUntilIdle()
-
-            assertFalse(viewModel.uiState.value.isLoading)
-            assertEquals(ProductEvent.ShowError("Неизвестная ошибка"), awaitItem())
-        }
-    }
-
-    // ── loadReworkScrapProducts ───────────────────────────────────────────────
-
-    @Test
-    fun `loadReworkScrapProducts - updates state on success`() = runTest {
-        coEvery {
-            getProductsByStatusUseCase(listOf(ProductStatus.REWORK, ProductStatus.SCRAP))
-        } returns dummyNotNormalProducts
-
-        viewModel.events.test {
-            viewModel.loadReworkScrapProducts()
-            advanceUntilIdle()
-
-            val state = viewModel.uiState.value
-            assertEquals(dummyNotNormalProducts, state.reworkScrapProducts)
-            assertFalse(state.isLoading)
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `loadReworkScrapProducts - emits ShowError on failure`() = runTest {
-        coEvery {
-            getProductsByStatusUseCase(any())
-        } throws RuntimeException("Network Error")
-
-        viewModel.events.test {
-            viewModel.loadReworkScrapProducts()
-            advanceUntilIdle()
-
-            assertFalse(viewModel.uiState.value.isLoading)
-            assertEquals(ProductEvent.ShowError("Неизвестная ошибка"), awaitItem())
-        }
-    }
-
-    // ── loadProductsByLastStep ────────────────────────────────────────────────
-
-    @Test
-    fun `loadProductsByLastStep - updates state on success`() = runTest {
-        coEvery { getProductsByLastStepUseCase(1, 1) } returns listOf(dummyProduct)
-
-        viewModel.events.test {
-            viewModel.loadProductsByLastStep(1, 1)
-            advanceUntilIdle()
-
-            val state = viewModel.uiState.value
-            assertEquals(listOf(dummyProduct), state.productsInventoryByProcess)
-            assertFalse(state.isLoading)
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    @Test
-    fun `loadProductsByLastStep - clears list before loading`() = runTest {
-        coEvery { getProductsByLastStepUseCase(1, 1) } returns listOf(dummyProduct)
-
-        viewModel.loadProductsByLastStep(1, 1)
-        assertTrue(viewModel.uiState.value.productsInventoryByProcess.isEmpty())
-    }
-
-    // ── selectStep & selectInventoryItem ──────────────────────────────────────
+    // ── selectStep ────────────────────────────────────────────────────────────
 
     @Test
     fun `selectStep - updates selectedStep in state`() {
@@ -829,13 +652,7 @@ class ProductViewModelTest {
         assertEquals(dummyStepDone, viewModel.uiState.value.selectedStep)
     }
 
-    @Test
-    fun `selectInventoryItem - updates selectedInventoryItem in state`() {
-        viewModel.selectInventoryItem(dummyInventory)
-        assertEquals(dummyInventory, viewModel.uiState.value.selectedInventoryItem)
-    }
-
-    // ── Private helpers ───────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private fun buildViewModel() = ProductViewModel(
         getProductUseCase = getProductUseCase,
@@ -846,9 +663,6 @@ class ProductViewModelTest {
         changeStepPerformerUseCase = changeStepPerformerUseCase,
         getProcessesUseCase = getProcessesUseCase,
         getEmployeesUseCase = getEmployeesUseCase,
-        getProductsInventoryUseCase = getProductsInventoryUseCase,
-        getProductsByLastStepUseCase = getProductsByLastStepUseCase,
-        getProductsByStatusUseCase = getProductsByStatusUseCase,
         appAuth = appAuth,
         sessionCoordinator = sessionCoordinator,
     )

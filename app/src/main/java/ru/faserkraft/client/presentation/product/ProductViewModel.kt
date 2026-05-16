@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductStatus
-import ru.faserkraft.client.domain.model.ProductsInventory
 import ru.faserkraft.client.domain.model.Step
 import ru.faserkraft.client.domain.model.StepStatus
 import ru.faserkraft.client.domain.model.UserRole
@@ -22,9 +21,6 @@ import ru.faserkraft.client.domain.usecase.product.ChangeProductProcessUseCase
 import ru.faserkraft.client.domain.usecase.product.ChangeProductStatusUseCase
 import ru.faserkraft.client.domain.usecase.product.CreateProductUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductUseCase
-import ru.faserkraft.client.domain.usecase.product.GetProductsByLastStepUseCase
-import ru.faserkraft.client.domain.usecase.product.GetProductsByStatusUseCase
-import ru.faserkraft.client.domain.usecase.product.GetProductsInventoryUseCase
 import ru.faserkraft.client.domain.usecase.step.ChangeStepPerformerUseCase
 import ru.faserkraft.client.domain.usecase.step.CloseStepUseCase
 import ru.faserkraft.client.presentation.app.AppSessionCoordinator
@@ -42,17 +38,12 @@ class ProductViewModel @Inject constructor(
     private val changeStepPerformerUseCase: ChangeStepPerformerUseCase,
     private val getProcessesUseCase: GetProcessesUseCase,
     private val getEmployeesUseCase: GetEmployeesUseCase,
-    private val getProductsInventoryUseCase: GetProductsInventoryUseCase,
-    private val getProductsByLastStepUseCase: GetProductsByLastStepUseCase,
     private val appAuth: AppAuth,
     private val sessionCoordinator: AppSessionCoordinator,
-    private val getProductsByStatusUseCase: GetProductsByStatusUseCase,
 ) : ViewModel() {
 
-    private val initialRole: UserRole? = appAuth.getRegistrationData()?.role
-
     private val _uiState = MutableStateFlow(
-        ProductUiState(userRole = initialRole)
+        ProductUiState(userRole = appAuth.getRegistrationData()?.role)
     )
     val uiState: StateFlow<ProductUiState> = _uiState
 
@@ -63,32 +54,24 @@ class ProductViewModel @Inject constructor(
         observeSessionEvents()
     }
 
-    // ---------- Session ----------
-
     private fun observeSessionEvents() {
         viewModelScope.launch {
             sessionCoordinator.events.collect { event ->
                 when (event) {
-                    AppSessionEvent.Logout -> clearStateOnLogout()
+                    AppSessionEvent.Logout -> _uiState.value = ProductUiState(userRole = null)
                 }
             }
         }
     }
 
-    private fun clearStateOnLogout() {
-        _uiState.value = ProductUiState(userRole = null)
-    }
-
-    private fun currentRole(): UserRole? {
-        return _uiState.value.userRole ?: appAuth.getRegistrationData()?.role
-    }
+    private fun currentRole(): UserRole? =
+        _uiState.value.userRole ?: appAuth.getRegistrationData()?.role
 
     // ---------- UI actions ----------
 
     fun onChangeStatusClicked() {
         if (!_uiState.value.userRole.canEditProduct()) return
         _uiState.value.product ?: return
-
         viewModelScope.launch {
             _events.send(
                 ProductEvent.ShowConfirmationDialog(
@@ -103,7 +86,6 @@ class ProductViewModel @Inject constructor(
     fun onChangeProcessClicked() {
         val product = _uiState.value.product ?: return
         if (!_uiState.value.userRole.canEditProduct() || product.packagingSerialNumber != null) return
-
         viewModelScope.launch {
             _events.send(
                 ProductEvent.ShowConfirmationDialog(
@@ -120,23 +102,16 @@ class ProductViewModel @Inject constructor(
         val product = state.product ?: return
         val step = state.selectedStep ?: return
         if (step.id == 0) return
-
         viewModelScope.launch {
             when {
                 product.status == ProductStatus.REWORK ||
-                        product.status == ProductStatus.SCRAP -> {
+                        product.status == ProductStatus.SCRAP ->
                     _events.send(
-                        ProductEvent.ShowError(
-                            "Нельзя закрыть этап: продукт в статусе РЕМОНТ или БРАК"
-                        )
+                        ProductEvent.ShowError("Нельзя закрыть этап: продукт в статусе РЕМОНТ или БРАК")
                     )
-                }
-
-                step.status == StepStatus.DONE -> {
+                step.status == StepStatus.DONE ->
                     _events.send(ProductEvent.ShowError("Этап уже выполнен"))
-                }
-
-                else -> {
+                else ->
                     _events.send(
                         ProductEvent.ShowConfirmationDialog(
                             title = "Закрыть этап",
@@ -145,123 +120,49 @@ class ProductViewModel @Inject constructor(
                             step = step,
                         )
                     )
-                }
             }
         }
     }
 
     fun onDialogConfirmed(actionType: ConfirmationActionType, step: Step?) {
         val product = _uiState.value.product ?: return
-
         when (actionType) {
-            ConfirmationActionType.CHANGE_STATUS -> {
-                viewModelScope.launch {
-                    _events.send(ProductEvent.NavigateToEditStatus(product.id))
-                }
-            }
-
+            ConfirmationActionType.CHANGE_STATUS ->
+                viewModelScope.launch { _events.send(ProductEvent.NavigateToEditStatus(product.id)) }
             ConfirmationActionType.CHANGE_PROCESS -> {
                 loadProcesses()
-                viewModelScope.launch {
-                    _events.send(ProductEvent.NavigateToEditProcess(product.id))
-                }
+                viewModelScope.launch { _events.send(ProductEvent.NavigateToEditProcess(product.id)) }
             }
-
-            ConfirmationActionType.CLOSE_STEP -> {
-                step?.let { closeStep(it) }
-            }
+            ConfirmationActionType.CLOSE_STEP -> step?.let { closeStep(it) }
         }
     }
 
     fun onPackagingClicked() {
         val packagingSerial = _uiState.value.product?.packagingSerialNumber ?: return
-
-        viewModelScope.launch {
-            _events.send(ProductEvent.NavigateToPackaging(packagingSerial))
-        }
+        viewModelScope.launch { _events.send(ProductEvent.NavigateToPackaging(packagingSerial)) }
     }
 
-    // ---------- Product loading ----------
+    // ---------- Product ----------
 
     fun loadProduct(serialNumber: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-
             runCatching { getProductUseCase(serialNumber) }
                 .onSuccess { product ->
                     if (product == null) {
                         loadProcesses()
-                        _uiState.update {
-                            it.copy(pendingSerialNumber = serialNumber)
-                        }
+                        _uiState.update { it.copy(pendingSerialNumber = serialNumber) }
                         _events.send(ProductEvent.NavigateToNewProduct)
                     } else {
                         updateProductState(product)
-                        // Сбрасываем pendingSerialNumber
                         _uiState.update { it.copy(pendingSerialNumber = null) }
-                        // Навигируемся только при первичной загрузке
                         _events.send(ProductEvent.NavigateToProduct)
                     }
                 }
                 .onFailure { emitError(it) }
-
             _uiState.update { it.copy(isLoading = false) }
         }
     }
-
-    fun loadReworkScrapProducts() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-
-            runCatching {
-                getProductsByStatusUseCase(
-                    listOf(ProductStatus.REWORK, ProductStatus.SCRAP)
-                )
-            }
-                .onSuccess { list ->
-                    _uiState.update {
-                        it.copy(
-                            reworkScrapProducts = list,
-                            userRole = currentRole(),
-                        )
-                    }
-                }
-                .onFailure { emitError(it) }
-
-            _uiState.update { it.copy(isLoading = false) }
-        }
-    }
-
-    private fun updateProductState(product: Product) {
-        val selected = product.steps.firstOrNull { it.status != StepStatus.DONE }
-            ?: product.steps.lastOrNull()
-
-        _uiState.update {
-            it.copy(
-                product = product,
-                selectedStep = selected,
-                userRole = currentRole(),
-            )
-        }
-    }
-
-    fun selectStep(step: Step) {
-        _uiState.update { it.copy(selectedStep = step) }
-    }
-
-    fun selectInventoryItem(item: ProductsInventory) {
-        _uiState.update { it.copy(selectedInventoryItem = item) }
-    }
-
-    fun selectReworkScrapProduct(processName: String, status: ProductStatus) {
-        _uiState.update { state ->
-            state.copy(
-                selectedScrapReworkItem = ReworkScrapSelection(processName, status)
-            )
-        }
-    }
-
-    // ---------- Create product ----------
 
     fun createProduct(serialNumber: String, processId: Int) {
         withActionProgress {
@@ -269,14 +170,11 @@ class ProductViewModel @Inject constructor(
                 .onSuccess { product ->
                     updateProductState(product)
                     _uiState.update { it.copy(pendingSerialNumber = null) }
-                    // Для нового продукта нам нужна навигация на его экран
                     _events.send(ProductEvent.NavigateToProduct)
                 }
                 .onFailure { emitError(it) }
         }
     }
-
-    // ---------- Change status ----------
 
     fun changeStatus(productId: Long, status: ProductStatus) {
         withActionProgress {
@@ -286,8 +184,6 @@ class ProductViewModel @Inject constructor(
         }
     }
 
-    // ---------- Change process ----------
-
     fun changeProcess(productId: Long, newProcessId: Int) {
         withActionProgress {
             runCatching { changeProductProcessUseCase(productId, newProcessId) }
@@ -296,23 +192,21 @@ class ProductViewModel @Inject constructor(
         }
     }
 
+    fun selectStep(step: Step) {
+        _uiState.update { it.copy(selectedStep = step) }
+    }
+
     // ---------- Steps ----------
 
     fun closeStep(step: Step) {
         if (step.id == 0) return
-
         withActionProgress {
             runCatching { closeStepUseCase(step.id) }
                 .onSuccess { product ->
                     val updatedStep = product.steps
                         .find { it.definition.order == step.definition.order }
-
                     _uiState.update {
-                        it.copy(
-                            product = product,
-                            selectedStep = updatedStep,
-                            userRole = currentRole(),
-                        )
+                        it.copy(product = product, selectedStep = updatedStep, userRole = currentRole())
                     }
                 }
                 .onFailure { emitError(it) }
@@ -323,12 +217,7 @@ class ProductViewModel @Inject constructor(
         withActionProgress {
             runCatching { changeStepPerformerUseCase(stepId, newEmployeeId) }
                 .onSuccess { product ->
-                    _uiState.update {
-                        it.copy(
-                            product = product,
-                            userRole = currentRole(),
-                        )
-                    }
+                    _uiState.update { it.copy(product = product, userRole = currentRole()) }
                 }
                 .onFailure { emitError(it) }
         }
@@ -340,12 +229,7 @@ class ProductViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { getProcessesUseCase() }
                 .onSuccess { processes ->
-                    _uiState.update {
-                        it.copy(
-                            processes = processes,
-                            userRole = currentRole(),
-                        )
-                    }
+                    _uiState.update { it.copy(processes = processes, userRole = currentRole()) }
                 }
                 .onFailure { emitError(it) }
         }
@@ -355,66 +239,22 @@ class ProductViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { getEmployeesUseCase() }
                 .onSuccess { employees ->
-                    _uiState.update {
-                        it.copy(
-                            employees = employees,
-                            userRole = currentRole(),
-                        )
-                    }
+                    _uiState.update { it.copy(employees = employees, userRole = currentRole()) }
                 }
                 .onFailure { emitError(it) }
         }
     }
 
-    fun loadProductsInventory() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+    // ---------- Helpers ----------
 
-            runCatching { getProductsInventoryUseCase() }
-                .onSuccess { list ->
-                    _uiState.update {
-                        it.copy(
-                            productsInventory = list,
-                            userRole = currentRole(),
-                        )
-                    }
-                }
-                .onFailure { emitError(it) }
-
-            _uiState.update { it.copy(isLoading = false) }
+    private fun updateProductState(product: Product) {
+        val selected = product.steps.firstOrNull { it.status != StepStatus.DONE }
+            ?: product.steps.lastOrNull()
+        _uiState.update {
+            it.copy(product = product, selectedStep = selected, userRole = currentRole())
         }
     }
 
-    fun loadProductsByLastStep(processId: Int, stepDefinitionId: Int) {
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isLoading = true,
-                    productsInventoryByProcess = emptyList(),
-                )
-            }
-
-            runCatching { getProductsByLastStepUseCase(processId, stepDefinitionId) }
-                .onSuccess { list ->
-                    _uiState.update {
-                        it.copy(
-                            productsInventoryByProcess = list,
-                            userRole = currentRole(),
-                        )
-                    }
-                }
-                .onFailure { emitError(it) }
-
-            _uiState.update { it.copy(isLoading = false) }
-        }
-    }
-
-    // ---------- Private Helpers ----------
-
-    /**
-     * Обертка для всех мутирующих операций (изменение статуса, создание продукта и т.д.).
-     * Автоматически управляет флагом isActionInProgress.
-     */
     private fun withActionProgress(block: suspend () -> Unit) {
         viewModelScope.launch {
             _uiState.update { it.copy(isActionInProgress = true) }
@@ -428,6 +268,5 @@ class ProductViewModel @Inject constructor(
     }
 }
 
-fun UserRole?.canEditProduct(): Boolean {
-    return this == UserRole.ADMIN || this == UserRole.MASTER
-}
+fun UserRole?.canEditProduct(): Boolean =
+    this == UserRole.ADMIN || this == UserRole.MASTER

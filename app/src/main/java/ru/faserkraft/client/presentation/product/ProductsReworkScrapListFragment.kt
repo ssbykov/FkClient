@@ -1,6 +1,5 @@
 package ru.faserkraft.client.presentation.product
 
-
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,7 +8,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductsReworkScrapListBinding
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.navigateSafely
@@ -17,12 +18,15 @@ import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class ProductsReworkScrapListFragment : Fragment() {
 
-    private val viewModel: ProductViewModel by activityViewModels()
+    private val productsViewModel: ProductsViewModel
+            by hiltNavGraphViewModels(R.id.productContainerFragment)
+
+    private val productViewModel: ProductViewModel
+            by activityViewModels()
 
     private var _binding: FragmentProductsReworkScrapListBinding? = null
     private val binding get() = _binding!!
 
-    // Адаптер, который вам нужно будет создать по аналогии с ProductsInventoryByProcessAdapter
     private lateinit var adapter: ProductsReworkScrapListAdapter
 
     // ---------- Lifecycle ----------
@@ -58,8 +62,8 @@ class ProductsReworkScrapListFragment : Fragment() {
 
     private fun setupAdapter() {
         adapter = ProductsReworkScrapListAdapter { serialNumber ->
-            viewModel.loadProduct(serialNumber)
-            // Навигация к деталям произойдёт через ProductEvent.NavigateToProduct
+            productViewModel.loadProduct(serialNumber)
+            // Навигация произойдёт через ProductEvent.NavigateToProduct
         }
         binding.rvModules.layoutManager = LinearLayoutManager(requireContext())
         binding.rvModules.adapter = adapter
@@ -68,7 +72,7 @@ class ProductsReworkScrapListFragment : Fragment() {
     // ---------- Observe ----------
 
     private fun observeState() {
-        collectFlow(viewModel.uiState) { state ->
+        collectFlow(productsViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
             b.swipeRefreshModules.isRefreshing = state.isLoading
@@ -78,12 +82,14 @@ class ProductsReworkScrapListFragment : Fragment() {
 
             val items = state.reworkScrapProducts
                 .filter { product ->
-                    product.status == selection.status && product.process.name == selection.processName
+                    product.status == selection.status &&
+                            product.process.name == selection.processName
                 }
                 .map { product ->
                     Log.i(
                         "ProductsReworkScrapListFragment",
-                        "Product: ${product.serialNumber}, Status: ${product.status}, Process: ${product.process.name}, ${product.createdAt}"
+                        "Product: ${product.serialNumber}, Status: ${product.status}, " +
+                                "Process: ${product.process.name}, ${product.createdAt}"
                     )
                     ProductModuleUiItem(
                         id = product.id,
@@ -93,11 +99,16 @@ class ProductsReworkScrapListFragment : Fragment() {
                 }
 
             adapter.submitList(items)
+
+            state.errorMessage?.let {
+                showErrorSnackbar(it)
+                productsViewModel.clearError()
+            }
         }
     }
 
     private fun observeEvents() {
-        collectFlow(viewModel.events) { event ->
+        collectFlow(productViewModel.events) { event ->
             when (event) {
                 is ProductEvent.NavigateToProduct -> {
                     findNavController().navigateSafely(
@@ -115,11 +126,8 @@ class ProductsReworkScrapListFragment : Fragment() {
     // ---------- Header ----------
 
     private fun renderHeader() {
-        val selection = viewModel.uiState.value.selectedScrapReworkItem ?: return
-
+        val selection = productsViewModel.uiState.value.selectedScrapReworkItem ?: return
         binding.tvProcessName.text = selection.processName
-
-        // Используем ваш маппер для красивого отображения статуса!
         val uiStatus = selection.status.toUiProductStatus()
         binding.tvStatusName.text = uiStatus.getTitle(requireContext())
     }
@@ -128,6 +136,6 @@ class ProductsReworkScrapListFragment : Fragment() {
 
     private fun loadData() {
         adapter.submitList(emptyList())
-        viewModel.loadReworkScrapProducts()
+        productsViewModel.loadReworkScrapProducts()
     }
 }
