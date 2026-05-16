@@ -1,5 +1,6 @@
 package ru.faserkraft.client.presentation.product
 
+import android.content.Context
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -21,7 +22,19 @@ data class ProductStatusUi(
     @StringRes val titleRes: Int,
     @ColorRes val bgColorRes: Int,
     @ColorRes val textColorRes: Int,
-)
+    val originalStatus: ProductStatus
+) {
+    /**
+     * Вся логика выбора текста инкапсулирована здесь.
+     * View не знает про условия REWORK, SCRAP и т.д.
+     */
+    fun getTitle(context: Context): String {
+        return when (originalStatus) {
+            ProductStatus.REWORK, ProductStatus.SCRAP -> context.getString(titleRes)
+            else -> originalStatus.name
+        }
+    }
+}
 
 // ---------- Маппинг Step → StepStatusUi ----------
 
@@ -48,17 +61,20 @@ fun ProductStatus.toUiProductStatus(): ProductStatusUi = when (this) {
         titleRes = R.string.normal,
         bgColorRes = R.color.status_success_bg,
         textColorRes = R.color.status_success_text,
+        originalStatus = this
     )
 
     ProductStatus.REWORK -> ProductStatusUi(
         titleRes = R.string.rework,
         bgColorRes = R.color.status_rework_bg,
         textColorRes = R.color.status_rework_text,
+        originalStatus = this
     )
 
     ProductStatus.SCRAP -> ProductStatusUi(
         titleRes = R.string.scrap,
         bgColorRes = R.color.status_scrap_bg,
         textColorRes = R.color.status_scrap_text,
+        originalStatus = this
     )
 }
