@@ -15,7 +15,6 @@ import ru.faserkraft.client.data.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.data.dto.DailyPlanStepUpdateDto
 import ru.faserkraft.client.data.dto.DayPlanDto
 import ru.faserkraft.client.data.dto.EmployeeDto
-import ru.faserkraft.client.data.dto.ProductShortDto
 import ru.faserkraft.client.data.dto.OrderCreateDto
 import ru.faserkraft.client.data.dto.OrderDto
 import ru.faserkraft.client.data.dto.OrderItemCreateDto
@@ -25,6 +24,7 @@ import ru.faserkraft.client.data.dto.PackagingDto
 import ru.faserkraft.client.data.dto.ProcessDto
 import ru.faserkraft.client.data.dto.ProductCreateDto
 import ru.faserkraft.client.data.dto.ProductDto
+import ru.faserkraft.client.data.dto.ProductShortDto
 import ru.faserkraft.client.data.dto.ProductsInventoryDto
 import ru.faserkraft.client.data.dto.QrDataResponseDto
 
@@ -75,6 +75,8 @@ interface Api {
     @GET("products/stats/by-last-done-step")
     suspend fun getProductsInventory(): Response<List<ProductsInventoryDto>>
 
+    @GET(BASE_URL + "products/not-normal")
+    suspend fun getProductsNotNormal(): Response<List<ProductDto>>
 
     // ================== ШАГИ ПРОЦЕССА (PRODUCTS STEPS) ==================
 
