@@ -80,7 +80,6 @@
         <action
             android:id="@+id/action_productFragment_to_packagingFragment"
             app:destination="@id/packagingFragment" />
-
     </fragment>
 
     <fragment
@@ -138,8 +137,7 @@
         android:id="@+id/addDayPlanFragment"
         android:name="ru.faserkraft.client.presentation.plan.AddDayPlanFragment"
         android:label="fragment_add_day_plan"
-        tools:layout="@layout/fragment_add_day_plan">
-    </fragment>
+        tools:layout="@layout/fragment_add_day_plan" />
 
     <fragment
         android:id="@+id/qrGenerationFragment"
@@ -147,16 +145,46 @@
         android:label="fragment_qr_generation"
         tools:layout="@layout/fragment_qr_generation" />
 
+    <!-- Контейнер с вкладками -->
     <fragment
-        android:id="@+id/productsInventoryFragment"
-        android:name="ru.faserkraft.client.presentation.product.ProductsInventoryFragment"
-        android:label="fragment_products_inventory"
-        tools:layout="@layout/fragment_products_inventory">
+        android:id="@+id/productContainerFragment"
+        android:name="ru.faserkraft.client.presentation.product.ProductContainerFragment"
+        android:label="Инвентаризация"
+        tools:layout="@layout/fragment_product_container">
+
         <action
-            android:id="@+id/action_productsInventoryFragment_to_productsInventoryByProcessFragment"
+            android:id="@+id/action_productContainerFragment_to_productsInventoryByProcessFragment"
             app:destination="@id/productsInventoryByProcessFragment" />
+
+        <action
+            android:id="@+id/action_productContainerFragment_to_productsReworkScrapFragment"
+            app:destination="@id/productsReworkScrapFragment" />
+
+        <!-- ДОБАВЛЕНО: Этот экшен должен быть здесь, чтобы навигация работала из ViewPager -->
+        <action
+            android:id="@+id/action_productContainerFragment_to_productsReworkScrapListFragment"
+            app:destination="@id/productsReworkScrapListFragment" />
     </fragment>
 
+    <!-- Вкладка (оставляем просто фрагмент без экшенов, так как рулит контейнер) -->
+    <fragment
+        android:id="@+id/productsReworkScrapFragment"
+        android:name="ru.faserkraft.client.presentation.product.ProductsReworkScrapFragment"
+        android:label="fragment_products_rework_scrap"
+        tools:layout="@layout/fragment_products_rework_scrap" />
+
+    <!-- Список отфильтрованных модулей (брак/переделка) -->
+    <fragment
+        android:id="@+id/productsReworkScrapListFragment"
+        android:name="ru.faserkraft.client.presentation.product.ProductsReworkScrapListFragment"
+        android:label="fragment_products_rework_scrap_list"
+        tools:layout="@layout/fragment_products_rework_scrap_list">
+
+        <!-- ДОБАВЛЕНО: Экшен для перехода в детали продукта по клику на элемент списка -->
+        <action
+            android:id="@+id/action_productsReworkScrapListFragment_to_productFullFragment"
+            app:destination="@id/productFullFragment" />
+    </fragment>
     <fragment
         android:id="@+id/productsInventoryByProcessFragment"
         android:name="ru.faserkraft.client.presentation.product.ProductsInventoryByProcessFragment"
@@ -184,9 +212,9 @@
         tools:layout="@layout/fragment_packaging">
         <argument
             android:name="packagingSerialNumber"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null" />
+            app:nullable="true" />
 
         <action
             android:id="@+id/action_packagingFragment_to_newPackagingFragment"
@@ -268,7 +296,6 @@
         android:id="@+id/editOrderFragment"
         android:name="ru.faserkraft.client.presentation.order.EditOrderFragment"
         android:label="Редактирование заказа"
-        tools:layout="@layout/fragment_new_order">
-        </fragment>
+        tools:layout="@layout/fragment_new_order" />
 
 </navigation>

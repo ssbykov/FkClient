@@ -13,7 +13,7 @@
         android:icon="@drawable/ic_scanner"
         android:title="@string/scanner" />
     <item
-        android:id="@+id/productsInventoryFragment"
+        android:id="@+id/productContainerFragment"
         android:icon="@drawable/ic_inventory"
         android:title="@string/inventory" />
     <item

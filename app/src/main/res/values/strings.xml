@@ -34,6 +34,7 @@
     <string name="normal">В работе</string>
     <string name="rework">Восстановление</string>
     <string name="scrap">Брак</string>
+    <string name="products_rework_scrap">Модули брак/восстановление</string>
     <string name="current_status">Текущий статус</string>
     <string name="new_status">Новый статус</string>
     <string name="status_edit">Редактирование статуса</string>
@@ -76,6 +77,7 @@
     <string name="no_products_in_storage">Нет упакованных товаров для отгрузки!</string>
     <string name="empty_production">Нет модулей в производстве!</string>
     <string name="no_product_for_packaging">Нет доступных продуктов для упаковки</string>
+    <string name="empty_rework_scrap">Нет модулей в статусе брак/восстановление</string>
     <string name="product_type">Тип продукции</string>
     <string name="packaging_count">Количество упаковок:</string>
     <string name="shipped_partitions">Отгруженные партии</string>
@@ -124,4 +126,5 @@
     <string name="product_serial_number">Модуль: %s</string>
     <string name="product_tech_process">Техпроцесс: %s</string>
     <string name="product_start_at">Запуск: %s</string>
+    <string name="products_list">Список модулей</string>
 </resources>
