@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.detail.edit
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,6 +9,9 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import ru.faserkraft.client.databinding.FragmentEditStatusProductBinding
 import ru.faserkraft.client.domain.model.ProductStatus
+import ru.faserkraft.client.presentation.product.detail.ProductEvent
+import ru.faserkraft.client.presentation.product.detail.ProductViewModel
+import ru.faserkraft.client.presentation.product.detail.toUiProductStatus
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 

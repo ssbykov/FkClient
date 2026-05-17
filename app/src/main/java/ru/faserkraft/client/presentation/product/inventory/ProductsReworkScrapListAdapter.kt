@@ -1,20 +1,26 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.inventory
+
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemProductDetailBinding
 import ru.faserkraft.client.utils.converter.formatIsoToUi
 
-class ProductsInventoryByProcessAdapter(
+
+data class ProductModuleUiItem(
+    val id: Long,
+    val serialNumber: String,
+    val createdAt: String,
+)
+
+class ProductsReworkScrapListAdapter(
     private val onItemClick: (String) -> Unit
-) :
-    ListAdapter<ProductsInventoryByProcessUiItem, ProductsInventoryByProcessAdapter.ContentVH>(
-        ContentDiff()
-    ) {
+) : androidx.recyclerview.widget.ListAdapter<ProductModuleUiItem, ProductsReworkScrapListAdapter.ContentVH>(
+    ContentDiff()
+) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContentVH {
         val binding = ItemProductDetailBinding.inflate(
@@ -31,37 +37,32 @@ class ProductsInventoryByProcessAdapter(
 
     class ContentVH(
         private val binding: ItemProductDetailBinding,
-        private val onStageClick: (String) -> Unit
+        private val onClick: (String) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: ProductsInventoryByProcessUiItem) = with(binding) {
+        fun bind(item: ProductModuleUiItem) = with(binding) {
             tvProductSerial.text = item.serialNumber
+
             tvCreated.text = binding.root.context.getString(
-                R.string.closed_at,
+                R.string.product_start_at,
                 formatIsoToUi(item.createdAt)
             )
-            binding.root.setOnClickListener {
-                onStageClick(item.serialNumber)
-            }
 
+            binding.root.setOnClickListener {
+                onClick(item.serialNumber)
+            }
         }
     }
 
-    class ContentDiff : DiffUtil.ItemCallback<ProductsInventoryByProcessUiItem>() {
+    class ContentDiff : DiffUtil.ItemCallback<ProductModuleUiItem>() {
         override fun areItemsTheSame(
-            oldItem: ProductsInventoryByProcessUiItem,
-            newItem: ProductsInventoryByProcessUiItem
+            oldItem: ProductModuleUiItem,
+            newItem: ProductModuleUiItem
         ): Boolean = oldItem.id == newItem.id
 
         override fun areContentsTheSame(
-            oldItem: ProductsInventoryByProcessUiItem,
-            newItem: ProductsInventoryByProcessUiItem
+            oldItem: ProductModuleUiItem,
+            newItem: ProductModuleUiItem
         ): Boolean = oldItem == newItem
     }
 }
-
-data class ProductsInventoryByProcessUiItem(
-    val id: Long,
-    val serialNumber: String,
-    val createdAt: String,
-)

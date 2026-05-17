@@ -7,7 +7,7 @@
     android:paddingHorizontal="24dp"
     android:paddingTop="24dp"
     android:paddingBottom="16dp"
-    tools:context=".presentation.product.EditProductStatusFragment">
+    tools:context=".presentation.product.detail.edit.EditProductStatusFragment">
 
     <TextView
         android:id="@+id/tvTitle"

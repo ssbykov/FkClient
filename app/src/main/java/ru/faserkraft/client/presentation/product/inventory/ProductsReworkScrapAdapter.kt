@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.inventory
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -10,6 +10,7 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemInventoryProcessHeaderBinding
 import ru.faserkraft.client.databinding.ItemReworkScrapStatBinding
 import ru.faserkraft.client.domain.model.ProductStatus
+import ru.faserkraft.client.presentation.product.detail.toUiProductStatus
 
 
 sealed class ReworkScrapUiItem {

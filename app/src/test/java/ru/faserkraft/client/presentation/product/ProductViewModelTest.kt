@@ -36,6 +36,10 @@ import ru.faserkraft.client.domain.usecase.step.ChangeStepPerformerUseCase
 import ru.faserkraft.client.domain.usecase.step.CloseStepUseCase
 import ru.faserkraft.client.presentation.app.AppSessionCoordinator
 import ru.faserkraft.client.presentation.app.AppSessionEvent
+import ru.faserkraft.client.presentation.product.detail.ConfirmationActionType
+import ru.faserkraft.client.presentation.product.detail.ProductEvent
+import ru.faserkraft.client.presentation.product.detail.ProductViewModel
+import ru.faserkraft.client.presentation.product.detail.canEditProduct
 import ru.faserkraft.client.util.MainDispatcherRule
 
 @OptIn(ExperimentalCoroutinesApi::class)

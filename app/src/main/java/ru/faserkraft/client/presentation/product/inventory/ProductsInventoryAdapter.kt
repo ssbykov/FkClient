@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.inventory
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

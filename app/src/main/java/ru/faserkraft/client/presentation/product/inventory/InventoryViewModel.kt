@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.inventory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,7 +18,7 @@ import ru.faserkraft.client.presentation.base.toErrorMessage
 import javax.inject.Inject
 
 @HiltViewModel
-class ProductsViewModel @Inject constructor(
+class InventoryViewModel @Inject constructor(
     private val getProductsInventoryUseCase: GetProductsInventoryUseCase,
     private val getProductsByLastStepUseCase: GetProductsByLastStepUseCase,
     private val getProductsByStatusUseCase: GetProductsByStatusUseCase,
@@ -26,9 +26,9 @@ class ProductsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        ProductsUiState(userRole = appAuth.getRegistrationData()?.role)
+        InventoryUiState(userRole = appAuth.getRegistrationData()?.role)
     )
-    val uiState: StateFlow<ProductsUiState> = _uiState
+    val uiState: StateFlow<InventoryUiState> = _uiState
 
     private fun currentRole(): UserRole? =
         _uiState.value.userRole ?: appAuth.getRegistrationData()?.role

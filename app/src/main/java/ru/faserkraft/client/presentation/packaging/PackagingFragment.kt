@@ -11,8 +11,8 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentPackagingBinding
-import ru.faserkraft.client.presentation.product.ProductEvent
-import ru.faserkraft.client.presentation.product.ProductViewModel
+import ru.faserkraft.client.presentation.product.detail.ProductEvent
+import ru.faserkraft.client.presentation.product.detail.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.converter.formatIsoToUi
 import ru.faserkraft.client.utils.ext.navigateSafely

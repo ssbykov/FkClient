@@ -1,6 +1,5 @@
 package ru.faserkraft.client.presentation.packaging
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat.getColor
@@ -9,7 +8,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.databinding.ItemPackagingContentProductBinding
 import ru.faserkraft.client.domain.model.ProductStatus
-import ru.faserkraft.client.presentation.product.toUiProductStatus
+import ru.faserkraft.client.presentation.product.detail.toUiProductStatus
 
 class PackagingContentAdapter(
     private val onItemClick: (String) -> Unit

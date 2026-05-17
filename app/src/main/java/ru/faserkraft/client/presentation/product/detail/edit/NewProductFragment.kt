@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.detail.edit
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,6 +12,8 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentNewProductBinding
 import ru.faserkraft.client.presentation.common.adapter.ProcessAdapter
 import ru.faserkraft.client.presentation.common.adapter.ProcessUi
+import ru.faserkraft.client.presentation.product.detail.ProductEvent
+import ru.faserkraft.client.presentation.product.detail.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 

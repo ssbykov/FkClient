@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.detail
 
 import ru.faserkraft.client.domain.model.Employee
 import ru.faserkraft.client.domain.model.Process

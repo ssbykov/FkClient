@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.detail
 
 import android.app.AlertDialog
 import android.content.res.ColorStateList
@@ -124,7 +124,7 @@ class ProductFragment : Fragment() {
 
                 is ProductEvent.NavigateToPackaging -> {
                     val action =
-                        ProductFragmentDirections.actionProductFragmentToPackagingFragment(event.packagingSerialNumber)
+                        ProductFragmentDirections.Companion.actionProductFragmentToPackagingFragment(event.packagingSerialNumber)
                     findNavController().navigateSafely(action)
                 }
 

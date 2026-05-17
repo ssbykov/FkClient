@@ -28,10 +28,11 @@ import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.domain.usecase.product.GetProductsByLastStepUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductsByStatusUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductsInventoryUseCase
+import ru.faserkraft.client.presentation.product.inventory.InventoryViewModel
 import ru.faserkraft.client.util.MainDispatcherRule
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ProductsViewModelTest {
+class InventoryViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -43,7 +44,7 @@ class ProductsViewModelTest {
     private val getProductsByStatusUseCase: GetProductsByStatusUseCase = mockk()
     private val appAuth: AppAuth = mockk(relaxed = true)
 
-    private lateinit var viewModel: ProductsViewModel
+    private lateinit var viewModel: InventoryViewModel
 
     // ── Dummies ──────────────────────────────────────────────────────────────
 
@@ -269,7 +270,7 @@ class ProductsViewModelTest {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private fun buildViewModel() = ProductsViewModel(
+    private fun buildViewModel() = InventoryViewModel(
         getProductsInventoryUseCase = getProductsInventoryUseCase,
         getProductsByLastStepUseCase = getProductsByLastStepUseCase,
         getProductsByStatusUseCase = getProductsByStatusUseCase,

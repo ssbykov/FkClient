@@ -21,8 +21,8 @@ import ru.faserkraft.client.presentation.app.AppEvent
 import ru.faserkraft.client.presentation.app.AppViewModel
 import ru.faserkraft.client.presentation.packaging.PackagingEvent
 import ru.faserkraft.client.presentation.packaging.PackagingViewModel
-import ru.faserkraft.client.presentation.product.ProductEvent
-import ru.faserkraft.client.presentation.product.ProductViewModel
+import ru.faserkraft.client.presentation.product.detail.ProductEvent
+import ru.faserkraft.client.presentation.product.detail.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar

@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.inventory
 
 import android.app.AlertDialog
 import android.os.Bundle
@@ -11,7 +11,7 @@ import ru.faserkraft.client.databinding.FragmentProductContainerBinding
 import ru.faserkraft.client.presentation.app.AppViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
 
-class ProductContainerFragment : Fragment(R.layout.fragment_product_container) {
+class InventoryContainerFragment : Fragment(R.layout.fragment_product_container) {
 
     private val appViewModel: AppViewModel by activityViewModels()
 
@@ -53,7 +53,7 @@ class ProductContainerFragment : Fragment(R.layout.fragment_product_container) {
     // ---------- UI Setup ----------
 
     private fun setupViewPager() {
-        binding.viewPagerProduct.adapter = ProductContainerPageAdapter(this)
+        binding.viewPagerProduct.adapter = InventoryContainerPageAdapter(this)
         tabLayoutMediator = TabLayoutMediator(
             binding.tabLayoutProduct,
             binding.viewPagerProduct

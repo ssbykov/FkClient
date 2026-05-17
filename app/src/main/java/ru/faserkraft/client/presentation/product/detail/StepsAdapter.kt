@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.detail
 
 import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemStepBinding
@@ -14,7 +15,7 @@ import ru.faserkraft.client.utils.converter.formatIsoToUi
 
 class StepsAdapter(
     private val onItemClick: (StepUiItem) -> Unit,
-) : androidx.recyclerview.widget.ListAdapter<StepUiItem, StepsAdapter.StepVH>(StepDiff()) {
+) : ListAdapter<StepUiItem, StepsAdapter.StepVH>(StepDiff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StepVH {
         val binding = ItemStepBinding.inflate(LayoutInflater.from(parent.context), parent, false)

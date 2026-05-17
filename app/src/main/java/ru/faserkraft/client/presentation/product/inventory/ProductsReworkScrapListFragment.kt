@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.inventory
 
 import android.os.Bundle
 import android.util.Log
@@ -12,14 +12,17 @@ import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductsReworkScrapListBinding
+import ru.faserkraft.client.presentation.product.detail.ProductEvent
+import ru.faserkraft.client.presentation.product.detail.ProductViewModel
+import ru.faserkraft.client.presentation.product.detail.toUiProductStatus
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class ProductsReworkScrapListFragment : Fragment() {
 
-    private val productsViewModel: ProductsViewModel
-            by hiltNavGraphViewModels(R.id.productContainerFragment)
+    private val inventoryViewModel: InventoryViewModel
+            by hiltNavGraphViewModels(R.id.inventoryContainerFragment)
 
     private val productViewModel: ProductViewModel
             by activityViewModels()
@@ -72,7 +75,7 @@ class ProductsReworkScrapListFragment : Fragment() {
     // ---------- Observe ----------
 
     private fun observeState() {
-        collectFlow(productsViewModel.uiState) { state ->
+        collectFlow(inventoryViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
             b.swipeRefreshModules.isRefreshing = state.isLoading
@@ -102,7 +105,7 @@ class ProductsReworkScrapListFragment : Fragment() {
 
             state.errorMessage?.let {
                 showErrorSnackbar(it)
-                productsViewModel.clearError()
+                inventoryViewModel.clearError()
             }
         }
     }
@@ -126,7 +129,7 @@ class ProductsReworkScrapListFragment : Fragment() {
     // ---------- Header ----------
 
     private fun renderHeader() {
-        val selection = productsViewModel.uiState.value.selectedScrapReworkItem ?: return
+        val selection = inventoryViewModel.uiState.value.selectedScrapReworkItem ?: return
         binding.tvProcessName.text = selection.processName
         val uiStatus = selection.status.toUiProductStatus()
         binding.tvStatusName.text = uiStatus.getTitle(requireContext())
@@ -136,6 +139,6 @@ class ProductsReworkScrapListFragment : Fragment() {
 
     private fun loadData() {
         adapter.submitList(emptyList())
-        productsViewModel.loadReworkScrapProducts()
+        inventoryViewModel.loadReworkScrapProducts()
     }
 }

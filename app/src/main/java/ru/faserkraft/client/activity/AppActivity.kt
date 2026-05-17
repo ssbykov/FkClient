@@ -59,7 +59,7 @@ class AppActivity : AppCompatActivity() {
                 R.id.registrationFragment,
                 R.id.dayPlanFragment,
                 R.id.scannerFragment,
-                R.id.productContainerFragment,
+                R.id.inventoryContainerFragment,
                 R.id.storageContainerFragment
             )
             if (destination.id in menuItemIds) {

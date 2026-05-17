@@ -14,10 +14,10 @@ import ru.faserkraft.client.databinding.FragmentEmployeePlanProductsBinding
 import ru.faserkraft.client.domain.model.DailyPlan
 import ru.faserkraft.client.domain.model.DailyPlanStep
 import ru.faserkraft.client.domain.model.Product
-import ru.faserkraft.client.presentation.product.ProductEvent
-import ru.faserkraft.client.presentation.product.ProductViewModel
-import ru.faserkraft.client.presentation.product.ProductsInventoryByProcessAdapter
-import ru.faserkraft.client.presentation.product.ProductsInventoryByProcessUiItem
+import ru.faserkraft.client.presentation.product.detail.ProductEvent
+import ru.faserkraft.client.presentation.product.detail.ProductViewModel
+import ru.faserkraft.client.presentation.product.inventory.ProductsInventoryByProcessAdapter
+import ru.faserkraft.client.presentation.product.inventory.ProductsInventoryByProcessUiItem
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.converter.convertDate
 import ru.faserkraft.client.utils.ext.navigateSafely

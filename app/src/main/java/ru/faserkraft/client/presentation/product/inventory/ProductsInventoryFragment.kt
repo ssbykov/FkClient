@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.inventory
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -18,8 +18,8 @@ import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class ProductsInventoryFragment : Fragment() {
 
-    private val viewModel: ProductsViewModel
-            by hiltNavGraphViewModels(R.id.productContainerFragment)
+    private val viewModel: InventoryViewModel
+            by hiltNavGraphViewModels(R.id.inventoryContainerFragment)
 
     private var _binding: FragmentProductsInventoryBinding? = null
     private val binding get() = _binding!!
@@ -68,8 +68,8 @@ class ProductsInventoryFragment : Fragment() {
             if (_binding == null) return@ProductsInventoryAdapter
             viewModel.selectInventoryItem(item)
             findNavController().navigateSafely(
-                ProductContainerFragmentDirections
-                    .actionProductContainerFragmentToProductsInventoryByProcessFragment()
+                InventoryContainerFragmentDirections
+                    .actionInventoryContainerFragmentToProductsInventoryByProcessFragment()
             )
         }
         binding.rvProductsStats.layoutManager = LinearLayoutManager(requireContext())

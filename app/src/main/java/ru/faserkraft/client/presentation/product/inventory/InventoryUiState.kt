@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.inventory
 
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductStatus
@@ -10,7 +10,7 @@ data class ReworkScrapSelection(
     val status: ProductStatus,
 )
 
-data class ProductsUiState(
+data class InventoryUiState(
     val isLoading: Boolean = false,
     val productsInventory: List<ProductsInventory> = emptyList(),
     val productsInventoryByProcess: List<Product> = emptyList(),

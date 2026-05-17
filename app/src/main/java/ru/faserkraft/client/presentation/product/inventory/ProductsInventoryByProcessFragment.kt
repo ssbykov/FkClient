@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.inventory
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,14 +11,16 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductsInventoryByProcessBinding
+import ru.faserkraft.client.presentation.product.detail.ProductEvent
+import ru.faserkraft.client.presentation.product.detail.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class ProductsInventoryByProcessFragment : Fragment() {
 
-    private val productsViewModel: ProductsViewModel
-            by hiltNavGraphViewModels(R.id.productContainerFragment)
+    private val inventoryViewModel: InventoryViewModel
+            by hiltNavGraphViewModels(R.id.inventoryContainerFragment)
 
     private val productViewModel: ProductViewModel
             by activityViewModels()
@@ -71,7 +73,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
     // ---------- Observe ----------
 
     private fun observeState() {
-        collectFlow(productsViewModel.uiState) { state ->
+        collectFlow(inventoryViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
             b.swipeRefreshDetail.isRefreshing = state.isLoading
@@ -92,7 +94,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
 
             state.errorMessage?.let {
                 showErrorSnackbar(it)
-                productsViewModel.clearError()
+                inventoryViewModel.clearError()
             }
         }
     }
@@ -102,7 +104,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
             when (event) {
                 is ProductEvent.NavigateToProduct -> {
                     findNavController().navigateSafely(
-                        ProductsInventoryByProcessFragmentDirections
+                        ProductsInventoryByProcessFragmentDirections.Companion
                             .actionProductsInventoryByProcessFragmentToProductFullFragment()
                     )
                 }
@@ -116,7 +118,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
     // ---------- Header ----------
 
     private fun renderHeader() {
-        val item = productsViewModel.uiState.value.selectedInventoryItem ?: return
+        val item = inventoryViewModel.uiState.value.selectedInventoryItem ?: return
         binding.tvProcessName.text = item.processName
         binding.tvStageName.text = item.stepName
     }
@@ -124,8 +126,8 @@ class ProductsInventoryByProcessFragment : Fragment() {
     // ---------- Load ----------
 
     private fun loadData() {
-        val item = productsViewModel.uiState.value.selectedInventoryItem ?: return
+        val item = inventoryViewModel.uiState.value.selectedInventoryItem ?: return
         adapter.submitList(emptyList())
-        productsViewModel.loadProductsByLastStep(item.processId, item.stepDefinitionId)
+        inventoryViewModel.loadProductsByLastStep(item.processId, item.stepDefinitionId)
     }
 }

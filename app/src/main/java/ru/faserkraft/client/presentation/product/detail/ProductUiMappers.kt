@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.detail
 
 import android.content.Context
 import androidx.annotation.ColorRes

@@ -65,7 +65,7 @@
 
     <fragment
         android:id="@+id/productFragment"
-        android:name="ru.faserkraft.client.presentation.product.ProductFragment"
+        android:name="ru.faserkraft.client.presentation.product.detail.ProductFragment"
         android:label="fragment_product"
         tools:layout="@layout/fragment_product">
         <action
@@ -84,7 +84,7 @@
 
     <fragment
         android:id="@+id/productFullFragment"
-        android:name="ru.faserkraft.client.presentation.product.ProductFullFragment"
+        android:name="ru.faserkraft.client.presentation.product.detail.ProductFullFragment"
         android:label="ProductFullFragment"
         tools:layout="@layout/fragment_product_full">
         <action
@@ -94,7 +94,7 @@
 
     <fragment
         android:id="@+id/newProductFragment"
-        android:name="ru.faserkraft.client.presentation.product.NewProductFragment"
+        android:name="ru.faserkraft.client.presentation.product.detail.edit.NewProductFragment"
         android:label="fragment_new_product"
         tools:layout="@layout/fragment_new_product">
         <action
@@ -117,19 +117,19 @@
 
     <fragment
         android:id="@+id/editProductFragment"
-        android:name="ru.faserkraft.client.presentation.product.EditProductFragment"
+        android:name="ru.faserkraft.client.presentation.product.detail.edit.EditProductFragment"
         android:label="fragment_edit_product"
         tools:layout="@layout/fragment_edit_product" />
 
     <fragment
         android:id="@+id/editProductStatusFragment"
-        android:name="ru.faserkraft.client.presentation.product.EditProductStatusFragment"
+        android:name="ru.faserkraft.client.presentation.product.detail.edit.EditProductStatusFragment"
         android:label="fragment_edit_status_product"
         tools:layout="@layout/fragment_edit_status_product" />
 
     <fragment
         android:id="@+id/editStepFragment"
-        android:name="ru.faserkraft.client.presentation.product.EditStepFragment"
+        android:name="ru.faserkraft.client.presentation.product.detail.edit.EditStepFragment"
         android:label="EditStepFragment"
         tools:layout="@layout/fragment_edit_step" />
 
@@ -147,36 +147,36 @@
 
     <!-- Контейнер с вкладками -->
     <fragment
-        android:id="@+id/productContainerFragment"
-        android:name="ru.faserkraft.client.presentation.product.ProductContainerFragment"
+        android:id="@+id/inventoryContainerFragment"
+        android:name="ru.faserkraft.client.presentation.product.inventory.InventoryContainerFragment"
         android:label="Инвентаризация"
         tools:layout="@layout/fragment_product_container">
 
         <action
-            android:id="@+id/action_productContainerFragment_to_productsInventoryByProcessFragment"
+            android:id="@+id/action_inventoryContainerFragment_to_productsInventoryByProcessFragment"
             app:destination="@id/productsInventoryByProcessFragment" />
 
         <action
-            android:id="@+id/action_productContainerFragment_to_productsReworkScrapFragment"
+            android:id="@+id/action_inventoryContainerFragment_to_productsReworkScrapFragment"
             app:destination="@id/productsReworkScrapFragment" />
 
         <!-- ДОБАВЛЕНО: Этот экшен должен быть здесь, чтобы навигация работала из ViewPager -->
         <action
-            android:id="@+id/action_productContainerFragment_to_productsReworkScrapListFragment"
+            android:id="@+id/action_inventoryContainerFragment_to_productsReworkScrapListFragment"
             app:destination="@id/productsReworkScrapListFragment" />
     </fragment>
 
     <!-- Вкладка (оставляем просто фрагмент без экшенов, так как рулит контейнер) -->
     <fragment
         android:id="@+id/productsReworkScrapFragment"
-        android:name="ru.faserkraft.client.presentation.product.ProductsReworkScrapFragment"
+        android:name="ru.faserkraft.client.presentation.product.inventory.ProductsReworkScrapListFragment"
         android:label="fragment_products_rework_scrap"
         tools:layout="@layout/fragment_products_rework_scrap" />
 
     <!-- Список отфильтрованных модулей (брак/переделка) -->
     <fragment
         android:id="@+id/productsReworkScrapListFragment"
-        android:name="ru.faserkraft.client.presentation.product.ProductsReworkScrapListFragment"
+        android:name="ru.faserkraft.client.presentation.product.inventory.ProductsReworkScrapListFragment"
         android:label="fragment_products_rework_scrap_list"
         tools:layout="@layout/fragment_products_rework_scrap_list">
 
@@ -187,7 +187,7 @@
     </fragment>
     <fragment
         android:id="@+id/productsInventoryByProcessFragment"
-        android:name="ru.faserkraft.client.presentation.product.ProductsInventoryByProcessFragment"
+        android:name="ru.faserkraft.client.presentation.product.inventory.ProductsInventoryByProcessFragment"
         android:label="fragment_products_inventory_by_process"
         tools:layout="@layout/fragment_products_inventory_by_process">
         <action

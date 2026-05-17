@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product
+package ru.faserkraft.client.presentation.product.detail
 
 import android.content.res.ColorStateList
 import android.os.Bundle
@@ -16,7 +16,6 @@ import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.converter.formatIsoToUi
 import ru.faserkraft.client.utils.ext.navigateSafely
-import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 class ProductFullFragment : Fragment() {
 
