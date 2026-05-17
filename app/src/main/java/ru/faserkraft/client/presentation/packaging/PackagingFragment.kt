@@ -50,7 +50,8 @@ class PackagingFragment : Fragment() {
 
         setupRecyclerView()
         observeState()
-        observeEvents()
+        observePackagingEvents()
+        observeProductEvents()
 
         binding.btnEdit.setOnClickListener {
             viewModel.onEditClicked()
@@ -102,7 +103,7 @@ class PackagingFragment : Fragment() {
         }
     }
 
-    private fun observeEvents() {
+    private fun observePackagingEvents() {
         collectFlow(viewModel.events) { event ->
             when (event) {
                 is PackagingEvent.ShowError -> {
@@ -115,12 +116,12 @@ class PackagingFragment : Fragment() {
                     findNavController().navigateSafely(action.actionId)
                 }
 
-                PackagingEvent.NavigateToPackaging,
-                PackagingEvent.NavigateToNewPackaging,
-                PackagingEvent.PackagingDeleted -> Unit
+                else -> Unit
             }
         }
+    }
 
+    private fun observeProductEvents() {
         collectFlow(productViewModel.events) { event ->
             when (event) {
                 is ProductEvent.NavigateToProduct -> {
