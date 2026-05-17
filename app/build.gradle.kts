@@ -109,4 +109,5 @@ dependencies {
     ksp(libs.mapstruct.processor)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.fragment)
 }
