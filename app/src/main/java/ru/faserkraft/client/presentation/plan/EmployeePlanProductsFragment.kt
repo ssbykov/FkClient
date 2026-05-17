@@ -14,6 +14,7 @@ import ru.faserkraft.client.databinding.FragmentEmployeePlanProductsBinding
 import ru.faserkraft.client.domain.model.DailyPlan
 import ru.faserkraft.client.domain.model.DailyPlanStep
 import ru.faserkraft.client.domain.model.Product
+import ru.faserkraft.client.presentation.product.ProductEvent
 import ru.faserkraft.client.presentation.product.ProductViewModel
 import ru.faserkraft.client.presentation.product.ProductsInventoryByProcessAdapter
 import ru.faserkraft.client.presentation.product.ProductsInventoryByProcessUiItem
@@ -34,9 +35,6 @@ class EmployeePlanProductsFragment : Fragment() {
 
     private val adapter = ProductsInventoryByProcessAdapter { serialNumber ->
         productViewModel.loadProduct(serialNumber)
-        findNavController().navigateSafely(
-            R.id.action_employeePlanProductsFragment_to_productFullFragment
-        )
     }
 
     private var activeDialog: AlertDialog? = null
@@ -55,7 +53,6 @@ class EmployeePlanProductsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Читаем контекст один раз при входе
         val state = planViewModel.uiState.value
         plan = state.selectedPlan
         step = state.selectedStep
@@ -64,6 +61,7 @@ class EmployeePlanProductsFragment : Fragment() {
         renderHeader()
         observeState()
         observeEvents()
+        observeProductEvents()
         setupRefresh()
         loadData()
     }
@@ -104,10 +102,8 @@ class EmployeePlanProductsFragment : Fragment() {
         collectFlow(planViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
-            // Прогресс
             b.swipeRefreshDetail.isRefreshing = state.isLoading
 
-            // Список продуктов
             val currentStep = step ?: return@collectFlow
             adapter.submitList(state.filteredProducts.toUiItems(currentStep.stepDefinitionId))
         }
@@ -117,6 +113,26 @@ class EmployeePlanProductsFragment : Fragment() {
         collectFlow(planViewModel.events) { event ->
             when (event) {
                 is PlanEvent.ShowError -> showDialog(event.message)
+            }
+        }
+    }
+
+    private fun observeProductEvents() {
+        collectFlow(productViewModel.events) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
+
+            when (event) {
+                is ProductEvent.NavigateToProduct -> {
+                    findNavController().navigateSafely(
+                        R.id.action_employeePlanProductsFragment_to_productFullFragment
+                    )
+                }
+
+                is ProductEvent.ShowError -> {
+                    showDialog(event.message)
+                }
+
+                else -> Unit
             }
         }
     }
