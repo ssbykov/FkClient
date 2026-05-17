@@ -124,7 +124,7 @@ class ProductFragment : Fragment() {
 
                 is ProductEvent.NavigateToPackaging -> {
                     val action =
-                        ProductFragmentDirections.Companion.actionProductFragmentToPackagingFragment(event.packagingSerialNumber)
+                        ProductFragmentDirections.actionProductFragmentToPackagingFragment(event.packagingSerialNumber)
                     findNavController().navigateSafely(action)
                 }
 

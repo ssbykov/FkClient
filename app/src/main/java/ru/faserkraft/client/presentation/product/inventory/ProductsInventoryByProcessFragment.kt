@@ -104,7 +104,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
             when (event) {
                 is ProductEvent.NavigateToProduct -> {
                     findNavController().navigateSafely(
-                        ProductsInventoryByProcessFragmentDirections.Companion
+                        ProductsInventoryByProcessFragmentDirections
                             .actionProductsInventoryByProcessFragmentToProductFullFragment()
                     )
                 }
