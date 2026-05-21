@@ -33,6 +33,7 @@ mapstruct = "1.6.3"
 swiperefreshlayout = "1.2.0"
 serializationJson = "1.11.0"
 lottie = "6.7.1"
+desugar_jdk_libs = "2.0.4"
 
 [libraries]
 # AndroidX Core
@@ -84,6 +85,9 @@ swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout"
 
 # lottie
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
+
+# Desugaring
+desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
