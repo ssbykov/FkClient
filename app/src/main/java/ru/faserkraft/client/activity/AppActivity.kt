@@ -57,7 +57,7 @@ class AppActivity : AppCompatActivity() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val menuItemIds = setOf(
                 R.id.registrationFragment,
-                R.id.dayPlanFragment,
+                R.id.workbenchContainerFragment,
                 R.id.scannerFragment,
                 R.id.inventoryContainerFragment,
                 R.id.storageContainerFragment
