@@ -232,19 +232,22 @@ class DayPlanFragment : Fragment() {
     private fun openAddPlanScreen() {
         viewModel.loadEmployees()
         viewModel.loadProcesses()
-        findNavController().navigateSafely(R.id.action_dayPlanFragment_to_addDayPlanFragment)
+        requireParentFragment().findNavController()
+            .navigateSafely(R.id.action_workbenchContainerFragment_to_addDayPlanFragment)
     }
 
     private fun onEditPlan(plan: DailyPlan, step: DailyPlanStep) {
         viewModel.selectPlanStep(plan, step)
         viewModel.loadEmployees()
         viewModel.loadProcesses()
-        findNavController().navigateSafely(R.id.action_dayPlanFragment_to_addDayPlanFragment)
+        requireParentFragment().findNavController()
+            .navigateSafely(R.id.action_workbenchContainerFragment_to_addDayPlanFragment)
     }
 
     private fun onEmployeeProducts(plan: DailyPlan, step: DailyPlanStep) {
         viewModel.selectPlanStep(plan, step)
-        findNavController().navigateSafely(R.id.action_dayPlanFragment_to_employeePlanProductsFragment)
+        requireParentFragment().findNavController()
+            .navigateSafely(R.id.action_workbenchContainerFragment_to_employeePlanProductsFragment)
     }
 
     // ---------- Copy plan dialog ----------
