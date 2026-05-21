@@ -5,7 +5,7 @@
         android:icon="@drawable/ic_registration"
         android:title="@string/registration" />
     <item
-        android:id="@+id/dayPlanFragment"
+        android:id="@+id/workbenchContainerFragment"
         android:icon="@drawable/ic_day_plan"
         android:title="@string/plan" />
     <item

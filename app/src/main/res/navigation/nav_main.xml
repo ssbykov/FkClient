@@ -103,15 +103,17 @@
     </fragment>
 
     <fragment
-        android:id="@+id/dayPlanFragment"
-        android:name="ru.faserkraft.client.presentation.plan.DayPlanFragment"
-        android:label="fragment_day_plan"
-        tools:layout="@layout/fragment_day_plan">
+        android:id="@+id/workbenchContainerFragment"
+        android:name="ru.faserkraft.client.presentation.plan.WorkbenchContainerFragment"
+        android:label="fragment_workbench_container"
+        tools:layout="@layout/fragment_workbench_container">
+
         <action
-            android:id="@+id/action_dayPlanFragment_to_addDayPlanFragment"
+            android:id="@+id/action_workbenchContainerFragment_to_addDayPlanFragment"
             app:destination="@id/addDayPlanFragment" />
+
         <action
-            android:id="@+id/action_dayPlanFragment_to_employeePlanProductsFragment"
+            android:id="@+id/action_workbenchContainerFragment_to_employeePlanProductsFragment"
             app:destination="@id/employeePlanProductsFragment" />
     </fragment>
 
