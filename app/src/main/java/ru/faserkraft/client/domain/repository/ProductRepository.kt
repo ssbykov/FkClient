@@ -1,7 +1,8 @@
 package ru.faserkraft.client.domain.repository
 
-import ru.faserkraft.client.domain.model.ProductShort
+import ru.faserkraft.client.domain.model.PeriodStatistics
 import ru.faserkraft.client.domain.model.Product
+import ru.faserkraft.client.domain.model.ProductShort
 import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.model.ProductsInventory
 
@@ -13,6 +14,12 @@ interface ProductRepository {
     suspend fun changeProcess(productId: Long, newProcessId: Int): Product
     suspend fun getProductsInventory(): List<ProductsInventory>
     suspend fun getFinishedProducts(): List<ProductShort>
+
+    suspend fun getFinishedProductsByPeriod(
+        dateFrom: String,
+        dateTo: String,
+    ): PeriodStatistics
+
     suspend fun getProductsByLastCompletedStep(
         processId: Int,
         stepDefinitionId: Int,

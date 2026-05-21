@@ -12,12 +12,15 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
 import ru.faserkraft.client.data.dto.FinishedProcessDto
+import ru.faserkraft.client.data.dto.PeriodStatisticsDto
+import ru.faserkraft.client.data.dto.ProcessCountStatDto
 import ru.faserkraft.client.data.dto.ProcessDto
 import ru.faserkraft.client.data.dto.ProductCreateDto
 import ru.faserkraft.client.data.dto.ProductDto
 import ru.faserkraft.client.data.dto.ProductShortDto
 import ru.faserkraft.client.data.dto.ProductStatusDto
 import ru.faserkraft.client.data.dto.ProductsInventoryDto
+import ru.faserkraft.client.data.dto.StepCountStatDto
 import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductStatus
@@ -455,5 +458,83 @@ class ProductRepositoryImplTest {
         val result = repository.getProductsByStepEmployeeDay(10, "2024-06-15", 3)
 
         assertEquals(emptyList<Product>(), result)
+    }
+
+    // ==========================================
+    // getFinishedProductsByPeriod
+    // ==========================================
+
+    @Test
+    fun `getFinishedProductsByPeriod returns mapped domain model on success`() = runTest {
+        // Arrange
+        val dto = PeriodStatisticsDto(
+            finishedProducts = listOf(
+                ProcessCountStatDto(processId = 1, processName = "Process A", count = 10)
+            ),
+            totalSteps = listOf(
+                StepCountStatDto(
+                    processId = 1,
+                    processName = "Process A",
+                    stepDefinitionId = 10,
+                    order = 1,
+                    stepName = "Step A",
+                    employeeId = 100,
+                    employeeName = "Emp A",
+                    count = 5
+                )
+            )
+        )
+        coEvery {
+            mockApi.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")
+        } returns Response.success(dto)
+
+        // Act
+        val result = repository.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")
+
+        // Assert
+        assertEquals(1, result.finishedProducts.size)
+        assertEquals(1, result.finishedProducts.first().processId)
+        assertEquals(10, result.finishedProducts.first().count)
+
+        assertEquals(1, result.totalSteps.size)
+        assertEquals(10, result.totalSteps.first().stepDefinitionId)
+        assertEquals(5, result.totalSteps.first().count)
+
+        coVerify(exactly = 1) {
+            mockApi.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")
+        }
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `getFinishedProductsByPeriod throws exception when api returns null body`() = runTest {
+        // Arrange
+        coEvery {
+            mockApi.getFinishedProductsByPeriod(any(), any())
+        } returns Response.success(null)
+
+        // Act
+        repository.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")
+    }
+
+    @Test(expected = AppError.ApiError::class)
+    fun `getFinishedProductsByPeriod throws ApiError on http error`() = runTest {
+        // Arrange
+        coEvery {
+            mockApi.getFinishedProductsByPeriod(any(), any())
+        } returns Response.error(500, "".toResponseBody())
+
+        // Act
+        repository.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")
+    }
+
+    @Test(expected = AppError.NetworkError::class)
+    fun `getFinishedProductsByPeriod throws NetworkError on network failure`() = runTest {
+        // Arrange
+        coEvery {
+            mockApi.getFinishedProductsByPeriod(any(), any())
+        } throws AppError.NetworkError()
+
+        // Act
+        repository.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")
     }
 }
