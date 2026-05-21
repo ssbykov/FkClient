@@ -21,6 +21,7 @@ import ru.faserkraft.client.data.dto.OrderItemCreateDto
 import ru.faserkraft.client.data.dto.OrderUpdateDto
 import ru.faserkraft.client.data.dto.PackagingCreateDto
 import ru.faserkraft.client.data.dto.PackagingDto
+import ru.faserkraft.client.data.dto.PeriodStatisticsDto
 import ru.faserkraft.client.data.dto.ProcessDto
 import ru.faserkraft.client.data.dto.ProductCreateDto
 import ru.faserkraft.client.data.dto.ProductDto
@@ -54,6 +55,12 @@ interface Api {
 
     @GET(BASE_URL + "products/finished")
     suspend fun getFinishedProduct(): Response<List<ProductShortDto>>
+
+    @GET("products/statistics/period")
+    suspend fun getFinishedProductsByPeriod(
+        @Query("date_from") dateFrom: String,
+        @Query("date_to") dateTo: String
+    ): Response<PeriodStatisticsDto>
 
     @POST(BASE_URL + "products")
     suspend fun postProduct(
