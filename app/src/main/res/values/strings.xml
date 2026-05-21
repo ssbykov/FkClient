@@ -22,6 +22,7 @@
     <string name="registration">Регистрация</string>
     <string name="scanner">Сканер</string>
     <string name="plan">План</string>
+    <string name="statistics">Статистика</string>
     <string name="exit">Выйти</string>
     <string name="plan_day">План на день</string>
     <string name="planed">Запланировано:</string>
@@ -85,8 +86,8 @@
     <string name="no_plans_for_day">Для выбранной даты нет планов</string>
     <string name="access_denied">Нет доступа к разделу</string>
     <string name="account_access_denied">У вашей учетной записи нет прав для просмотра этого раздела</string>
-    <string name="next_day">Следующий день</string>
-    <string name="previous_day">Предыдущий день</string>
+    <string name="next_period">Следующий период</string>
+    <string name="previous_period">Предыдущий период</string>
     <string name="orders_manage">Управление заказами</string>
     <string name="order_stats_format">Упаковок: %1$d • Модулей: %2$d</string>
     <string name="empty_orders">Список заказов пуст</string>
@@ -127,4 +128,11 @@
     <string name="product_tech_process">Техпроцесс: %s</string>
     <string name="product_start_at">Запуск: %s</string>
     <string name="products_list">Список модулей</string>
+    <string name="statistics_title">Статистика за период</string>
+    <string name="period_year">Год</string>
+    <string name="period_month">Месяц</string>
+    <string name="period_quarter">Квартал</string>
+    <string name="total_completed_label">Всего изготовлено</string>
+    <string name="total_label">Итого:</string>
+    <string name="by_steps">По этапам</string>
 </resources>
