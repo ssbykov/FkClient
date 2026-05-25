@@ -16,8 +16,8 @@ import ru.faserkraft.client.domain.model.DailyPlanStep
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.presentation.product.detail.ProductEvent
 import ru.faserkraft.client.presentation.product.detail.ProductViewModel
-import ru.faserkraft.client.presentation.product.inventory.ProductsInventoryByProcessAdapter
-import ru.faserkraft.client.presentation.product.inventory.ProductsInventoryByProcessUiItem
+import ru.faserkraft.client.presentation.inventory.overview.ProductsOverviewByProcessAdapter
+import ru.faserkraft.client.presentation.inventory.overview.ProductsOverviewByProcessUiItem
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.converter.convertDate
 import ru.faserkraft.client.utils.ext.navigateSafely
@@ -33,7 +33,7 @@ class EmployeePlanProductsFragment : Fragment() {
     private var plan: DailyPlan? = null
     private var step: DailyPlanStep? = null
 
-    private val adapter = ProductsInventoryByProcessAdapter { serialNumber ->
+    private val adapter = ProductsOverviewByProcessAdapter { serialNumber ->
         productViewModel.loadProduct(serialNumber)
     }
 
@@ -164,7 +164,7 @@ class EmployeePlanProductsFragment : Fragment() {
             .find { it.definition.id == stepDefinitionId }
             ?.performedAt
             .orEmpty()
-        ProductsInventoryByProcessUiItem(
+        ProductsOverviewByProcessUiItem(
             id = product.id,
             serialNumber = product.serialNumber,
             createdAt = performedAt,

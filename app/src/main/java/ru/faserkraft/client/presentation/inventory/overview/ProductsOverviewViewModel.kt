@@ -39,7 +39,7 @@ class ProductsOverviewViewModel @Inject constructor(
 
     // ---------- Inventory ----------
 
-    fun loadProductsInventory() {
+    fun loadProductsOverview() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             runCatching { getProductsOverviewUseCase() }
@@ -71,7 +71,7 @@ class ProductsOverviewViewModel @Inject constructor(
         }
     }
 
-    fun selectInventoryItem(item: ProductsOverview) {
+    fun selectOverviewItem(item: ProductsOverview) {
         _uiState.update { it.copy(selectedOverviewItem = item) }
     }
 
