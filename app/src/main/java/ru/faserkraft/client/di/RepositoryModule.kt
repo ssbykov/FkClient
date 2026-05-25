@@ -9,23 +9,25 @@ import ru.faserkraft.client.data.repository.AuthRepositoryImpl
 import ru.faserkraft.client.data.repository.DailyPlanRepositoryImpl
 import ru.faserkraft.client.data.repository.DeviceRepositoryImpl
 import ru.faserkraft.client.data.repository.EmployeeRepositoryImpl
+import ru.faserkraft.client.data.repository.InventoryRepositoryImpl
 import ru.faserkraft.client.data.repository.OrderRepositoryImpl
 import ru.faserkraft.client.data.repository.PackagingRepositoryImpl
 import ru.faserkraft.client.data.repository.ProcessRepositoryImpl
 import ru.faserkraft.client.data.repository.ProductRepositoryImpl
 import ru.faserkraft.client.data.repository.StepRepositoryImpl
+import ru.faserkraft.client.data.repository.UpdateRepositoryImpl
 import ru.faserkraft.client.domain.qr.QrClassifier
 import ru.faserkraft.client.domain.repository.AuthRepository
 import ru.faserkraft.client.domain.repository.DailyPlanRepository
 import ru.faserkraft.client.domain.repository.DeviceRepository
 import ru.faserkraft.client.domain.repository.EmployeeRepository
+import ru.faserkraft.client.domain.repository.InventoryRepository
 import ru.faserkraft.client.domain.repository.OrderRepository
 import ru.faserkraft.client.domain.repository.PackagingRepository
 import ru.faserkraft.client.domain.repository.ProcessRepository
 import ru.faserkraft.client.domain.repository.ProductRepository
 import ru.faserkraft.client.domain.repository.StepRepository
 import ru.faserkraft.client.domain.repository.UpdateRepository
-import ru.faserkraft.client.data.repository.UpdateRepositoryImpl
 import javax.inject.Singleton
 
 @Module
@@ -74,4 +76,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindsDaoRepository(impl: UpdateRepositoryImpl): UpdateRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindInventoryRepository(impl: InventoryRepositoryImpl): InventoryRepository
 }
