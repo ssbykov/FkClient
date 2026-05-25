@@ -19,7 +19,7 @@ data class ProductShort(
     val status: ProductStatus,
 )
 
-data class ProductsInventory(
+data class ProductsOverview(
     val processId: Int,
     val processName: String,
     val stepDefinitionId: Int,
