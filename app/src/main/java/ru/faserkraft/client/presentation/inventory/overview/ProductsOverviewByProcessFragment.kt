@@ -1,34 +1,33 @@
-package ru.faserkraft.client.presentation.product.inventory
+package ru.faserkraft.client.presentation.inventory.overview
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import ru.faserkraft.client.R
-import ru.faserkraft.client.databinding.FragmentProductsInventoryByProcessBinding
+import ru.faserkraft.client.databinding.FragmentProductsOverviewByProcessBinding
 import ru.faserkraft.client.presentation.product.detail.ProductEvent
 import ru.faserkraft.client.presentation.product.detail.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
-class ProductsInventoryByProcessFragment : Fragment() {
+class ProductsOverviewByProcessFragment : androidx.fragment.app.Fragment() {
 
-    private val inventoryViewModel: InventoryViewModel
+    private val productsOverviewViewModel: ProductsOverviewViewModel
             by hiltNavGraphViewModels(R.id.inventoryContainerFragment)
 
     private val productViewModel: ProductViewModel
             by activityViewModels()
 
-    private var _binding: FragmentProductsInventoryByProcessBinding? = null
+    private var _binding: FragmentProductsOverviewByProcessBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var adapter: ProductsInventoryByProcessAdapter
+    private lateinit var adapter: ProductsOverviewByProcessAdapter
 
     // ---------- Lifecycle ----------
 
@@ -37,7 +36,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = FragmentProductsInventoryByProcessBinding.inflate(inflater, container, false)
+        _binding = FragmentProductsOverviewByProcessBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -62,7 +61,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
     // ---------- Setup ----------
 
     private fun setupAdapter() {
-        adapter = ProductsInventoryByProcessAdapter { serialNumber ->
+        adapter = ProductsOverviewByProcessAdapter { serialNumber ->
             productViewModel.loadProduct(serialNumber)
             // Навигация произойдёт через ProductEvent.NavigateToProduct
         }
@@ -73,18 +72,18 @@ class ProductsInventoryByProcessFragment : Fragment() {
     // ---------- Observe ----------
 
     private fun observeState() {
-        collectFlow(inventoryViewModel.uiState) { state ->
+        collectFlow(productsOverviewViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
             b.swipeRefreshDetail.isRefreshing = state.isLoading
             b.swipeRefreshDetail.isEnabled = !state.isLoading
 
-            val inventoryItem = state.selectedInventoryItem ?: return@collectFlow
-            val items = state.productsInventoryByProcess.map { product ->
+            val inventoryItem = state.selectedOverviewItem ?: return@collectFlow
+            val items = state.productsOverviewByProcess.map { product ->
                 val step = product.steps.find {
                     it.definition.id == inventoryItem.stepDefinitionId
                 }
-                ProductsInventoryByProcessUiItem(
+                ProductsOverviewByProcessUiItem(
                     id = product.id,
                     serialNumber = product.serialNumber,
                     createdAt = step?.performedAt.orEmpty(),
@@ -94,7 +93,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
 
             state.errorMessage?.let {
                 showErrorSnackbar(it)
-                inventoryViewModel.clearError()
+                productsOverviewViewModel.clearError()
             }
         }
     }
@@ -104,8 +103,8 @@ class ProductsInventoryByProcessFragment : Fragment() {
             when (event) {
                 is ProductEvent.NavigateToProduct -> {
                     findNavController().navigateSafely(
-                        ProductsInventoryByProcessFragmentDirections
-                            .actionProductsInventoryByProcessFragmentToProductFullFragment()
+                        _root_ide_package_.ru.faserkraft.client.presentation.product.inventory.ProductsOverviewByProcessFragmentDirections.Companion
+                            .actionProductsOverviewByProcessFragmentToProductFullFragment()
                     )
                 }
 
@@ -118,7 +117,7 @@ class ProductsInventoryByProcessFragment : Fragment() {
     // ---------- Header ----------
 
     private fun renderHeader() {
-        val item = inventoryViewModel.uiState.value.selectedInventoryItem ?: return
+        val item = productsOverviewViewModel.uiState.value.selectedOverviewItem ?: return
         binding.tvProcessName.text = item.processName
         binding.tvStageName.text = item.stepName
     }
@@ -126,8 +125,8 @@ class ProductsInventoryByProcessFragment : Fragment() {
     // ---------- Load ----------
 
     private fun loadData() {
-        val item = inventoryViewModel.uiState.value.selectedInventoryItem ?: return
+        val item = productsOverviewViewModel.uiState.value.selectedOverviewItem ?: return
         adapter.submitList(emptyList())
-        inventoryViewModel.loadProductsByLastStep(item.processId, item.stepDefinitionId)
+        productsOverviewViewModel.loadProductsByLastStep(item.processId, item.stepDefinitionId)
     }
 }

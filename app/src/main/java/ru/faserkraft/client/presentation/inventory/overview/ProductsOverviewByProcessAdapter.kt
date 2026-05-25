@@ -1,18 +1,17 @@
-package ru.faserkraft.client.presentation.product.inventory
+package ru.faserkraft.client.presentation.inventory.overview
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemProductDetailBinding
 import ru.faserkraft.client.utils.converter.formatIsoToUi
 
-class ProductsInventoryByProcessAdapter(
+class ProductsOverviewByProcessAdapter(
     private val onItemClick: (String) -> Unit
 ) :
-    ListAdapter<ProductsInventoryByProcessUiItem, ProductsInventoryByProcessAdapter.ContentVH>(
+    androidx.recyclerview.widget.ListAdapter<ProductsOverviewByProcessUiItem, ProductsOverviewByProcessAdapter.ContentVH>(
         ContentDiff()
     ) {
 
@@ -34,7 +33,7 @@ class ProductsInventoryByProcessAdapter(
         private val onStageClick: (String) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: ProductsInventoryByProcessUiItem) = with(binding) {
+        fun bind(item: ProductsOverviewByProcessUiItem) = with(binding) {
             tvProductSerial.text = item.serialNumber
             tvCreated.text = binding.root.context.getString(
                 R.string.closed_at,
@@ -47,20 +46,20 @@ class ProductsInventoryByProcessAdapter(
         }
     }
 
-    class ContentDiff : DiffUtil.ItemCallback<ProductsInventoryByProcessUiItem>() {
+    class ContentDiff : DiffUtil.ItemCallback<ProductsOverviewByProcessUiItem>() {
         override fun areItemsTheSame(
-            oldItem: ProductsInventoryByProcessUiItem,
-            newItem: ProductsInventoryByProcessUiItem
+            oldItem: ProductsOverviewByProcessUiItem,
+            newItem: ProductsOverviewByProcessUiItem
         ): Boolean = oldItem.id == newItem.id
 
         override fun areContentsTheSame(
-            oldItem: ProductsInventoryByProcessUiItem,
-            newItem: ProductsInventoryByProcessUiItem
+            oldItem: ProductsOverviewByProcessUiItem,
+            newItem: ProductsOverviewByProcessUiItem
         ): Boolean = oldItem == newItem
     }
 }
 
-data class ProductsInventoryByProcessUiItem(
+data class ProductsOverviewByProcessUiItem(
     val id: Long,
     val serialNumber: String,
     val createdAt: String,

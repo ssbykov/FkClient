@@ -1,30 +1,29 @@
-package ru.faserkraft.client.presentation.product.inventory
+package ru.faserkraft.client.presentation.inventory.overview
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.R
-import ru.faserkraft.client.databinding.FragmentProductsInventoryBinding
-import ru.faserkraft.client.domain.model.ProductsInventory
+import ru.faserkraft.client.databinding.FragmentProductsOverviewBinding
+import ru.faserkraft.client.domain.model.ProductsOverview
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
-class ProductsInventoryFragment : Fragment() {
+class ProductsOverviewFragment : androidx.fragment.app.Fragment() {
 
-    private val viewModel: InventoryViewModel
+    private val viewModel: ProductsOverviewViewModel
             by hiltNavGraphViewModels(R.id.inventoryContainerFragment)
 
-    private var _binding: FragmentProductsInventoryBinding? = null
+    private var _binding: FragmentProductsOverviewBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var adapter: ProductsInventoryAdapter
+    private lateinit var adapter: ProductsOverviewAdapter
     private lateinit var emptyObserver: RecyclerView.AdapterDataObserver
 
     // ---------- Lifecycle ----------
@@ -34,7 +33,7 @@ class ProductsInventoryFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = FragmentProductsInventoryBinding.inflate(inflater, container, false)
+        _binding = FragmentProductsOverviewBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -64,12 +63,12 @@ class ProductsInventoryFragment : Fragment() {
     // ---------- Setup ----------
 
     private fun setupAdapter() {
-        adapter = ProductsInventoryAdapter { item ->
-            if (_binding == null) return@ProductsInventoryAdapter
+        adapter = ProductsOverviewAdapter { item ->
+            if (_binding == null) return@ProductsOverviewAdapter
             viewModel.selectInventoryItem(item)
             findNavController().navigateSafely(
-                InventoryContainerFragmentDirections
-                    .actionInventoryContainerFragmentToProductsInventoryByProcessFragment()
+                _root_ide_package_.ru.faserkraft.client.presentation.inventory.InventoryContainerFragmentDirections.Companion
+                    .actionInventoryContainerFragmentToProductsOverviewByProcessFragment()
             )
         }
         binding.rvProductsStats.layoutManager = LinearLayoutManager(requireContext())
@@ -95,7 +94,7 @@ class ProductsInventoryFragment : Fragment() {
             b.swipeRefreshStats.isRefreshing = state.isLoading
             b.swipeRefreshStats.isEnabled = !state.isLoading
 
-            adapter.submitList(buildUiItems(state.productsInventory))
+            adapter.submitList(buildUiItems(state.productsOverview))
 
             state.errorMessage?.let {
                 showErrorSnackbar(it)
@@ -106,7 +105,7 @@ class ProductsInventoryFragment : Fragment() {
 
     // ---------- Группировка ----------
 
-    private fun buildUiItems(list: List<ProductsInventory>): List<ProductsInventoryUiItem> {
+    private fun buildUiItems(list: List<ProductsOverview>): List<ProductsOverviewUiItem> {
         if (list.isEmpty()) return emptyList()
         val grouped = list
             .sortedWith(compareBy({ it.processName }, { it.stepDefinitionId }))
@@ -114,8 +113,8 @@ class ProductsInventoryFragment : Fragment() {
 
         return buildList {
             grouped.forEach { (processName, items) ->
-                add(ProductsInventoryUiItem.ProcessHeader(processName))
-                items.forEach { add(ProductsInventoryUiItem.StageItem(it)) }
+                add(ProductsOverviewUiItem.ProcessHeader(processName))
+                items.forEach { add(ProductsOverviewUiItem.StageItem(it)) }
             }
         }
     }

@@ -1,4 +1,4 @@
-package ru.faserkraft.client.presentation.product.inventory
+package ru.faserkraft.client.presentation.inventory.overview
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,26 +9,26 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.domain.model.ProductStatus
-import ru.faserkraft.client.domain.model.ProductsInventory
+import ru.faserkraft.client.domain.model.ProductsOverview
 import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.domain.usecase.product.GetProductsByLastStepUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductsByStatusUseCase
-import ru.faserkraft.client.domain.usecase.product.GetProductsInventoryUseCase
+import ru.faserkraft.client.domain.usecase.product.GetProductsOverviewUseCase
 import ru.faserkraft.client.presentation.base.toErrorMessage
 import javax.inject.Inject
 
 @HiltViewModel
-class InventoryViewModel @Inject constructor(
-    private val getProductsInventoryUseCase: GetProductsInventoryUseCase,
+class ProductsOverviewViewModel @Inject constructor(
+    private val getProductsOverviewUseCase: GetProductsOverviewUseCase,
     private val getProductsByLastStepUseCase: GetProductsByLastStepUseCase,
     private val getProductsByStatusUseCase: GetProductsByStatusUseCase,
     private val appAuth: AppAuth,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        InventoryUiState(userRole = appAuth.getRegistrationData()?.role)
+        ProductsOverviewUiState(userRole = appAuth.getRegistrationData()?.role)
     )
-    val uiState: StateFlow<InventoryUiState> = _uiState
+    val uiState: StateFlow<ProductsOverviewUiState> = _uiState
 
     private fun currentRole(): UserRole? =
         _uiState.value.userRole ?: appAuth.getRegistrationData()?.role
@@ -42,10 +42,10 @@ class InventoryViewModel @Inject constructor(
     fun loadProductsInventory() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            runCatching { getProductsInventoryUseCase() }
+            runCatching { getProductsOverviewUseCase() }
                 .onSuccess { list ->
                     _uiState.update {
-                        it.copy(productsInventory = list, userRole = currentRole())
+                        it.copy(productsOverview = list, userRole = currentRole())
                     }
                 }
                 .onFailure { e ->
@@ -57,11 +57,11 @@ class InventoryViewModel @Inject constructor(
 
     fun loadProductsByLastStep(processId: Int, stepDefinitionId: Int) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, productsInventoryByProcess = emptyList()) }
+            _uiState.update { it.copy(isLoading = true, productsOverviewByProcess = emptyList()) }
             runCatching { getProductsByLastStepUseCase(processId, stepDefinitionId) }
                 .onSuccess { list ->
                     _uiState.update {
-                        it.copy(productsInventoryByProcess = list, userRole = currentRole())
+                        it.copy(productsOverviewByProcess = list, userRole = currentRole())
                     }
                 }
                 .onFailure { e ->
@@ -71,8 +71,8 @@ class InventoryViewModel @Inject constructor(
         }
     }
 
-    fun selectInventoryItem(item: ProductsInventory) {
-        _uiState.update { it.copy(selectedInventoryItem = item) }
+    fun selectInventoryItem(item: ProductsOverview) {
+        _uiState.update { it.copy(selectedOverviewItem = item) }
     }
 
     // ---------- Rework / Scrap ----------

@@ -1,14 +1,13 @@
-package ru.faserkraft.client.presentation.product.inventory
+package ru.faserkraft.client.presentation.inventory.overview
 
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.fragment.findNavController
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductsReworkScrapListBinding
@@ -19,9 +18,9 @@ import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
-class ProductsReworkScrapListFragment : Fragment() {
+class ProductsReworkScrapListFragment : androidx.fragment.app.Fragment() {
 
-    private val inventoryViewModel: InventoryViewModel
+    private val productsOverviewViewModel: ProductsOverviewViewModel
             by hiltNavGraphViewModels(R.id.inventoryContainerFragment)
 
     private val productViewModel: ProductViewModel
@@ -75,7 +74,7 @@ class ProductsReworkScrapListFragment : Fragment() {
     // ---------- Observe ----------
 
     private fun observeState() {
-        collectFlow(inventoryViewModel.uiState) { state ->
+        collectFlow(productsOverviewViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
             b.swipeRefreshModules.isRefreshing = state.isLoading
@@ -105,7 +104,7 @@ class ProductsReworkScrapListFragment : Fragment() {
 
             state.errorMessage?.let {
                 showErrorSnackbar(it)
-                inventoryViewModel.clearError()
+                productsOverviewViewModel.clearError()
             }
         }
     }
@@ -115,7 +114,7 @@ class ProductsReworkScrapListFragment : Fragment() {
             when (event) {
                 is ProductEvent.NavigateToProduct -> {
                     findNavController().navigateSafely(
-                        ProductsReworkScrapListFragmentDirections
+                        _root_ide_package_.ru.faserkraft.client.presentation.product.inventory.ProductsReworkScrapListFragmentDirections.Companion
                             .actionProductsReworkScrapListFragmentToProductFullFragment()
                     )
                 }
@@ -129,7 +128,7 @@ class ProductsReworkScrapListFragment : Fragment() {
     // ---------- Header ----------
 
     private fun renderHeader() {
-        val selection = inventoryViewModel.uiState.value.selectedScrapReworkItem ?: return
+        val selection = productsOverviewViewModel.uiState.value.selectedScrapReworkItem ?: return
         binding.tvProcessName.text = selection.processName
         val uiStatus = selection.status.toUiProductStatus()
         binding.tvStatusName.text = uiStatus.getTitle(requireContext())
@@ -139,6 +138,6 @@ class ProductsReworkScrapListFragment : Fragment() {
 
     private fun loadData() {
         adapter.submitList(emptyList())
-        inventoryViewModel.loadReworkScrapProducts()
+        productsOverviewViewModel.loadReworkScrapProducts()
     }
 }

@@ -1,12 +1,11 @@
-package ru.faserkraft.client.presentation.product.inventory
+package ru.faserkraft.client.presentation.inventory.overview
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.R
@@ -16,9 +15,9 @@ import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
-class ProductsReworkScrapFragment : Fragment() {
+class ProductsReworkScrapFragment : androidx.fragment.app.Fragment() {
 
-    private val viewModel: InventoryViewModel
+    private val viewModel: ProductsOverviewViewModel
             by hiltNavGraphViewModels(R.id.inventoryContainerFragment)
 
     private var _binding: FragmentProductsReworkScrapBinding? = null
@@ -68,7 +67,7 @@ class ProductsReworkScrapFragment : Fragment() {
             viewModel.selectReworkScrapProduct(statItem.processName, statItem.status)
 
             findNavController().navigateSafely(
-                InventoryContainerFragmentDirections
+                _root_ide_package_.ru.faserkraft.client.presentation.inventory.InventoryContainerFragmentDirections.Companion
                     .actionInventoryContainerFragmentToProductsReworkScrapListFragment()
             )
         }
