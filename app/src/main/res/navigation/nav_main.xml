@@ -150,13 +150,13 @@
     <!-- Контейнер с вкладками -->
     <fragment
         android:id="@+id/inventoryContainerFragment"
-        android:name="ru.faserkraft.client.presentation.product.inventory.InventoryContainerFragment"
+        android:name="ru.faserkraft.client.presentation.inventory.InventoryContainerFragment"
         android:label="Инвентаризация"
         tools:layout="@layout/fragment_product_container">
 
         <action
-            android:id="@+id/action_inventoryContainerFragment_to_productsInventoryByProcessFragment"
-            app:destination="@id/productsInventoryByProcessFragment" />
+            android:id="@+id/action_inventoryContainerFragment_to_productsOverviewByProcessFragment"
+            app:destination="@id/productsOverviewByProcessFragment" />
 
         <action
             android:id="@+id/action_inventoryContainerFragment_to_productsReworkScrapFragment"
@@ -188,12 +188,12 @@
             app:destination="@id/productFullFragment" />
     </fragment>
     <fragment
-        android:id="@+id/productsInventoryByProcessFragment"
-        android:name="ru.faserkraft.client.presentation.product.inventory.ProductsInventoryByProcessFragment"
-        android:label="fragment_products_inventory_by_process"
-        tools:layout="@layout/fragment_products_inventory_by_process">
+        android:id="@+id/productsOverviewByProcessFragment"
+        android:name="ru.faserkraft.client.presentation.product.inventory.ProductsOverviewByProcessFragment"
+        android:label="fragment_products_overview_by_process"
+        tools:layout="@layout/fragment_products_overview_by_process">
         <action
-            android:id="@+id/action_productsInventoryByProcessFragment_to_productFullFragment"
+            android:id="@+id/action_productsOverviewByProcessFragment_to_productFullFragment"
             app:destination="@id/productFullFragment" />
     </fragment>
 
