@@ -19,7 +19,7 @@ import ru.faserkraft.client.domain.model.Employee
 import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductStatus
-import ru.faserkraft.client.domain.model.ProductsInventory
+import ru.faserkraft.client.domain.model.ProductsOverview
 import ru.faserkraft.client.domain.model.Step
 import ru.faserkraft.client.domain.model.StepDefinition
 import ru.faserkraft.client.domain.model.StepStatus
@@ -27,24 +27,24 @@ import ru.faserkraft.client.domain.model.UserData
 import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.domain.usecase.product.GetProductsByLastStepUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductsByStatusUseCase
-import ru.faserkraft.client.domain.usecase.product.GetProductsInventoryUseCase
-import ru.faserkraft.client.presentation.product.inventory.InventoryViewModel
+import ru.faserkraft.client.domain.usecase.product.GetProductsOverviewUseCase
+import ru.faserkraft.client.presentation.inventory.overview.ProductsOverviewViewModel
 import ru.faserkraft.client.util.MainDispatcherRule
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class InventoryViewModelTest {
+class ProductsOverviewViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
     // ── Mocks ────────────────────────────────────────────────────────────────
 
-    private val getProductsInventoryUseCase: GetProductsInventoryUseCase = mockk()
+    private val getProductsOverviewUseCase: GetProductsOverviewUseCase = mockk()
     private val getProductsByLastStepUseCase: GetProductsByLastStepUseCase = mockk()
     private val getProductsByStatusUseCase: GetProductsByStatusUseCase = mockk()
     private val appAuth: AppAuth = mockk(relaxed = true)
 
-    private lateinit var viewModel: InventoryViewModel
+    private lateinit var viewModel: ProductsOverviewViewModel
 
     // ── Dummies ──────────────────────────────────────────────────────────────
 
@@ -82,12 +82,12 @@ class InventoryViewModelTest {
     )
     private val dummyNotNormalProducts = listOf(dummyReworkProduct, dummyScrapProduct)
 
-    private val dummyInventory = ProductsInventory(
+    private val dummyOverview = ProductsOverview(
         processId = 1, processName = "Процесс 1",
         stepDefinitionId = 1, stepName = "Шаг 1",
         stepNameGenitive = "Шага 1", count = 42,
     )
-    private val dummyInventoryList = listOf(dummyInventory)
+    private val dummyOverviewList = listOf(dummyOverview)
 
     @Before
     fun setUp() {
@@ -102,36 +102,36 @@ class InventoryViewModelTest {
         assertEquals(UserRole.MASTER, viewModel.uiState.value.userRole)
     }
 
-    // ── loadProductsInventory ─────────────────────────────────────────────────
+    // ── loadProductsOverview ─────────────────────────────────────────────────
 
     @Test
-    fun `loadProductsInventory - updates state on success`() = runTest {
-        coEvery { getProductsInventoryUseCase() } returns dummyInventoryList
+    fun `loadProductsOverview - updates state on success`() = runTest {
+        coEvery { getProductsOverviewUseCase() } returns dummyOverviewList
 
-        viewModel.loadProductsInventory()
+        viewModel.loadProductsOverview()
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
-        assertEquals(dummyInventoryList, state.productsInventory)
+        assertEquals(dummyOverviewList, state.productsOverview)
         assertFalse(state.isLoading)
         assertNull(state.errorMessage)
     }
 
     @Test
-    fun `loadProductsInventory - isLoading is false after completion`() = runTest {
-        coEvery { getProductsInventoryUseCase() } returns dummyInventoryList
+    fun `loadProductsOverview - isLoading is false after completion`() = runTest {
+        coEvery { getProductsOverviewUseCase() } returns dummyOverviewList
 
-        viewModel.loadProductsInventory()
+        viewModel.loadProductsOverview()
         advanceUntilIdle()
 
         assertFalse(viewModel.uiState.value.isLoading)
     }
 
     @Test
-    fun `loadProductsInventory - sets errorMessage on failure`() = runTest {
-        coEvery { getProductsInventoryUseCase() } throws RuntimeException()
+    fun `loadProductsOverview - sets errorMessage on failure`() = runTest {
+        coEvery { getProductsOverviewUseCase() } throws RuntimeException()
 
-        viewModel.loadProductsInventory()
+        viewModel.loadProductsOverview()
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -149,7 +149,7 @@ class InventoryViewModelTest {
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
-        assertEquals(listOf(dummyProduct), state.productsInventoryByProcess)
+        assertEquals(listOf(dummyProduct), state.productsOverviewByProcess)
         assertFalse(state.isLoading)
         assertNull(state.errorMessage)
     }
@@ -176,7 +176,7 @@ class InventoryViewModelTest {
             // первый emit после вызова: isLoading=true + list=empty
             val loadingState = awaitItem()
             assertTrue(loadingState.isLoading)
-            assertTrue(loadingState.productsInventoryByProcess.isEmpty())
+            assertTrue(loadingState.productsOverviewByProcess.isEmpty())
 
             cancelAndIgnoreRemainingEvents()
         }
@@ -235,12 +235,12 @@ class InventoryViewModelTest {
         assertEquals("Неизвестная ошибка", state.errorMessage)
     }
 
-    // ── selectInventoryItem ───────────────────────────────────────────────────
+    // ── selectOverviewItem ───────────────────────────────────────────────────
 
     @Test
-    fun `selectInventoryItem - updates selectedInventoryItem in state`() {
-        viewModel.selectInventoryItem(dummyInventory)
-        assertEquals(dummyInventory, viewModel.uiState.value.selectedInventoryItem)
+    fun `selectOverviewItem - updates selectedOverviewItem in state`() {
+        viewModel.selectOverviewItem(dummyOverview)
+        assertEquals(dummyOverview, viewModel.uiState.value.selectedOverviewItem)
     }
 
     // ── selectReworkScrapProduct ──────────────────────────────────────────────
@@ -258,9 +258,9 @@ class InventoryViewModelTest {
 
     @Test
     fun `clearError - resets errorMessage to null`() = runTest {
-        coEvery { getProductsInventoryUseCase() } throws RuntimeException()
+        coEvery { getProductsOverviewUseCase() } throws RuntimeException()
 
-        viewModel.loadProductsInventory()
+        viewModel.loadProductsOverview()
         advanceUntilIdle()
         assertEquals("Неизвестная ошибка", viewModel.uiState.value.errorMessage)
 
@@ -270,8 +270,8 @@ class InventoryViewModelTest {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private fun buildViewModel() = InventoryViewModel(
-        getProductsInventoryUseCase = getProductsInventoryUseCase,
+    private fun buildViewModel() = ProductsOverviewViewModel(
+        getProductsOverviewUseCase = getProductsOverviewUseCase,
         getProductsByLastStepUseCase = getProductsByLastStepUseCase,
         getProductsByStatusUseCase = getProductsByStatusUseCase,
         appAuth = appAuth,
