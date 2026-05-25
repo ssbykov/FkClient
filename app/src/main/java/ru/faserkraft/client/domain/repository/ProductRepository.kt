@@ -4,7 +4,7 @@ import ru.faserkraft.client.domain.model.PeriodStatistics
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductShort
 import ru.faserkraft.client.domain.model.ProductStatus
-import ru.faserkraft.client.domain.model.ProductsInventory
+import ru.faserkraft.client.domain.model.ProductsOverview
 
 interface ProductRepository {
     suspend fun getProduct(serialNumber: String): Product?
@@ -12,7 +12,7 @@ interface ProductRepository {
     suspend fun createProduct(serialNumber: String, processId: Int): Product
     suspend fun changeStatus(productId: Long, status: ProductStatus): Product
     suspend fun changeProcess(productId: Long, newProcessId: Int): Product
-    suspend fun getProductsInventory(): List<ProductsInventory>
+    suspend fun getProductsOverview(): List<ProductsOverview>
     suspend fun getFinishedProducts(): List<ProductShort>
 
     suspend fun getFinishedProductsByPeriod(

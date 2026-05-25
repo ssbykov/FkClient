@@ -9,7 +9,7 @@ import ru.faserkraft.client.domain.model.PeriodStatistics
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductShort
 import ru.faserkraft.client.domain.model.ProductStatus
-import ru.faserkraft.client.domain.model.ProductsInventory
+import ru.faserkraft.client.domain.model.ProductsOverview
 import ru.faserkraft.client.domain.repository.ProductRepository
 import ru.faserkraft.client.error.AppError
 import ru.faserkraft.client.utils.logger.Logger
@@ -57,8 +57,8 @@ class ProductRepositoryImpl @Inject constructor(
     override suspend fun changeProcess(productId: Long, newProcessId: Int): Product =
         requireNotNull(callApi { api.changeProductProcess(productId, newProcessId) }).toDomain()
 
-    override suspend fun getProductsInventory(): List<ProductsInventory> =
-        callApi { api.getProductsInventory() }.orEmpty().map { it.toDomain() }
+    override suspend fun getProductsOverview(): List<ProductsOverview> =
+        callApi { api.getProductsOverview() }.orEmpty().map { it.toDomain() }
 
     override suspend fun getFinishedProducts(): List<ProductShort> =
         callApi { api.getFinishedProduct() }.orEmpty().map { it.toDomain() }
