@@ -171,14 +171,14 @@
     <!-- Вкладка (оставляем просто фрагмент без экшенов, так как рулит контейнер) -->
     <fragment
         android:id="@+id/productsReworkScrapFragment"
-        android:name="ru.faserkraft.client.presentation.product.inventory.ProductsReworkScrapListFragment"
+        android:name="ru.faserkraft.client.presentation.inventory.overview.ProductsReworkScrapListFragment"
         android:label="fragment_products_rework_scrap"
         tools:layout="@layout/fragment_products_rework_scrap" />
 
     <!-- Список отфильтрованных модулей (брак/переделка) -->
     <fragment
         android:id="@+id/productsReworkScrapListFragment"
-        android:name="ru.faserkraft.client.presentation.product.inventory.ProductsReworkScrapListFragment"
+        android:name="ru.faserkraft.client.presentation.inventory.overview.ProductsReworkScrapListFragment"
         android:label="fragment_products_rework_scrap_list"
         tools:layout="@layout/fragment_products_rework_scrap_list">
 
@@ -189,7 +189,7 @@
     </fragment>
     <fragment
         android:id="@+id/productsOverviewByProcessFragment"
-        android:name="ru.faserkraft.client.presentation.product.inventory.ProductsOverviewByProcessFragment"
+        android:name="ru.faserkraft.client.presentation.inventory.overview.ProductsOverviewByProcessFragment"
         android:label="fragment_products_overview_by_process"
         tools:layout="@layout/fragment_products_overview_by_process">
         <action

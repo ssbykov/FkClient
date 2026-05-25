@@ -59,8 +59,9 @@ class InventoryContainerFragment : Fragment(R.layout.fragment_product_container)
             binding.viewPagerProduct
         ) { tab, position ->
             tab.text = when (position) {
-                0 -> getString(R.string.inventory)
+                0 -> getString(R.string.overview)
                 1 -> getString(R.string.scrap)
+                2 -> getString(R.string.inventory)
                 else -> null
             }
         }.also { it.attach() }

@@ -8,12 +8,13 @@ import ru.faserkraft.client.presentation.inventory.overview.ProductsReworkScrapF
 
 class InventoryContainerPageAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
 
-    override fun getItemCount(): Int = 2
+    override fun getItemCount(): Int = 3
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
             0 -> ProductsOverviewFragment()
             1 -> ProductsReworkScrapFragment()
+            2 -> InventoryListFragment()
             else -> throw IllegalStateException("Invalid position: $position")
         }
     }
