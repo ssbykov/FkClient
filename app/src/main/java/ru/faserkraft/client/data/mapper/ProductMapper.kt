@@ -3,13 +3,13 @@ package ru.faserkraft.client.data.mapper
 import ru.faserkraft.client.domain.model.ProductShort
 import ru.faserkraft.client.domain.model.Product
 import ru.faserkraft.client.domain.model.ProductStatus
-import ru.faserkraft.client.domain.model.ProductsInventory
+import ru.faserkraft.client.domain.model.ProductsOverview
 import ru.faserkraft.client.domain.model.Step
 import ru.faserkraft.client.domain.model.StepStatus
 import ru.faserkraft.client.data.dto.ProductShortDto
 import ru.faserkraft.client.data.dto.ProductDto
 import ru.faserkraft.client.data.dto.ProductStatusDto
-import ru.faserkraft.client.data.dto.ProductsInventoryDto
+import ru.faserkraft.client.data.dto.ProductsOverviewDto
 import ru.faserkraft.client.data.dto.StepDto
 
 fun StepDto.toDomain(): Step = Step(
@@ -53,7 +53,7 @@ fun ProductShortDto.toDomain(): ProductShort = ProductShort(
     status = status.toDomain(),
 )
 
-fun ProductsInventoryDto.toDomain(): ProductsInventory = ProductsInventory(
+fun ProductsOverviewDto.toDomain(): ProductsOverview = ProductsOverview(
     processId = processId,
     processName = processName,
     stepDefinitionId = stepDefinitionId,
