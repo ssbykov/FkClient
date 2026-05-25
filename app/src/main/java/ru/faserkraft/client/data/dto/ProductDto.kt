@@ -49,7 +49,7 @@ enum class ProductStatusDto {
 }
 
 
-data class ProductsInventoryDto(
+data class ProductsOverviewDto(
     @SerializedName("process_id")
     val processId: Int,
     @SerializedName("process_name")
