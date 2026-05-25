@@ -1,10 +1,9 @@
-package ru.faserkraft.client.presentation.product.inventory
+package ru.faserkraft.client.presentation.inventory.overview
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemInventoryProcessHeaderBinding
@@ -24,7 +23,7 @@ sealed class ReworkScrapUiItem {
 
 class ProductsReworkScrapAdapter(
     private val onStatClick: (ReworkScrapUiItem.StatusStatItem) -> Unit
-) : ListAdapter<ReworkScrapUiItem, RecyclerView.ViewHolder>(Diff()) {
+) : androidx.recyclerview.widget.ListAdapter<ReworkScrapUiItem, RecyclerView.ViewHolder>(Diff()) {
 
     companion object {
         private const val TYPE_PROCESS_HEADER = 0
