@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".presentation.product.inventory.ProductsInventoryFragment">
+    tools:context=".presentation.inventory.overview.ProductsOverviewFragment">
 
     <TextView
         android:id="@+id/tvStatsTitle"
@@ -54,7 +54,7 @@
             android:layout_height="match_parent"
             android:layout_marginTop="12dp"
             android:layout_marginBottom="12dp"
-            tools:listitem="@layout/item_inventory_stage" />
+            tools:listitem="@layout/item_overview_stage" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
