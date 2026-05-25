@@ -1,19 +1,14 @@
 package ru.faserkraft.client.presentation.scanner
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.journeyapps.barcodescanner.BarcodeView
 import dagger.hilt.android.AndroidEntryPoint
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentScannerBinding
@@ -28,7 +23,7 @@ import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 @AndroidEntryPoint
-class ScannerFragment : Fragment() {
+class ScannerFragment : BaseScannerFragment() {
 
     private val scannerViewModel: ScannerViewModel by activityViewModels()
     private val appViewModel: AppViewModel by activityViewModels()
@@ -38,23 +33,16 @@ class ScannerFragment : Fragment() {
     private var _binding: FragmentScannerBinding? = null
     private val binding get() = _binding!!
 
-    private var scannerStarted = false
+    // ---------- BaseScannerFragment contract ----------
 
-    private val cameraPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (_binding == null) return@registerForActivityResult
+    override fun getScannerView(): BarcodeView? =
+        _binding?.zxingBarcodeScanner?.barcodeView
 
-        if (isGranted) {
-            startScannerIfNeeded()
-        } else {
-            Toast.makeText(
-                requireContext(),
-                "Camera permission is required to scan QR codes",
-                Toast.LENGTH_LONG
-            ).show()
-        }
+    override fun onBarcodeDecoded(raw: String) {
+        scannerViewModel.decodeQrCode(raw)
     }
+
+    // ---------- Lifecycle ----------
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -66,16 +54,7 @@ class ScannerFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
-            == PackageManager.PERMISSION_GRANTED
-        ) {
-            startScannerIfNeeded()
-        } else {
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-        }
-
+        super.onViewCreated(view, savedInstanceState) // запускает камеру
         setupManualInputMask()
         setupManualInputButton()
         observeScannerState()
@@ -86,42 +65,46 @@ class ScannerFragment : Fragment() {
         observePackagingEvents()
     }
 
+    override fun onResume() {
+        super.onResume()
+        scannerViewModel.resetHandled()
+        binding.etManualInput.setText(R.string.uf_0000000)
+        binding.etManualInput.clearFocus()
+    }
+
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
+    }
+
+    // ---------- Observers ----------
+
     private fun observeScannerState() {
         collectFlow(scannerViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
-
             b.loadingOverlay.visibility = if (state.isLoading) View.VISIBLE else View.GONE
-
-            if (state.isLoading) {
-                b.zxingBarcodeScanner.pause()
-            } else if (scannerStarted) {
-                b.zxingBarcodeScanner.resume()
-            }
+            if (state.isLoading) pauseScanner()
+            else resumeScanner()
         }
     }
 
     private fun observeScannerEvents() {
         collectFlow(scannerViewModel.events) { event ->
             if (_binding == null || !isAdded) return@collectFlow
-
             when (event) {
-                is ScannerEvent.OpenProduct -> {
+                is ScannerEvent.OpenProduct ->
                     productViewModel.loadProduct(event.code)
-                }
 
-                is ScannerEvent.OpenPackaging -> {
+                is ScannerEvent.OpenPackaging ->
                     packagingViewModel.loadPackaging(event.code)
-                }
 
                 is ScannerEvent.OpenDeviceRegistration -> {
-                    binding.zxingBarcodeScanner.pause()
+                    pauseScanner()
                     appViewModel.registerDevice(event.request)
                 }
 
-                is ScannerEvent.ShowError -> {
-                    // Ошибка именно парсинга сканера — сбрасываем состояние и возобновляем камеру
+                is ScannerEvent.ShowError ->
                     handleScannerError(event.message)
-                }
             }
         }
     }
@@ -129,14 +112,11 @@ class ScannerFragment : Fragment() {
     private fun observeAppEvents() {
         collectFlow(appViewModel.events) { event ->
             if (_binding == null || !isAdded) return@collectFlow
-
             when (event) {
-                AppEvent.RegistrationCompleted -> {
-                    // Используем безопасную навигацию
+                AppEvent.RegistrationCompleted ->
                     findNavController().navigateSafely(
                         R.id.action_scannerFragment_to_registrationFragment
                     )
-                }
 
                 AppEvent.LogoutCompleted -> Unit
             }
@@ -146,8 +126,6 @@ class ScannerFragment : Fragment() {
     private fun observeAppErrors() {
         collectFlow(appViewModel.errorState) { message ->
             if (_binding == null || !isAdded) return@collectFlow
-            // Глобальные ошибки (сеть и т.д.) просто показываем, не трогая состояние сканера напрямую.
-            // Если нужно возобновить сканер, это сделает снятие флага isLoading через стейт.
             showErrorSnackbar(message)
         }
     }
@@ -155,19 +133,15 @@ class ScannerFragment : Fragment() {
     private fun observeProductEvents() {
         collectFlow(productViewModel.events) { event ->
             if (_binding == null || !isAdded) return@collectFlow
-
             when (event) {
-                is ProductEvent.NavigateToProduct -> {
+                is ProductEvent.NavigateToProduct ->
                     findNavController().navigateSafely(R.id.action_scannerFragment_to_productFragment)
-                }
 
-                is ProductEvent.NavigateToNewProduct -> {
+                is ProductEvent.NavigateToNewProduct ->
                     findNavController().navigateSafely(R.id.action_scannerFragment_to_newProductFragment)
-                }
 
-                is ProductEvent.ShowError -> {
+                is ProductEvent.ShowError ->
                     handleScannerError(event.message)
-                }
 
                 else -> Unit
             }
@@ -177,23 +151,19 @@ class ScannerFragment : Fragment() {
     private fun observePackagingEvents() {
         collectFlow(packagingViewModel.events) { event ->
             if (_binding == null || !isAdded) return@collectFlow
-
             when (event) {
-                PackagingEvent.NavigateToPackaging -> {
+                PackagingEvent.NavigateToPackaging ->
                     findNavController().navigateSafely(
                         R.id.action_scannerFragment_to_packagingFragment
                     )
-                }
 
-                PackagingEvent.NavigateToNewPackaging -> {
+                PackagingEvent.NavigateToNewPackaging ->
                     findNavController().navigateSafely(
                         R.id.action_scannerFragment_to_newPackagingFragment
                     )
-                }
 
-                is PackagingEvent.ShowError -> {
+                is PackagingEvent.ShowError ->
                     handleScannerError(event.message)
-                }
 
                 PackagingEvent.NavigateToEdit,
                 PackagingEvent.PackagingDeleted -> Unit
@@ -201,37 +171,7 @@ class ScannerFragment : Fragment() {
         }
     }
 
-    private fun startScannerIfNeeded() {
-        if (scannerStarted || _binding == null) return
-        scannerStarted = true
-
-        binding.zxingBarcodeScanner.decodeContinuous { result ->
-            val text = result?.text ?: return@decodeContinuous
-            if (!isAdded || view == null || _binding == null) return@decodeContinuous
-
-            binding.zxingBarcodeScanner.pause()
-
-            scannerViewModel.decodeQrCode(text)
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (_binding == null) return
-
-        if (scannerStarted) {
-            binding.zxingBarcodeScanner.resume()
-        }
-
-        scannerViewModel.resetHandled()
-        binding.etManualInput.setText(R.string.uf_0000000)
-        binding.etManualInput.clearFocus()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        _binding?.zxingBarcodeScanner?.pause()
-    }
+    // ---------- Manual input ----------
 
     private fun setupManualInputButton() {
         binding.tilManualInput.setEndIconOnClickListener {
@@ -246,60 +186,31 @@ class ScannerFragment : Fragment() {
 
     private fun setupManualInputMask() {
         val editText = binding.etManualInput
-
-        editText.setOnClickListener {
-            editText.setSelection(editText.text?.length ?: 0)
-        }
-
+        editText.setOnClickListener { editText.setSelection(editText.text?.length ?: 0) }
         editText.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                editText.setSelection(editText.text?.length ?: 0)
-            }
+            if (hasFocus) editText.setSelection(editText.text?.length ?: 0)
         }
-
         editText.addTextChangedListener(object : TextWatcher {
             private var isFormatting = false
-
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) =
                 Unit
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
-
             override fun afterTextChanged(s: Editable?) {
                 if (isFormatting || s == null) return
                 isFormatting = true
-
                 val digits = s.toString().replace("\\D".toRegex(), "")
-                val limited = if (digits.length > 7) {
-                    digits.substring(digits.length - 7)
-                } else {
-                    digits
-                }
+                val limited = if (digits.length > 7) digits.substring(digits.length - 7) else digits
                 val formatted = "uf-${limited.padStart(7, '0')}"
-
-                if (s.toString() != formatted) {
-                    s.replace(0, s.length, formatted)
-                }
-
+                if (s.toString() != formatted) s.replace(0, s.length, formatted)
                 isFormatting = false
             }
         })
     }
 
-    /**
-     * Сброс сканера после ошибки продукта, упаковки или чтения QR-кода.
-     * Дает пользователю просканировать следующий код.
-     */
     private fun handleScannerError(message: String) {
         scannerViewModel.resetHandled()
-        _binding?.zxingBarcodeScanner?.resume()
+        resumeScanner()
         showErrorSnackbar(message)
-    }
-
-    override fun onDestroyView() {
-        _binding?.zxingBarcodeScanner?.pause()
-        scannerStarted = false
-        _binding = null
-        super.onDestroyView()
     }
 }
