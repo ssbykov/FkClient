@@ -8,7 +8,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import ru.faserkraft.client.domain.model.ProductsInventory
+import ru.faserkraft.client.domain.model.ProductsOverview
 import ru.faserkraft.client.domain.repository.ProductRepository
 
 class GetProductsInventoryUseCaseTest {
@@ -16,10 +16,10 @@ class GetProductsInventoryUseCaseTest {
     // ── фикстуры ──────────────────────────────────────────────────────────────
 
     private val repository: ProductRepository = mockk()
-    private lateinit var useCase: GetProductsInventoryUseCase
+    private lateinit var useCase: GetProductsOverviewUseCase
 
     private val inventory = listOf(
-        ProductsInventory(
+        ProductsOverview(
             processId = 1,
             processName = "Сборка",
             stepDefinitionId = 10,
@@ -27,7 +27,7 @@ class GetProductsInventoryUseCaseTest {
             stepNameGenitive = "Контроля качества",
             count = 120
         ),
-        ProductsInventory(
+        ProductsOverview(
             processId = 2,
             processName = "Покраска",
             stepDefinitionId = 11,
@@ -39,14 +39,14 @@ class GetProductsInventoryUseCaseTest {
 
     @Before
     fun setUp() {
-        useCase = GetProductsInventoryUseCase(repository)
+        useCase = GetProductsOverviewUseCase(repository)
     }
 
     // ── invoke() ──────────────────────────────────────────────────────────────
 
     @Test
     fun `invoke - returns inventory list from repository`() = runTest {
-        coEvery { repository.getProductsInventory() } returns inventory
+        coEvery { repository.getProductsOverview() } returns inventory
 
         val result = useCase()
 
@@ -55,16 +55,16 @@ class GetProductsInventoryUseCaseTest {
 
     @Test
     fun `invoke - calls repository exactly once`() = runTest {
-        coEvery { repository.getProductsInventory() } returns inventory
+        coEvery { repository.getProductsOverview() } returns inventory
 
         useCase()
 
-        coVerify(exactly = 1) { repository.getProductsInventory() }
+        coVerify(exactly = 1) { repository.getProductsOverview() }
     }
 
     @Test
     fun `invoke - returns correct item count`() = runTest {
-        coEvery { repository.getProductsInventory() } returns inventory
+        coEvery { repository.getProductsOverview() } returns inventory
 
         val result = useCase()
 
@@ -73,7 +73,7 @@ class GetProductsInventoryUseCaseTest {
 
     @Test
     fun `invoke - returns items with correct processId and processName`() = runTest {
-        coEvery { repository.getProductsInventory() } returns inventory
+        coEvery { repository.getProductsOverview() } returns inventory
 
         val result = useCase()
 
@@ -85,7 +85,7 @@ class GetProductsInventoryUseCaseTest {
 
     @Test
     fun `invoke - returns items with correct stepDefinitionId and stepName`() = runTest {
-        coEvery { repository.getProductsInventory() } returns inventory
+        coEvery { repository.getProductsOverview() } returns inventory
 
         val result = useCase()
 
@@ -95,7 +95,7 @@ class GetProductsInventoryUseCaseTest {
 
     @Test
     fun `invoke - returns items with correct stepNameGenitive`() = runTest {
-        coEvery { repository.getProductsInventory() } returns inventory
+        coEvery { repository.getProductsOverview() } returns inventory
 
         val result = useCase()
 
@@ -105,7 +105,7 @@ class GetProductsInventoryUseCaseTest {
 
     @Test
     fun `invoke - returns items with correct count`() = runTest {
-        coEvery { repository.getProductsInventory() } returns inventory
+        coEvery { repository.getProductsOverview() } returns inventory
 
         val result = useCase()
 
@@ -115,7 +115,7 @@ class GetProductsInventoryUseCaseTest {
 
     @Test
     fun `invoke - returns empty list if repository returns empty`() = runTest {
-        coEvery { repository.getProductsInventory() } returns emptyList()
+        coEvery { repository.getProductsOverview() } returns emptyList()
 
         val result = useCase()
 
@@ -125,7 +125,7 @@ class GetProductsInventoryUseCaseTest {
     @Test
     fun `invoke - returns single item correctly`() = runTest {
         val single = listOf(inventory.first())
-        coEvery { repository.getProductsInventory() } returns single
+        coEvery { repository.getProductsOverview() } returns single
 
         val result = useCase()
 
@@ -135,7 +135,7 @@ class GetProductsInventoryUseCaseTest {
 
     @Test
     fun `invoke - handles zero count`() = runTest {
-        val zeroItem = ProductsInventory(
+        val zeroItem = ProductsOverview(
             processId = 3,
             processName = "Новый процесс",
             stepDefinitionId = 99,
@@ -143,7 +143,7 @@ class GetProductsInventoryUseCaseTest {
             stepNameGenitive = "Начального шага",
             count = 0
         )
-        coEvery { repository.getProductsInventory() } returns listOf(zeroItem)
+        coEvery { repository.getProductsOverview() } returns listOf(zeroItem)
 
         val result = useCase()
 
@@ -152,7 +152,7 @@ class GetProductsInventoryUseCaseTest {
 
     @Test
     fun `invoke - propagates exception from repository`() = runTest {
-        coEvery { repository.getProductsInventory() } throws RuntimeException("DB connection failed")
+        coEvery { repository.getProductsOverview() } throws RuntimeException("DB connection failed")
 
         val exception = runCatching { useCase() }.exceptionOrNull()
 
