@@ -11,7 +11,7 @@ import ru.faserkraft.client.data.dto.ProcessDto
 import ru.faserkraft.client.data.dto.ProductDto
 import ru.faserkraft.client.data.dto.ProductStatusDto
 import ru.faserkraft.client.data.dto.ProductShortDto
-import ru.faserkraft.client.data.dto.ProductsInventoryDto
+import ru.faserkraft.client.data.dto.ProductsOverviewDto
 import ru.faserkraft.client.data.dto.StepDefinitionDto
 import ru.faserkraft.client.data.dto.StepDto
 import ru.faserkraft.client.data.dto.TemplateDto
@@ -234,11 +234,11 @@ class ProductMapperTest {
         assertEquals(ProductStatus.REWORK, dto.toDomain().status)
     }
 
-    // ── ProductsInventoryDto.toDomain() ───────────────────────────────────────
+    // ── ProductsOverviewDto.toDomain() ───────────────────────────────────────
 
     @Test
-    fun `ProductsInventoryDto toDomain - maps all fields`() {
-        val dto = ProductsInventoryDto(
+    fun `ProductsOverviewDto toDomain - maps all fields`() {
+        val dto = ProductsOverviewDto(
             processId = 1,
             processName = "Процесс",
             stepDefinitionId = 2,
@@ -258,8 +258,8 @@ class ProductMapperTest {
     }
 
     @Test
-    fun `ProductsInventoryDto toDomain - zero count is preserved`() {
-        val dto = ProductsInventoryDto(
+    fun `ProductsOverviewDto toDomain - zero count is preserved`() {
+        val dto = ProductsOverviewDto(
             processId = 1, processName = "П", stepDefinitionId = 1,
             stepName = "С", stepNameGenitive = "С", count = 0
         )
