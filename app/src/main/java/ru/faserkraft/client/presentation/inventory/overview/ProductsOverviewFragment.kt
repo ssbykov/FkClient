@@ -67,7 +67,7 @@ class ProductsOverviewFragment : androidx.fragment.app.Fragment() {
             if (_binding == null) return@ProductsOverviewAdapter
             viewModel.selectOverviewItem(item)
             findNavController().navigateSafely(
-                _root_ide_package_.ru.faserkraft.client.presentation.inventory.InventoryContainerFragmentDirections.Companion
+                ru.faserkraft.client.presentation.inventory.InventoryContainerFragmentDirections
                     .actionInventoryContainerFragmentToProductsOverviewByProcessFragment()
             )
         }

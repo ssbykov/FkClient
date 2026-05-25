@@ -103,7 +103,7 @@ class ProductsOverviewByProcessFragment : androidx.fragment.app.Fragment() {
             when (event) {
                 is ProductEvent.NavigateToProduct -> {
                     findNavController().navigateSafely(
-                        _root_ide_package_.ru.faserkraft.client.presentation.inventory.overview.ProductsOverviewByProcessFragmentDirections.Companion
+                        ProductsOverviewByProcessFragmentDirections
                             .actionProductsOverviewByProcessFragmentToProductFullFragment()
                     )
                 }

@@ -67,7 +67,7 @@ class ProductsReworkScrapFragment : androidx.fragment.app.Fragment() {
             viewModel.selectReworkScrapProduct(statItem.processName, statItem.status)
 
             findNavController().navigateSafely(
-                _root_ide_package_.ru.faserkraft.client.presentation.inventory.InventoryContainerFragmentDirections.Companion
+                ru.faserkraft.client.presentation.inventory.InventoryContainerFragmentDirections
                     .actionInventoryContainerFragmentToProductsReworkScrapListFragment()
             )
         }
