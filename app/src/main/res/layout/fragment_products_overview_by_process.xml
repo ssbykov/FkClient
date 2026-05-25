@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".presentation.product.inventory.ProductsInventoryByProcessFragment">
+    tools:context=".presentation.inventory.overview.ProductsOverviewByProcessFragment">
 
     <TextView
         android:id="@+id/tvDetailTitle"
