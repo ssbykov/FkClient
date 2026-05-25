@@ -19,7 +19,7 @@ import ru.faserkraft.client.data.dto.ProductCreateDto
 import ru.faserkraft.client.data.dto.ProductDto
 import ru.faserkraft.client.data.dto.ProductShortDto
 import ru.faserkraft.client.data.dto.ProductStatusDto
-import ru.faserkraft.client.data.dto.ProductsInventoryDto
+import ru.faserkraft.client.data.dto.ProductsOverviewDto
 import ru.faserkraft.client.data.dto.StepCountStatDto
 import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.domain.model.Product
@@ -27,6 +27,7 @@ import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.error.AppError
 import ru.faserkraft.client.utils.logger.Logger
 import ru.faserkraft.client.utils.timeprovider.TimeProvider
+import java.time.LocalDate
 
 class ProductRepositoryImplTest {
 
@@ -36,6 +37,10 @@ class ProductRepositoryImplTest {
     private val fakeTimestamp = "2024-06-15T10:30:00Z"
     private val fakeTimeProvider = object : TimeProvider {
         override fun nowIsoUtc(): String = fakeTimestamp
+
+        override fun nowLocalDate(): LocalDate {
+            return LocalDate.parse("2024-06-15")
+        }
     }
 
     private lateinit var repository: ProductRepositoryImpl
@@ -321,12 +326,12 @@ class ProductRepositoryImplTest {
     }
 
     // ==========================================
-    // getProductsInventory
+    // getProductsOverview
     // ==========================================
 
     @Test
-    fun `getProductsInventory returns mapped list`() = runTest {
-        val inventoryDto = ProductsInventoryDto(
+    fun `getProductsOverview returns mapped list`() = runTest {
+        val productsOverviewDto = ProductsOverviewDto(
             processId = 1,
             processName = "Process A",
             stepDefinitionId = 10,
@@ -334,9 +339,9 @@ class ProductRepositoryImplTest {
             stepNameGenitive = "Cutting gen",
             count = 5
         )
-        coEvery { mockApi.getProductsInventory() } returns Response.success(listOf(inventoryDto))
+        coEvery { mockApi.getProductsOverview() } returns Response.success(listOf(productsOverviewDto))
 
-        val result = repository.getProductsInventory()
+        val result = repository.getProductsOverview()
 
         assertEquals(1, result.size)
         assertEquals(5, result[0].count)
@@ -344,19 +349,19 @@ class ProductRepositoryImplTest {
     }
 
     @Test
-    fun `getProductsInventory returns empty list when api body is null`() = runTest {
-        coEvery { mockApi.getProductsInventory() } returns Response.success(null)
+    fun `getProductsOverview returns empty list when api body is null`() = runTest {
+        coEvery { mockApi.getProductsOverview() } returns Response.success(null)
 
-        val result = repository.getProductsInventory()
+        val result = repository.getProductsOverview()
 
         assertEquals(emptyList<Any>(), result)
     }
 
     @Test
-    fun `getProductsInventory returns empty list when api returns empty list`() = runTest {
-        coEvery { mockApi.getProductsInventory() } returns Response.success(emptyList())
+    fun `getProductsOverview returns empty list when api returns empty list`() = runTest {
+        coEvery { mockApi.getProductsOverview() } returns Response.success(emptyList())
 
-        val result = repository.getProductsInventory()
+        val result = repository.getProductsOverview()
 
         assertEquals(emptyList<Any>(), result)
     }
