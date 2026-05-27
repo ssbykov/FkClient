@@ -15,6 +15,10 @@ import ru.faserkraft.client.data.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.data.dto.DailyPlanStepUpdateDto
 import ru.faserkraft.client.data.dto.DayPlanDto
 import ru.faserkraft.client.data.dto.EmployeeDto
+import ru.faserkraft.client.data.dto.InventoryCompareResultDto
+import ru.faserkraft.client.data.dto.InventoryDto
+import ru.faserkraft.client.data.dto.InventoryItemCreateDto
+import ru.faserkraft.client.data.dto.InventoryItemDto
 import ru.faserkraft.client.data.dto.OrderCreateDto
 import ru.faserkraft.client.data.dto.OrderDto
 import ru.faserkraft.client.data.dto.OrderItemCreateDto
@@ -26,7 +30,7 @@ import ru.faserkraft.client.data.dto.ProcessDto
 import ru.faserkraft.client.data.dto.ProductCreateDto
 import ru.faserkraft.client.data.dto.ProductDto
 import ru.faserkraft.client.data.dto.ProductShortDto
-import ru.faserkraft.client.data.dto.ProductsInventoryDto
+import ru.faserkraft.client.data.dto.ProductsOverviewDto
 import ru.faserkraft.client.data.dto.QrDataResponseDto
 
 const val BASE_URL = BuildConfig.BASE_URL
@@ -80,10 +84,42 @@ interface Api {
     ): Response<ProductDto>
 
     @GET("products/stats/by-last-done-step")
-    suspend fun getProductsInventory(): Response<List<ProductsInventoryDto>>
+    suspend fun getProductsOverview(): Response<List<ProductsOverviewDto>>
 
     @GET(BASE_URL + "products/not-normal")
     suspend fun getProductsNotNormal(): Response<List<ProductDto>>
+
+// ================== ИНВЕНТАРИЗАЦИЯ (INVENTORY) ==================
+
+    @GET(BASE_URL + "inventories/")
+    suspend fun getInventories(): Response<List<InventoryDto>>
+
+    @POST(BASE_URL + "inventories/")
+    suspend fun createInventory(): Response<InventoryDto>
+
+    @GET(BASE_URL + "inventories/{inventory_id}/items")
+    suspend fun getInventoryItems(
+        @Path("inventory_id") inventoryId: Int,
+    ): Response<List<InventoryItemDto>>
+
+    @POST(BASE_URL + "inventories/{inventory_id}/items")
+    suspend fun upsertInventoryItem(
+        @Path("inventory_id") inventoryId: Int,
+        @Body item: InventoryItemCreateDto,
+    ): Response<InventoryItemDto>
+
+    @POST(BASE_URL + "inventories/{inventory_id}/complete")
+    suspend fun completeInventory(
+        @Path("inventory_id") inventoryId: Int,
+    ): Response<InventoryDto>
+
+    @POST(BASE_URL + "inventories/{inventory_id}/compare")
+    suspend fun compareInventory(
+        @Path("inventory_id") inventoryId: Int,
+    ): Response<List<InventoryCompareResultDto>>
+
+    @DELETE("inventories/{id}")
+    suspend fun deleteInventory(@Path("id") id: Int): Response<Unit>
 
     // ================== ШАГИ ПРОЦЕССА (PRODUCTS STEPS) ==================
 
