@@ -45,6 +45,11 @@ class InventoryRepositoryImpl @Inject constructor(
             }
         ).toDomain()
 
-    override suspend fun compareAndClose(inventoryId: Int): List<InventoryCompareResult> =
-        callApi { api.compareAndClose(inventoryId) }.orEmpty().map { it.toDomain() }
+    override suspend fun completeInventory(inventoryId: Int): Inventory =
+        callApiOrThrow("Empty response for completeInventory($inventoryId)") {
+            api.completeInventory(inventoryId)
+        }.toDomain()
+
+    override suspend fun compareInventory(inventoryId: Int): List<InventoryCompareResult> =
+        callApi { api.compareInventory(inventoryId) }.orEmpty().map { it.toDomain() }
 }

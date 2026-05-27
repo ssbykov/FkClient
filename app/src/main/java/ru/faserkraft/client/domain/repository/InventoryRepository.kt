@@ -16,5 +16,6 @@ interface InventoryRepository {
         stepDefinitionId: Int,
     ): InventoryItem
 
-    suspend fun compareAndClose(inventoryId: Int): List<InventoryCompareResult>
+    suspend fun completeInventory(inventoryId: Int): Inventory
+    suspend fun compareInventory(inventoryId: Int): List<InventoryCompareResult>
 }
