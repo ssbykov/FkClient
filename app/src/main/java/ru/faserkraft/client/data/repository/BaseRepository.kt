@@ -13,4 +13,9 @@ abstract class BaseRepository(
 
     protected suspend fun callApiUnit(block: suspend () -> Response<Unit>) =
         callApiUnit(logger, block)
+
+    protected suspend fun <R> callApiOrThrow(
+        errorMessage: String = "Server returned empty response",
+        block: suspend () -> Response<R>,
+    ): R = callApi(block) ?: error(errorMessage)
 }
