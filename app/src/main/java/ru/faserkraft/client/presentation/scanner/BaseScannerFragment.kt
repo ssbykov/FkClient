@@ -88,7 +88,11 @@ abstract class BaseScannerFragment : Fragment() {
             val text = result?.text ?: return@decodeContinuous
             if (!isAdded || view == null || !_isViewAlive()) return@decodeContinuous
             getScannerView()?.pause()
-            onBarcodeDecoded(text)
+            // ← переключаемся на main thread
+            view?.post {
+                if (!isAdded || !_isViewAlive()) return@post
+                onBarcodeDecoded(text)
+            }
         }
     }
 
