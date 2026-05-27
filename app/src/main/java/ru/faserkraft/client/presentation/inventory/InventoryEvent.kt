@@ -3,6 +3,7 @@ package ru.faserkraft.client.presentation.inventory
 sealed interface InventoryEvent {
     data class ShowError(val message: String) : InventoryEvent
     data object NavigateToScan : InventoryEvent
+    data object NavigateToDetail : InventoryEvent
     data object NavigateToResults : InventoryEvent
     data object InventoryClosed : InventoryEvent
 
