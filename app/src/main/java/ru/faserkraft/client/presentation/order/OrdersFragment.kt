@@ -1,7 +1,6 @@
 package ru.faserkraft.client.presentation.order
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -140,7 +139,6 @@ class OrdersFragment : Fragment() {
         collectFlow(viewModel.events) { event ->
             when (event) {
                 is OrderEvent.ShowError -> {
-                    Log.e("OrdersFragment", "Order error: ${event.message}")
                     showErrorSnackbar(event.message)
                 }
 
