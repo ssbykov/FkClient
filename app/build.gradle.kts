@@ -58,6 +58,15 @@ android {
         debug {
             buildConfigField("String", "BASE_URL", "\"http://10.1.30.110:8000/api/v1/\"")
         }
+        create("debug_emu") {
+            // Копируем все настройки из стандартного debug (включая дебаг-ключ подписи)
+            initWith(getByName("debug"))
+
+            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8000/api/v1/\"")
+
+            // (Опционально) чтобы 2 дебаг-приложения могли стоять на телефоне одновременно
+            applicationIdSuffix = ".emu"
+        }
     }
 
     compileOptions {
