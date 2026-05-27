@@ -5,6 +5,7 @@ data class Inventory(
     val createdAt: String,
     val completedAt: String?,
     val createdById: Int,
+    val itemCount: Int,
 ) {
     val isOpen: Boolean get() = completedAt == null
 }
