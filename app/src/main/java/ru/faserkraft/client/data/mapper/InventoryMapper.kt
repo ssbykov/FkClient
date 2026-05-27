@@ -14,6 +14,7 @@ fun InventoryDto.toDomain(): Inventory = Inventory(
     createdAt = createdAt,
     completedAt = completedAt,
     createdById = createdById,
+    itemCount = itemCount,
 )
 
 fun InventoryItemDto.toDomain(): InventoryItem = InventoryItem(
