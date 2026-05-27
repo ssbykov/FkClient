@@ -11,7 +11,10 @@ data class InventoryDto(
     val completedAt: String?,
     @SerializedName("created_by_id")
     val createdById: Int,
+    @SerializedName("item_count")
+    val itemCount: Int,
 ) : ItemDto()
+
 
 data class InventoryItemDto(
     val id: Int,
