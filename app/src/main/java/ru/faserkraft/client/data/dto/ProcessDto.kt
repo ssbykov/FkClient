@@ -15,3 +15,8 @@ data class FinishedProcessDto(
     @SerializedName("size_type")
     val type: SizeType?,
 ) : ItemDto()
+
+data class ProcessShortDto(
+    val id: Int,
+    val name: String,
+) : ItemDto()

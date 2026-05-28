@@ -7,11 +7,15 @@ data class Process(
     val steps: List<StepDefinition>,
 )
 
-// Облегчённая версия для FinishedProduct
 data class FinishedProcess(
     val id: Int,
     val name: String,
     val sizeTypeId: Int?,
     val sizeTypeName: String?,
     val packagingCount: Int?,
+)
+
+data class ProcessShort(
+    val id: Int,
+    val name: String,
 )
