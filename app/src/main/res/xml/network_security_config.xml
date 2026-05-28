@@ -4,6 +4,7 @@
         <domain includeSubdomains="false">product.faserkraft.ru</domain>
         <domain includeSubdomains="true">192.168.0.102</domain>
         <domain includeSubdomains="true">10.1.30.110</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
     </domain-config>
 </network-security-config>
 
