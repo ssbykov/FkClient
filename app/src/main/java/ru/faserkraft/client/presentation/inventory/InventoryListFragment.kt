@@ -6,7 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
@@ -14,12 +16,13 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentInventoryListBinding
 import ru.faserkraft.client.domain.model.Inventory
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 @AndroidEntryPoint
 class InventoryListFragment : Fragment() {
 
-    private val viewModel: InventoryViewModel by viewModels()
+    private val viewModel: InventoryViewModel by activityViewModels()
 
     private var _binding: FragmentInventoryListBinding? = null
     private val binding get() = _binding!!
@@ -65,7 +68,7 @@ class InventoryListFragment : Fragment() {
         adapter = InventoryListAdapter(
             onItemClick = { inventory ->
                 if (_binding == null) return@InventoryListAdapter
-                viewModel.openInventory(inventory)
+                viewModel.openInventoryDetail(inventory)
             },
             onDeleteClick = { inventory ->
                 showDeleteConfirmDialog(inventory)
@@ -105,15 +108,12 @@ class InventoryListFragment : Fragment() {
             b.fabNewInventory.isEnabled = !state.isActionInProgress
 
             adapter.submitList(
-                state.inventories.sortedBy { it.id }
+                state.inventories
+                    .sortedBy { it.id }
                     .map { inventory ->
                         InventoryListItem(
                             inventory = inventory,
-                            itemCount = if (inventory.id == state.currentInventory?.id) {
-                                state.itemCount
-                            } else {
-                                0
-                            }
+                            itemCount = inventory.itemCount,
                         )
                     }
             )
@@ -122,20 +122,31 @@ class InventoryListFragment : Fragment() {
         }
     }
 
+    private fun getNavController() =
+        (requireActivity().supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment)
+            .navController
+
     private fun observeEvents() {
-        collectFlow(viewModel.events) { event ->
+        collectFlow(viewModel.events, Lifecycle.State.CREATED) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
+
             when (event) {
+                InventoryEvent.NavigateToDetail -> {
+                    getNavController().navigateSafely(
+                        InventoryContainerFragmentDirections
+                            .actionInventoryListFragmentToInventoryDetailFragment()
+                    )
+                }
+
                 InventoryEvent.NavigateToScan -> {
-//                    findNavController().navigateSafely(
-//                        InventoryListFragmentDirections
-//                            .actionInventoryListFragmentToInventoryScanFragment()
-//                    )
+                    getNavController().navigateSafely(
+                        InventoryContainerFragmentDirections
+                            .actionInventoryListFragmentToInventoryScanFragment()
+                    )
                 }
 
-                is InventoryEvent.ShowError -> {
-                    showErrorSnackbar(event.message)
-                }
-
+                is InventoryEvent.ShowError -> showErrorSnackbar(event.message)
                 else -> Unit
             }
         }
