@@ -66,15 +66,15 @@ fun ProductStatus.toUiProductStatus(): ProductStatusUi = when (this) {
 
     ProductStatus.REWORK -> ProductStatusUi(
         titleRes = R.string.rework,
-        bgColorRes = R.color.status_rework_bg,
-        textColorRes = R.color.status_rework_text,
+        bgColorRes = R.color.status_warning_bg,
+        textColorRes = R.color.status_warning_text,
         originalStatus = this
     )
 
     ProductStatus.SCRAP -> ProductStatusUi(
         titleRes = R.string.scrap,
-        bgColorRes = R.color.status_scrap_bg,
-        textColorRes = R.color.status_scrap_text,
+        bgColorRes = R.color.status_wrong_bg,
+        textColorRes = R.color.status_wrong_text,
         originalStatus = this
     )
 }
