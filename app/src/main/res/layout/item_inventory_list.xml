@@ -61,18 +61,6 @@
             app:layout_constraintTop_toBottomOf="@id/tvCreatedAt"
             tools:text="Отсканировано: 24" />
 
-        <!-- Кнопка удаления -->
-<!--        <ImageButton-->
-<!--            android:id="@+id/btnDelete"-->
-<!--            android:layout_width="40dp"-->
-<!--            android:layout_height="40dp"-->
-<!--            android:background="?attr/selectableItemBackgroundBorderless"-->
-<!--            android:contentDescription="@string/delete"-->
-<!--            android:src="@drawable/ic_delete"-->
-<!--            android:tint="?attr/colorError"-->
-<!--            app:layout_constraintBottom_toBottomOf="parent"-->
-<!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            app:layout_constraintTop_toTopOf="parent" />-->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
