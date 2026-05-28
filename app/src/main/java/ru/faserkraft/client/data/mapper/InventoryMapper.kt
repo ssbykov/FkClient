@@ -4,9 +4,11 @@ package ru.faserkraft.client.data.mapper
 import ru.faserkraft.client.data.dto.InventoryCompareResultDto
 import ru.faserkraft.client.data.dto.InventoryDto
 import ru.faserkraft.client.data.dto.InventoryItemDto
+import ru.faserkraft.client.data.dto.ProductInventoryItemDto
 import ru.faserkraft.client.domain.model.Inventory
 import ru.faserkraft.client.domain.model.InventoryCompareResult
 import ru.faserkraft.client.domain.model.InventoryItem
+import ru.faserkraft.client.domain.model.ProductInventoryItem
 
 
 fun InventoryDto.toDomain(): Inventory = Inventory(
@@ -21,18 +23,19 @@ fun InventoryItemDto.toDomain(): InventoryItem = InventoryItem(
     id = id,
     inventoryId = inventoryId,
     serialNumber = serialNumber,
-    stepDefinitionId = stepDefinitionId,
-    stepDefinition = stepDefinition.toDomain(),  // из ProcessMapper
+    stepDefinition = stepDefinition.toDomain(),
     scannedAt = scannedAt,
 )
 
+fun ProductInventoryItemDto.toDomain(): ProductInventoryItem = ProductInventoryItem(
+    serialNumber = serialNumber,
+    stepDefinition = stepDefinition.toDomain(),
+)
+
 fun InventoryCompareResultDto.toDomain(): InventoryCompareResult = InventoryCompareResult(
-    stepDefinitionId = stepDefinitionId,
-    stepName = stepName,
-    processId = processId,
     dbCount = dbCount,
     scannedCount = scannedCount,
-    matched = matched,
-    missing = missing,
-    unexpected = unexpected,
+    matched = matched.map { it.toDomain() },
+    missing = missing.map { it.toDomain() },
+    unexpected = unexpected.map { it.toDomain() },
 )
