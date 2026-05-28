@@ -22,10 +22,8 @@ data class InventoryItemDto(
     val inventoryId: Int,
     @SerializedName("serial_number")
     val serialNumber: String,
-    @SerializedName("step_definition_id")
-    val stepDefinitionId: Int,
     @SerializedName("step_definition")
-    val stepDefinition: StepDefinitionDto,
+    val stepDefinition: StepDefinitionWithProcessDto,
     @SerializedName("scanned_at")
     val scannedAt: String,
 ) : ItemDto()
@@ -37,18 +35,19 @@ data class InventoryItemCreateDto(
     val stepDefinitionId: Int,
 ) : ItemDto()
 
+data class ProductInventoryItemDto(
+    @SerializedName("serial_number")
+    val serialNumber: String,
+    @SerializedName("step_definition")
+    val stepDefinition: StepDefinitionWithProcessDto,
+)
+
 data class InventoryCompareResultDto(
-    @SerializedName("step_definition_id")
-    val stepDefinitionId: Int,
-    @SerializedName("step_name")
-    val stepName: String?,
-    @SerializedName("process_id")
-    val processId: Int?,
     @SerializedName("db_count")
     val dbCount: Int,
     @SerializedName("scanned_count")
     val scannedCount: Int,
-    val matched: List<String>,
-    val missing: List<String>,
-    val unexpected: List<String>,
+    val matched: List<ProductInventoryItemDto>,
+    val missing: List<ProductInventoryItemDto>,
+    val unexpected: List<ProductInventoryItemDto>,
 )
