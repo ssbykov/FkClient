@@ -36,10 +36,14 @@ data class InventoryItemCreateDto(
 ) : ItemDto()
 
 data class ProductInventoryItemDto(
+    val id: Int,
     @SerializedName("serial_number")
     val serialNumber: String,
+    val status: ProductStatusDto,
     @SerializedName("step_definition")
     val stepDefinition: StepDefinitionWithProcessDto,
+    @SerializedName("performed_at")
+    val performedAt: String,
 )
 
 data class InventoryCompareResultDto(

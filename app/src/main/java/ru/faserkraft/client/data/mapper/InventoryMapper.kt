@@ -28,8 +28,11 @@ fun InventoryItemDto.toDomain(): InventoryItem = InventoryItem(
 )
 
 fun ProductInventoryItemDto.toDomain(): ProductInventoryItem = ProductInventoryItem(
+    id = id,
     serialNumber = serialNumber,
+    status = status.toDomain(),
     stepDefinition = stepDefinition.toDomain(),
+    performedAt = performedAt,
 )
 
 fun InventoryCompareResultDto.toDomain(): InventoryCompareResult = InventoryCompareResult(
