@@ -37,7 +37,7 @@
         android:id="@+id/tvStepLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/stage"
+        android:text="@string/step"
         android:textAppearance="?attr/textAppearanceLabelSmall"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:layout_marginBottom="4dp" />
