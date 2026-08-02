@@ -162,11 +162,107 @@
             android:id="@+id/action_inventoryContainerFragment_to_productsReworkScrapFragment"
             app:destination="@id/productsReworkScrapFragment" />
 
-        <!-- ДОБАВЛЕНО: Этот экшен должен быть здесь, чтобы навигация работала из ViewPager -->
         <action
             android:id="@+id/action_inventoryContainerFragment_to_productsReworkScrapListFragment"
             app:destination="@id/productsReworkScrapListFragment" />
+
+        <action
+            android:id="@+id/action_inventoryListFragmentToInventoryScanFragment"
+            app:destination="@id/inventoryScanFragment" />
+
+        <action
+            android:id="@+id/action_inventoryListFragmentToInventoryDetailFragment"
+            app:destination="@id/inventoryDetailFragment" />
+
+        <action
+            android:id="@+id/action_inventoryContainerFragment_to_inventoryResultsFragment"
+            app:destination="@id/inventoryResultsFragment" />
+
+        <action
+            android:id="@+id/action_inventoryContainerFragment_to_inventoryDiffDetailFragment"
+            app:destination="@id/inventoryDiffDetailFragment" />
+
+        <action
+            android:id="@+id/action_inventoryContainerFragment_to_inventoryListFragment"
+            app:destination="@id/inventoryListFragment" />
+
     </fragment>
+
+    <!-- Список инвентаризаций -->
+    <fragment
+        android:id="@+id/inventoryListFragment"
+        android:name="ru.faserkraft.client.presentation.inventory.InventoryListFragment"
+        android:label="Инвентаризации"
+        tools:layout="@layout/fragment_inventory_list">
+
+    </fragment>
+
+    <!-- Детали инвентаризации -->
+    <fragment
+        android:id="@+id/inventoryDetailFragment"
+        android:name="ru.faserkraft.client.presentation.inventory.InventoryDetailFragment"
+        android:label="Инвентаризация"
+        tools:layout="@layout/fragment_inventory_detail">
+
+        <action
+            android:id="@+id/action_inventoryDetailFragment_to_inventoryScanFragment"
+            app:destination="@id/inventoryScanFragment" />
+
+        <action
+            android:id="@+id/action_inventoryDetailFragment_to_inventoryResultsFragment"
+            app:destination="@id/inventoryResultsFragment" />
+
+    </fragment>
+
+    <!-- Фрагмент с результатами инвентаризации -->
+    <fragment
+        android:id="@+id/inventoryResultsFragment"
+        android:name="ru.faserkraft.client.presentation.inventory.InventoryResultsFragment"
+        android:label="Результаты сверки"
+        tools:layout="@layout/fragment_inventory_results">
+
+        <action
+            android:id="@+id/action_inventoryResultsFragment_to_inventoryDiffDetailFragment"
+            app:destination="@id/inventoryDiffDetailFragment" />
+
+        <action
+            android:id="@+id/action_inventoryResultsFragment_to_inventoryMissingDetailFragment"
+            app:destination="@id/inventoryMissingDetailFragment" />
+
+    </fragment>
+
+    <!-- Фрагмент с деталями расхождений инвентаризации -->
+    <fragment
+        android:id="@+id/inventoryDiffDetailFragment"
+        android:name="ru.faserkraft.client.presentation.inventory.InventoryDiffDetailFragment"
+        android:label="Детали расхождений"
+        tools:layout="@layout/fragment_inventory_diff_detail">
+
+        <argument
+            android:name="stepDefinitionId"
+            app:argType="integer" />
+    </fragment>
+
+
+    <!-- Фрагмент с деталями недостач инвентаризации -->
+    <fragment
+        android:id="@+id/inventoryMissingDetailFragment"
+        android:name="ru.faserkraft.client.presentation.inventory.InventoryMissingDetailFragment"
+        android:label="Недостача"
+        tools:layout="@layout/fragment_inventory_missing_detail">
+
+        <argument
+            android:name="stepDefinitionId"
+            app:argType="integer" />
+    </fragment>
+
+    <!-- Экран сканирования -->
+    <fragment
+        android:id="@+id/inventoryScanFragment"
+        android:name="ru.faserkraft.client.presentation.inventory.InventoryScanFragment"
+        android:label="Сканирование"
+        tools:layout="@layout/fragment_inventory_scan" />
+
 
     <!-- Вкладка (оставляем просто фрагмент без экшенов, так как рулит контейнер) -->
     <fragment
