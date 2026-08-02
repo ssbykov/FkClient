@@ -23,6 +23,7 @@ import ru.faserkraft.client.domain.usecase.product.CreateProductUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductUseCase
 import ru.faserkraft.client.domain.usecase.step.ChangeStepPerformerUseCase
 import ru.faserkraft.client.domain.usecase.step.CloseStepUseCase
+import ru.faserkraft.client.error.AppError
 import ru.faserkraft.client.presentation.app.AppSessionCoordinator
 import ru.faserkraft.client.presentation.app.AppSessionEvent
 import ru.faserkraft.client.presentation.base.toErrorMessage
@@ -149,17 +150,21 @@ class ProductViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             runCatching { getProductUseCase(serialNumber) }
                 .onSuccess { product ->
-                    if (product == null) {
-                        loadProcesses()
-                        _uiState.update { it.copy(pendingSerialNumber = serialNumber) }
-                        _events.send(ProductEvent.NavigateToNewProduct)
-                    } else {
+                    if (product != null) {
                         updateProductState(product)
                         _uiState.update { it.copy(pendingSerialNumber = null) }
                         _events.send(ProductEvent.NavigateToProduct)
                     }
                 }
-                .onFailure { emitError(it) }
+                .onFailure { error ->
+                    if (error is AppError.ApiError && error.status == 404) {
+                        loadProcesses()
+                        _uiState.update { it.copy(pendingSerialNumber = serialNumber) }
+                        _events.send(ProductEvent.NavigateToNewProduct)
+                    } else {
+                        emitError(error)
+                    }
+                }
             _uiState.update { it.copy(isLoading = false) }
         }
     }
