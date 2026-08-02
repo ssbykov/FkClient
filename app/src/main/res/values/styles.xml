@@ -1,7 +1,7 @@
 <!-- res/values/styles.xml -->
 <resources>
 
-    <style name="Widget.FK.ProductStatusChip"
+    <style name="Widget.FK.ProductOkStatusChip"
         parent="Widget.MaterialComponents.Chip.Entry">
 
         <item name="chipMinHeight">32dp</item>
@@ -14,6 +14,44 @@
         <!-- Фон и текст -->
         <item name="chipBackgroundColor">@color/status_success_bg</item>
         <item name="android:textColor">@color/status_success_text</item>
+
+        <!-- Без иконок -->
+        <item name="chipIconVisible">false</item>
+        <item name="closeIconVisible">false</item>
+    </style>
+
+    <style name="Widget.FK.ProductWarningStatusChip"
+        parent="Widget.MaterialComponents.Chip.Entry">
+
+        <item name="chipMinHeight">32dp</item>
+        <item name="chipCornerRadius">16dp</item>
+
+        <!-- Обводка -->
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipStrokeColor">@color/status_warning_text</item>
+
+        <!-- Фон и текст -->
+        <item name="chipBackgroundColor">@color/status_warning_bg</item>
+        <item name="android:textColor">@color/status_warning_text</item>
+
+        <!-- Без иконок -->
+        <item name="chipIconVisible">false</item>
+        <item name="closeIconVisible">false</item>
+    </style>
+
+    <style name="Widget.FK.ProductWrongStatusChip"
+        parent="Widget.MaterialComponents.Chip.Entry">
+
+        <item name="chipMinHeight">32dp</item>
+        <item name="chipCornerRadius">16dp</item>
+
+        <!-- Обводка -->
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipStrokeColor">@color/status_wrong_text</item>
+
+        <!-- Фон и текст -->
+        <item name="chipBackgroundColor">@color/status_wrong_bg</item>
+        <item name="android:textColor">@color/status_wrong_text</item>
 
         <!-- Без иконок -->
         <item name="chipIconVisible">false</item>
