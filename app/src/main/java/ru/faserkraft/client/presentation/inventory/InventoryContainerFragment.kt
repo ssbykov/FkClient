@@ -8,6 +8,7 @@ import androidx.fragment.app.activityViewModels
 import com.google.android.material.tabs.TabLayoutMediator
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentProductContainerBinding
+import ru.faserkraft.client.domain.model.UserRole
 import ru.faserkraft.client.presentation.app.AppViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
 
@@ -53,18 +54,32 @@ class InventoryContainerFragment : Fragment(R.layout.fragment_product_container)
     // ---------- UI Setup ----------
 
     private fun setupViewPager() {
-        binding.viewPagerProduct.adapter = InventoryContainerPageAdapter(this)
+        val isMaster = appViewModel.userData.value?.role == UserRole.MASTER
+        val tabs = buildTabs(isMaster)
+
+        binding.viewPagerProduct.adapter = InventoryContainerPageAdapter(this, tabs)
+
+        tabLayoutMediator?.detach()
         tabLayoutMediator = TabLayoutMediator(
             binding.tabLayoutProduct,
             binding.viewPagerProduct
         ) { tab, position ->
-            tab.text = when (position) {
-                0 -> getString(R.string.overview)
-                1 -> getString(R.string.scrap)
-                2 -> getString(R.string.inventory)
-                else -> null
-            }
+            tab.text = getString(tabs[position].titleRes)
         }.also { it.attach() }
+    }
+
+    private fun buildTabs(isMaster: Boolean): List<InventoryTab> {
+        return if (isMaster) {
+            listOf(
+                InventoryTab.OVERVIEW,
+                InventoryTab.SCRAP,
+                InventoryTab.INVENTORY,
+            )
+        } else {
+            listOf(
+                InventoryTab.OVERVIEW,
+            )
+        }
     }
 
     // ---------- Dialogs ----------
