@@ -17,8 +17,5 @@ data class InventoryUiState(
     val isLoading: Boolean = false,
     val isActionInProgress: Boolean = false,
 ) {
-    val hasOpenInventory: Boolean get() = currentInventory?.isOpen == true
-    val hasResults: Boolean get() = compareResults.isNotEmpty()
     val currentInventoryItemCount: Int get() = currentInventoryItems.size
-    val diffCount: Int get() = compareResults.count { it.hasDiff }
 }
