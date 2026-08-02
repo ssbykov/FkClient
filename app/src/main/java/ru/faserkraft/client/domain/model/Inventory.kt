@@ -19,8 +19,11 @@ data class InventoryItem(
 )
 
 data class ProductInventoryItem(
+    val id: Int,
     val serialNumber: String,
+    val status: ProductStatus,
     val stepDefinition: StepDefinitionWithProcess,
+    val performedAt: String,
 )
 
 data class InventoryCompareResult(
@@ -37,5 +40,4 @@ data class InventoryCompareResult(
             ?: unexpected.first().stepDefinition
 
     val hasDiff: Boolean get() = missing.isNotEmpty() || unexpected.isNotEmpty()
-    val diff: Int get() = scannedCount - dbCount
 }
