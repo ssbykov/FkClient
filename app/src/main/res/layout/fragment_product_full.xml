@@ -67,7 +67,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipProductStatus"
-                style="@style/Widget.FK.ProductStatusChip"
+                style="@style/Widget.FK.ProductOkStatusChip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
