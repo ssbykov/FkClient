@@ -23,11 +23,7 @@ class ProductRepositoryImpl @Inject constructor(
 ) : BaseRepository(logger), ProductRepository {
 
     override suspend fun getProduct(serialNumber: String): Product? =
-        try {
-            callApi { api.getProduct(serialNumber) }?.toDomain()
-        } catch (e: AppError.ApiError) {
-            if (e.status == 404) null else throw e
-        }
+        callApi { api.getProduct(serialNumber) }?.toDomain()
 
     override suspend fun getProductsByStatus(statuses: List<ProductStatus>): List<Product> {
         return callApi { api.getProductsNotNormal() }
