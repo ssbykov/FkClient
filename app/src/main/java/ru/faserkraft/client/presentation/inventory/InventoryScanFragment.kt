@@ -14,6 +14,7 @@ import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentInventoryScanBinding
 import ru.faserkraft.client.presentation.scanner.BaseScannerFragment
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.presentation.ui.hideKeyboard
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
 @AndroidEntryPoint
@@ -64,6 +65,7 @@ class InventoryScanFragment : BaseScannerFragment() {
 
     private fun setupManualInputButton() {
         binding.tilManualInput.setEndIconOnClickListener {
+            hideKeyboard()
             val current = binding.etManualInput.text.toString()
             if (current != "uf-0000000") {
                 viewModel.onBarcodeScanned(current)
