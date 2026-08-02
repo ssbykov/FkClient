@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.R
-import ru.faserkraft.client.databinding.ItemInventoryBinding
+import ru.faserkraft.client.databinding.ItemInventoryListBinding
 import ru.faserkraft.client.domain.model.Inventory
 import ru.faserkraft.client.utils.converter.formatIsoToUi
 
@@ -21,7 +21,7 @@ class InventoryListAdapter(
 ) : ListAdapter<InventoryListItem, InventoryListAdapter.VH>(Diff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        val binding = ItemInventoryBinding.inflate(
+        val binding = ItemInventoryListBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         )
         return VH(binding)
@@ -31,7 +31,7 @@ class InventoryListAdapter(
         holder.bind(getItem(position))
     }
 
-    inner class VH(private val binding: ItemInventoryBinding) :
+    inner class VH(private val binding: ItemInventoryListBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: InventoryListItem) = with(binding) {
@@ -49,7 +49,6 @@ class InventoryListAdapter(
             )
 
             root.setOnClickListener { onItemClick(inventory) }
-//            btnDelete.setOnClickListener { onDeleteClick(inventory) }
         }
     }
 
