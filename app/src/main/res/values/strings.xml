@@ -40,6 +40,7 @@
     <string name="new_status">Новый статус</string>
     <string name="status_edit">Редактирование статуса</string>
     <string name="save">Сохранить</string>
+    <string name="cancel">Отменить</string>
     <string name="step_edit">Изменение этапа</string>
     <string name="employee">Сотрудник</string>
     <string name="step_name">Название этапа</string>
@@ -50,7 +51,7 @@
     <string name="generate_qr">Сгенерировать QR‑код</string>
     <string name="qr_code">QR-код</string>
     <string name="employee_selection">Выбор сотрудника</string>
-    <string name="inventory">Остатки</string>
+    <string name="overview">Остатки</string>
     <string name="state_count">Количество: %1$d</string>
     <string name="employee_plan_products">Факт на дату: %1$s</string>
     <string name="shipped_by_date">Отгрузки на дату: %1$s</string>
@@ -66,7 +67,6 @@
     <string name="packaging_contents">Модули в упаковке</string>
     <string name="close">Закрыть</string>
     <string name="products_in_production">Модули в производстве</string>
-    <string name="stage">Этап</string>
     <string name="status">Статус</string>
     <string name="closed_at">Этап закрыт: %1$s</string>
     <string name="storage">Склад</string>
@@ -91,6 +91,28 @@
     <string name="orders_manage">Управление заказами</string>
     <string name="order_stats_format">Упаковок: %1$d • Модулей: %2$d</string>
     <string name="empty_orders">Список заказов пуст</string>
+    <string name="inventory_empty">Список инвентаризации пуст</string>
+    <string name="inventory_new">Новая инвентаризация</string>
+    <string name="delete_inventory_title">Удалить инвентаризацию?</string>
+    <string name="delete_inventory_message">Вы уверены, что хотите удалить инвентаризацию № %1$d?</string>
+    <string name="inventory_scanned_count">Отсканировано: %1$d</string>
+    <string name="inventory_item_scanned_at">Отсканировано: %1$s</string>
+    <string name="inventory_name_format">Инвентаризация № %1$d</string>
+    <string name="inventory_results_title">Результаты\nинвентаризации № %1$d</string>
+    <string name="inventory_summary_db">В производстве</string>
+    <string name="inventory_summary_scanned">Отсканировано</string>
+    <string name="inventory_summary_diff">Расхождения</string>
+    <string name="inventory">Инв.</string>
+    <string name="last_scanned">Последний отсканированный</string>
+    <string name="inventory_finish_button">Завершить</string>
+    <string name="inventory_add_items">Добавить</string>
+    <string name="inventory_compare_and_close">Сравнить</string>
+    <string name="inventory_status_open">Открыта</string>
+    <string name="inventory_status_closed">Закрыта</string>
+    <string name="inventory_db_count">В базе: %1$d</string>
+    <string name="inventory_missing_count">− %1$d</string>
+    <string name="inventory_unexpected_count">+ %1$d</string>
+    <string name="inventory_matched_count">= %1$d</string>
     <string name="added_modules">Собрано модулей:</string>
     <string name="no_packaging_in_order">Нет упаковок в заказе</string>
     <string name="order_progress_format">%1$d / %2$d шт.</string>
@@ -135,4 +157,9 @@
     <string name="total_completed_label">Всего изготовлено</string>
     <string name="total_label">Итого:</string>
     <string name="by_steps">По этапам</string>
+    <string name="sep_1">"   /   "</string>
+    <string name="confirm_scan">Подтвердите сканирование</string>
+    <string name="step_closed">Этап закрыт:</string>
+    <string name="step_not_found">Этап: %1$s (не найден)</string>
+    <string name="step_subtitle">Этап: %1$s</string>
 </resources>
