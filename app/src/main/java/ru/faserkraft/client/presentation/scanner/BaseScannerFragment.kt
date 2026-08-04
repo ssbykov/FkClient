@@ -17,7 +17,7 @@ abstract class BaseScannerFragment : Fragment() {
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        if (_isViewAlive()) {
+        if (isViewAlive()) {
             if (isGranted) startScannerIfNeeded()
             else Toast.makeText(
                 requireContext(),
@@ -81,20 +81,20 @@ abstract class BaseScannerFragment : Fragment() {
     // ---------- Внутреннее ----------
 
     private fun startScannerIfNeeded() {
-        if (scannerStarted || !_isViewAlive()) return
+        if (scannerStarted || !isViewAlive()) return
         scannerStarted = true
 
         getScannerView()?.decodeContinuous { result ->
             val text = result?.text ?: return@decodeContinuous
-            if (!isAdded || view == null || !_isViewAlive()) return@decodeContinuous
+            if (!isAdded || view == null || !isViewAlive()) return@decodeContinuous
             getScannerView()?.pause()
             // ← переключаемся на main thread
             view?.post {
-                if (!isAdded || !_isViewAlive()) return@post
+                if (!isAdded || !isViewAlive()) return@post
                 onBarcodeDecoded(text)
             }
         }
     }
 
-    private fun _isViewAlive() = view != null && isAdded
+    private fun isViewAlive() = view != null && isAdded
 }
