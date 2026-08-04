@@ -181,4 +181,6 @@
     <string name="action_mark_missing">Отметить отсутствие</string>
     <string name="action_correct_db_step">Исправить в учёте</string>
     <string name="action_update_db_step">Обновить учёт</string>
+    <string name="in_database">По базе данных:</string>
+    <string name="in_inventory_result">При инвентаризации:</string>
 </resources>
