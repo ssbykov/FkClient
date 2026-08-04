@@ -37,7 +37,11 @@ class InventoryConflictAdapter(
             b.tvSerialNumber.text = item.serialNumber
 
             // ── Блок «По базе данных» ───────────────────────────────
-            b.tvDbStep.text = "${item.stepDefinition.order}. ${item.stepDefinition.name}"
+            b.tvDbStep.text = ctx.getString(
+                R.string.step_order_and_name,
+                item.stepDefinition.order,
+                item.stepDefinition.name
+            )
 
             val dbStatusUi = item.status.toUiProductStatus()
             b.chipDbStatus.text = dbStatusUi.getTitle(ctx)
@@ -50,7 +54,12 @@ class InventoryConflictAdapter(
                 ConflictType.MISSING -> {
                     b.tvConflictBadge.text = ctx.getString(R.string.conflict_missing)
                     b.tvConflictBadge.setBackgroundResource(R.drawable.bg_conflict_badge_missing)
-                    b.tvConflictBadge.setTextColor(ContextCompat.getColor(ctx, R.color.status_wrong_text))
+                    b.tvConflictBadge.setTextColor(
+                        ContextCompat.getColor(
+                            ctx,
+                            R.color.status_wrong_text
+                        )
+                    )
 
                     b.tvInvStep.text = ctx.getString(R.string.not_scanned)
                     b.tvInvStep.setTextColor(ContextCompat.getColor(ctx, R.color.step_mismatch))
@@ -62,7 +71,12 @@ class InventoryConflictAdapter(
 
                 ConflictType.STEP_MISMATCH -> {
                     b.tvConflictBadge.setBackgroundResource(R.drawable.bg_conflict_badge_mismatch)
-                    b.tvConflictBadge.setTextColor(ContextCompat.getColor(ctx, R.color.status_warning_text))
+                    b.tvConflictBadge.setTextColor(
+                        ContextCompat.getColor(
+                            ctx,
+                            R.color.status_warning_text
+                        )
+                    )
 
                     b.tvInvStep.text = conflict.scannedStep
                         ?.let { "${it.order}. ${it.name}" }
@@ -93,6 +107,7 @@ class InventoryConflictAdapter(
     private object DiffCallback : DiffUtil.ItemCallback<ConflictItem>() {
         override fun areItemsTheSame(a: ConflictItem, b: ConflictItem) =
             a.item.id == b.item.id
+
         override fun areContentsTheSame(a: ConflictItem, b: ConflictItem) =
             a == b
     }

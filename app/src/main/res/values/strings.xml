@@ -162,6 +162,7 @@
     <string name="step_closed">Этап закрыт:</string>
     <string name="step_not_found">Этап: %1$s (не найден)</string>
     <string name="step_subtitle">Этап: %1$s</string>
+    <string name="step_order_and_name">%1$d. %2$s</string>
     <!-- Типы конфликтов (чип-бейдж) -->
     <string name="conflict_missing">Не найден</string>
     <string name="conflict_db_ahead">Учёт опережает</string>
