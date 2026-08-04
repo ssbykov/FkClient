@@ -107,15 +107,19 @@ class InventoryResultsFragment : Fragment() {
         }
     }
 
-    // ---------- Navigation ----------
+// ---------- Navigation ----------
 
     private fun onUnexpectedClick(result: InventoryCompareResult) {
         if (result.unexpected.isEmpty()) return
 
         val stepId = result.stepDefinition.id
+        // Переходим в универсальный фрагмент, передавая тип конфликта STEP_MISMATCH
         findNavController().navigateSafely(
             InventoryResultsFragmentDirections
-                .actionInventoryResultsFragmentToInventoryDiffDetailFragment(stepId)
+                .actionInventoryResultsFragmentToInventoryConflictDetailFragment(
+                    stepDefinitionId = stepId,
+                    conflictType = ConflictType.STEP_MISMATCH.name
+                )
         )
     }
 
@@ -123,9 +127,13 @@ class InventoryResultsFragment : Fragment() {
         if (result.missing.isEmpty()) return
 
         val stepId = result.stepDefinition.id
+        // Переходим в универсальный фрагмент, передавая тип конфликта MISSING
         findNavController().navigateSafely(
             InventoryResultsFragmentDirections
-                .actionInventoryResultsFragmentToInventoryMissingDetailFragment(stepId)
+                .actionInventoryResultsFragmentToInventoryConflictDetailFragment(
+                    stepDefinitionId = stepId,
+                    conflictType = ConflictType.MISSING.name
+                )
         )
     }
 

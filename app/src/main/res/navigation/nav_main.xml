@@ -179,8 +179,8 @@
             app:destination="@id/inventoryResultsFragment" />
 
         <action
-            android:id="@+id/action_inventoryContainerFragment_to_inventoryDiffDetailFragment"
-            app:destination="@id/inventoryDiffDetailFragment" />
+            android:id="@+id/action_inventoryContainerFragment_to_inventoryConflictDetailFragment"
+            app:destination="@id/inventoryConflictDetailFragment" />
 
         <action
             android:id="@+id/action_inventoryContainerFragment_to_inventoryListFragment"
@@ -222,38 +222,26 @@
         tools:layout="@layout/fragment_inventory_results">
 
         <action
-            android:id="@+id/action_inventoryResultsFragment_to_inventoryDiffDetailFragment"
-            app:destination="@id/inventoryDiffDetailFragment" />
-
-        <action
-            android:id="@+id/action_inventoryResultsFragment_to_inventoryMissingDetailFragment"
-            app:destination="@id/inventoryMissingDetailFragment" />
+            android:id="@+id/action_inventoryResultsFragment_to_inventoryConflictDetailFragment"
+            app:destination="@id/inventoryConflictDetailFragment" />
 
     </fragment>
 
-    <!-- Фрагмент с деталями расхождений инвентаризации -->
+    <!-- УНИВЕРСАЛЬНЫЙ ФРАГМЕНТ для деталей конфликтов (расхождений и недостач) -->
     <fragment
-        android:id="@+id/inventoryDiffDetailFragment"
-        android:name="ru.faserkraft.client.presentation.inventory.InventoryDiffDetailFragment"
-        android:label="Детали расхождений"
-        tools:layout="@layout/fragment_inventory_diff_detail">
+        android:id="@+id/inventoryConflictDetailFragment"
+        android:name="ru.faserkraft.client.presentation.inventory.InventoryConflictDetailFragment"
+        android:label="Детали конфликтов"
+        tools:layout="@layout/fragment_inventory_conflict_detail">
 
         <argument
             android:name="stepDefinitionId"
             app:argType="integer" />
-    </fragment>
-
-
-    <!-- Фрагмент с деталями недостач инвентаризации -->
-    <fragment
-        android:id="@+id/inventoryMissingDetailFragment"
-        android:name="ru.faserkraft.client.presentation.inventory.InventoryMissingDetailFragment"
-        android:label="Недостача"
-        tools:layout="@layout/fragment_inventory_missing_detail">
 
         <argument
-            android:name="stepDefinitionId"
-            app:argType="integer" />
+            android:name="conflictType"
+            app:argType="string" />
+
     </fragment>
 
     <!-- Экран сканирования -->
