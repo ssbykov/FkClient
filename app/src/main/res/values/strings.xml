@@ -162,4 +162,23 @@
     <string name="step_closed">Этап закрыт:</string>
     <string name="step_not_found">Этап: %1$s (не найден)</string>
     <string name="step_subtitle">Этап: %1$s</string>
+    <!-- Типы конфликтов (чип-бейдж) -->
+    <string name="conflict_missing">Не найден</string>
+    <string name="conflict_db_ahead">Учёт опережает</string>
+    <string name="conflict_scan_ahead">Учёт отстаёт</string>
+
+    <!-- Блок инвентаризации -->
+    <string name="not_scanned">Не обнаружен</string>
+    <string name="performed_at_label">Отсканирован: %1$s</string>
+    <string name="performed_at_none">Дата скана отсутствует</string>
+
+    <!-- Подсказки под кнопкой -->
+    <string name="hint_missing">Числится в учёте, при инвентаризации не обнаружен</string>
+    <string name="hint_db_ahead">В учёте зафиксирован более поздний этап, чем найдено физически</string>
+    <string name="hint_scan_ahead">Физически продукт дальше по процессу, чем отражено в учёте</string>
+
+    <!-- Кнопки действий -->
+    <string name="action_mark_missing">Отметить отсутствие</string>
+    <string name="action_correct_db_step">Исправить в учёте</string>
+    <string name="action_update_db_step">Обновить учёт</string>
 </resources>
