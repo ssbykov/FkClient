@@ -23,4 +23,10 @@
 
     <color name="status_wrong_bg">#FFE0E0</color>     <!-- Брак (мягкий красный) -->
     <color name="status_wrong_text">#B71C1C</color>   <!-- тёмно-красный текст -->
+
+    <!-- Несовпадение этапа или его отсутствие (красный) -->
+    <color name="step_mismatch">@color/status_wrong_text</color>
+
+    <!-- Совпадение этапа / успешный скан (зеленый) -->
+    <color name="step_match">@color/status_success_text</color>
 </resources>
