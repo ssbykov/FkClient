@@ -4,7 +4,7 @@ import ru.faserkraft.client.data.dto.InventoryItemCreateDto
 import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.domain.model.Inventory
-import ru.faserkraft.client.domain.model.InventoryCompareResult
+import ru.faserkraft.client.domain.model.ProductInventoryCompareItem
 import ru.faserkraft.client.domain.model.InventoryItem
 import ru.faserkraft.client.domain.repository.InventoryRepository
 import ru.faserkraft.client.utils.logger.Logger
@@ -50,6 +50,6 @@ class InventoryRepositoryImpl @Inject constructor(
             api.completeInventory(inventoryId)
         }.toDomain()
 
-    override suspend fun compareInventory(inventoryId: Int): List<InventoryCompareResult> =
+    override suspend fun compareInventory(inventoryId: Int): List<ProductInventoryCompareItem> =
         callApi { api.compareInventory(inventoryId) }.orEmpty().map { it.toDomain() }
 }

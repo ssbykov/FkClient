@@ -1,14 +1,14 @@
 package ru.faserkraft.client.data.mapper
 
 
-import ru.faserkraft.client.data.dto.InventoryCompareResultDto
 import ru.faserkraft.client.data.dto.InventoryDto
 import ru.faserkraft.client.data.dto.InventoryItemDto
-import ru.faserkraft.client.data.dto.ProductInventoryItemDto
+import ru.faserkraft.client.data.dto.ProductInventoryCompareItemDto
 import ru.faserkraft.client.domain.model.Inventory
-import ru.faserkraft.client.domain.model.InventoryCompareResult
 import ru.faserkraft.client.domain.model.InventoryItem
-import ru.faserkraft.client.domain.model.ProductInventoryItem
+import ru.faserkraft.client.domain.model.ProductInventoryCompareItem
+import java.time.ZonedDateTime
+import java.time.format.DateTimeParseException
 
 
 fun InventoryDto.toDomain(): Inventory = Inventory(
@@ -27,18 +27,26 @@ fun InventoryItemDto.toDomain(): InventoryItem = InventoryItem(
     scannedAt = scannedAt,
 )
 
-fun ProductInventoryItemDto.toDomain(): ProductInventoryItem = ProductInventoryItem(
-    id = id,
-    serialNumber = serialNumber,
-    status = status.toDomain(),
-    stepDefinition = stepDefinition.toDomain(),
-    performedAt = performedAt,
-)
+fun ProductInventoryCompareItemDto.toDomain(): ProductInventoryCompareItem {
 
-fun InventoryCompareResultDto.toDomain(): InventoryCompareResult = InventoryCompareResult(
-    dbCount = dbCount,
-    scannedCount = scannedCount,
-    matched = matched.map { it.toDomain() },
-    missing = missing.map { it.toDomain() },
-    unexpected = unexpected.map { it.toDomain() },
-)
+    val parsedDate = performedAt?.let { dateString ->
+        try {
+            ZonedDateTime.parse(dateString).toLocalDateTime()
+        } catch (e: DateTimeParseException) {
+            null
+        }
+    }
+
+    return ProductInventoryCompareItem(
+        id = id,
+        serialNumber = serialNumber,
+        status = status?.toDomain(),
+        inventoryStepDefinition = inventoryStepDefinition?.toDomain(),
+        accountingStepDefinition = accountingStepDefinition?.toDomain(),
+        performedAt = parsedDate
+    )
+}
+
+
+fun List<ProductInventoryCompareItemDto>.toDomain(): List<ProductInventoryCompareItem> =
+    this.map { it.toDomain() }
