@@ -1,9 +1,9 @@
 package ru.faserkraft.client.presentation.inventory
 
 import ru.faserkraft.client.domain.model.Inventory
-import ru.faserkraft.client.domain.model.InventoryCompareResult
 import ru.faserkraft.client.domain.model.InventoryItem
 import ru.faserkraft.client.domain.model.Product
+import ru.faserkraft.client.domain.model.ProductInventoryCompareItem
 import ru.faserkraft.client.domain.model.StepDefinition
 
 data class InventoryUiState(
@@ -13,7 +13,7 @@ data class InventoryUiState(
     val pendingProduct: Product? = null,
     val availableSteps: List<StepDefinition> = emptyList(),
     val preselectedStepId: Int? = null,
-    val compareResults: List<InventoryCompareResult> = emptyList(),
+    val compareResults: List<ProductInventoryCompareItem> = emptyList(),
     val isLoading: Boolean = false,
     val isActionInProgress: Boolean = false,
 ) {
