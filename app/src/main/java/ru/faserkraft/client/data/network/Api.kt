@@ -15,7 +15,6 @@ import ru.faserkraft.client.data.dto.DailyPlanStepCreateDto
 import ru.faserkraft.client.data.dto.DailyPlanStepUpdateDto
 import ru.faserkraft.client.data.dto.DayPlanDto
 import ru.faserkraft.client.data.dto.EmployeeDto
-import ru.faserkraft.client.data.dto.InventoryCompareResultDto
 import ru.faserkraft.client.data.dto.InventoryDto
 import ru.faserkraft.client.data.dto.InventoryItemCreateDto
 import ru.faserkraft.client.data.dto.InventoryItemDto
@@ -29,6 +28,7 @@ import ru.faserkraft.client.data.dto.PeriodStatisticsDto
 import ru.faserkraft.client.data.dto.ProcessDto
 import ru.faserkraft.client.data.dto.ProductCreateDto
 import ru.faserkraft.client.data.dto.ProductDto
+import ru.faserkraft.client.data.dto.ProductInventoryCompareItemDto
 import ru.faserkraft.client.data.dto.ProductShortDto
 import ru.faserkraft.client.data.dto.ProductsOverviewDto
 import ru.faserkraft.client.data.dto.QrDataResponseDto
@@ -116,7 +116,7 @@ interface Api {
     @POST(BASE_URL + "inventories/{inventory_id}/compare")
     suspend fun compareInventory(
         @Path("inventory_id") inventoryId: Int,
-    ): Response<List<InventoryCompareResultDto>>
+    ): Response<List<ProductInventoryCompareItemDto>>
 
     @DELETE("inventories/{id}")
     suspend fun deleteInventory(@Path("id") id: Int): Response<Unit>
