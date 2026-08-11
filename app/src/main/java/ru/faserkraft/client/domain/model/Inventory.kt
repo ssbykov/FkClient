@@ -1,5 +1,7 @@
 package ru.faserkraft.client.domain.model
 
+import java.time.LocalDateTime
+
 data class Inventory(
     val id: Int,
     val createdAt: String,
@@ -18,26 +20,12 @@ data class InventoryItem(
     val scannedAt: String,
 )
 
-data class ProductInventoryItem(
-    val id: Int,
+
+data class ProductInventoryCompareItem(
+    val id: Int?,
     val serialNumber: String,
-    val status: ProductStatus,
-    val stepDefinition: StepDefinitionWithProcess,
-    val performedAt: String,
+    val status: ProductStatus?,
+    val inventoryStepDefinition: StepDefinitionWithProcess?,
+    val accountingStepDefinition: StepDefinitionWithProcess?,
+    val performedAt: LocalDateTime?
 )
-
-data class InventoryCompareResult(
-    val dbCount: Int,
-    val scannedCount: Int,
-    val matched: List<ProductInventoryItem>,
-    val missing: List<ProductInventoryItem>,
-    val unexpected: List<ProductInventoryItem>,
-) {
-
-    val stepDefinition: StepDefinitionWithProcess
-        get() = matched.firstOrNull()?.stepDefinition
-            ?: missing.firstOrNull()?.stepDefinition
-            ?: unexpected.first().stepDefinition
-
-    val hasDiff: Boolean get() = missing.isNotEmpty() || unexpected.isNotEmpty()
-}
