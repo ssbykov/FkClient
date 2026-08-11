@@ -185,10 +185,11 @@
 
     <!-- Сводка инвентаризации -->
     <string name="inventory_by_stages">Остатки по этапам</string>
-    <string name="inventory_results_title">Результаты\nинвентаризации № %1$d</string>
+    <string name="inventory_results_title">Инвентаризация № %1$d</string>
     <string name="inventory_summary_db">В производстве</string>
     <string name="inventory_summary_scanned">Отсканировано</string>
     <string name="inventory_summary_diff">Расхождения</string>
+    <string name="product_status_format">Статус: %s</string>
 
     <!-- Счетчики -->
     <string name="inventory_db_count">В базе: %1$d</string>
