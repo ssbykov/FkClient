@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.domain.model.Inventory
+import ru.faserkraft.client.domain.model.InventoryItem
 import ru.faserkraft.client.domain.usecase.inventory.CompareInventoryUseCase
-import ru.faserkraft.client.domain.usecase.inventory.CompleteInventoryUseCase
 import ru.faserkraft.client.domain.usecase.inventory.CreateInventoryUseCase
 import ru.faserkraft.client.domain.usecase.inventory.DeleteInventoryUseCase
 import ru.faserkraft.client.domain.usecase.inventory.GetInventoriesUseCase
@@ -28,7 +28,6 @@ class InventoryViewModel @Inject constructor(
     private val deleteInventoryUseCase: DeleteInventoryUseCase,
     private val getInventoryItemsUseCase: GetInventoryItemsUseCase,
     private val upsertInventoryItemUseCase: UpsertInventoryItemUseCase,
-    private val completeInventoryUseCase: CompleteInventoryUseCase,
     private val compareInventoryUseCase: CompareInventoryUseCase,
     private val getProductUseCase: GetProductUseCase,
 ) : ViewModel() {
@@ -225,40 +224,33 @@ class InventoryViewModel @Inject constructor(
         }
     }
 
-    fun completeInventory() {
-        val inventoryId = _uiState.value.currentInventory?.id ?: return
-        viewModelScope.launch {
-            _uiState.update { it.copy(isActionInProgress = true) }
-            runCatching { completeInventoryUseCase(inventoryId) }
-                .onSuccess { updatedInventory ->
-                    _uiState.update {
-                        it.copy(
-                            currentInventory = updatedInventory,
-                            isActionInProgress = false,
-                        )
-                    }
-                    compareInventory()
-                }
-                .onFailure { error ->
-                    _uiState.update { it.copy(isActionInProgress = false) }
-                    emitError(error)
-                }
-        }
-    }
-
     fun compareInventory() {
         val inventoryId = _uiState.value.currentInventory?.id ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(isActionInProgress = true) }
             runCatching { compareInventoryUseCase(inventoryId) }
                 .onSuccess { results ->
-                    _uiState.update {
-                        it.copy(
+                    _uiState.update { state ->
+
+                        // Собираем все фактически отсканированные элементы
+                        val allScannedItems = results.mapNotNull { item ->
+                            val invStep = item.inventoryStepDefinition ?: return@mapNotNull null
+
+                            InventoryItem(
+                                id = item.id ?: 0,
+                                inventoryId = inventoryId,
+                                serialNumber = item.serialNumber,
+                                stepDefinition = invStep, // Теперь типы идеально совпадают!
+                                scannedAt = item.performedAt?.toString() ?: ""
+                            )
+                        }
+
+                        state.copy(
                             compareResults = results,
+                            currentInventoryItems = allScannedItems,
                             isActionInProgress = false,
                         )
                     }
-                    android.util.Log.d("INV_DEBUG", "send NavigateToResults")
                     _events.send(InventoryEvent.NavigateToResults)
                 }
                 .onFailure { error ->
