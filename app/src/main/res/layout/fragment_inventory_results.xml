@@ -121,7 +121,7 @@
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Все продукты" />
+                            android:text="@string/inventory_filter_all" />
                     </com.google.android.material.button.MaterialButtonToggleGroup>
 
                     <!-- Ряд 2: Внутренние расхождения -->
@@ -139,7 +139,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:paddingHorizontal="4dp"
-                            android:text="ОК"
+                            android:text="@string/inventory_filter_matched"
                             app:icon="@drawable/ic_check_circle"
                             app:iconGravity="textStart"
                             app:iconPadding="4dp" />
@@ -151,7 +151,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:paddingHorizontal="4dp"
-                            android:text="Нехватка"
+                            android:text="@string/inventory_filter_missing"
                             app:icon="@drawable/ic_error_outline"
                             app:iconGravity="textStart"
                             app:iconPadding="4dp" />
@@ -163,7 +163,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:paddingHorizontal="4dp"
-                            android:text="Ошибка"
+                            android:text="@string/inventory_filter_mismatch"
                             app:icon="@drawable/ic_warning"
                             app:iconGravity="textStart"
                             app:iconPadding="4dp" />
@@ -183,7 +183,7 @@
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Лишние"
+                            android:text="@string/inventory_filter_unexpected"
                             app:iconGravity="textStart" />
                     </com.google.android.material.button.MaterialButtonToggleGroup>
 

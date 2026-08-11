@@ -208,6 +208,25 @@
 
     <string name="inventory_empty">Список инвентаризации пуст</string>
 
+    <!-- Статусы расхождений в инвентаризации -->
+    <string name="inventory_status_missing">Отсутствует</string>
+    <string name="inventory_status_unexpected">Лишний</string>
+    <string name="inventory_status_mismatch">Ошибка этапа</string>
+    <string name="inventory_status_matched">Совпал</string>
+
+    <!-- Фильтры инвентаризации -->
+    <string name="inventory_filter_all">Все продукты</string>
+    <string name="inventory_filter_matched">ОК</string>
+    <string name="inventory_filter_missing">Нехватка</string>
+    <string name="inventory_filter_mismatch">Ошибка</string>
+    <string name="inventory_filter_unexpected">Лишние</string>
+
+    <!-- Карточка продукта в результатах инвентаризации -->
+    <string name="inventory_step_accounting_label">По учету:</string>
+    <string name="inventory_step_inventory_label">Фактически:</string>
+    <string name="inventory_step_none_accounting">Отсутствует/Упакован</string>
+    <string name="inventory_step_none_scanned">Не отсканирован</string>
+
     <!-- ============================================== -->
     <!-- КОНФЛИКТЫ ИНВЕНТАРИЗАЦИИ / INVENTORY CONFLICTS -->
     <!-- ============================================== -->
