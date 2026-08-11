@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -11,9 +12,24 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentInventoryResultsBinding
-import ru.faserkraft.client.domain.model.InventoryCompareResult
+import ru.faserkraft.client.domain.model.ProductInventoryCompareItem
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.navigateSafely
+
+// Единый enum для всех статусов расхождений
+enum class CompareStatus {
+    MATCHED, MISSING, UNEXPECTED, STEP_MISMATCH
+}
+
+// Extension-свойство для вычисления статуса элемента
+val ProductInventoryCompareItem.compareStatus: CompareStatus
+    get() = when {
+        inventoryStepDefinition == null && accountingStepDefinition != null -> CompareStatus.MISSING
+        inventoryStepDefinition != null && accountingStepDefinition == null -> CompareStatus.UNEXPECTED
+        inventoryStepDefinition != null && accountingStepDefinition != null && inventoryStepDefinition.id != accountingStepDefinition.id -> CompareStatus.STEP_MISMATCH
+        else -> CompareStatus.MATCHED
+    }
+
 
 @AndroidEntryPoint
 class InventoryResultsFragment : Fragment() {
@@ -23,10 +39,20 @@ class InventoryResultsFragment : Fragment() {
     private var _binding: FragmentInventoryResultsBinding? = null
     private val binding get() = _binding!!
 
-    private val adapter = InventoryResultsAdapter(
-        onUnexpectedClick = ::onUnexpectedClick,
-        onMissingClick = ::onMissingClick
+    // Адаптер для отображения карточек продуктов
+    private val adapter = InventoryProductResultsAdapter(
+        onItemClick = ::onProductClick
     )
+
+    // Исходный список от API
+    private var allProducts: List<ProductInventoryCompareItem> = emptyList()
+
+    // Текущие фильтры (null означает выбор "Все")
+    private var currentSearchQuery = ""
+    private var currentFilterType: CompareStatus? = null
+
+    // Флаг для предотвращения зацикливания при программном переключении кнопок
+    private var isUpdatingFilters = false
 
     // ---------- Lifecycle ----------
 
@@ -43,6 +69,8 @@ class InventoryResultsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupToolbar()
         setupRecyclerView()
+        setupSearch()
+        setupFilters()
         observeState()
     }
 
@@ -65,76 +93,165 @@ class InventoryResultsFragment : Fragment() {
         binding.rvResults.adapter = adapter
     }
 
+    private fun setupSearch() {
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                binding.searchView.clearFocus()
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                currentSearchQuery = newText?.trim() ?: ""
+                applyFilters()
+                return true
+            }
+        })
+    }
+
+    // ---------- Filters Setup & Logic ----------
+
+    private fun setupFilters() {
+        // По умолчанию выбираем "Все"
+        checkFilter(R.id.btnFilterAll)
+
+        // Список всех кнопок-фильтров
+        val filterButtons = listOf(
+            binding.btnFilterAll,
+            binding.btnFilterMatched,
+            binding.btnFilterMissing,
+            binding.btnFilterMismatch,
+            binding.btnFilterUnexpected
+        )
+
+        // Вешаем простой клик на каждую кнопку
+        filterButtons.forEach { btn ->
+            btn.setOnClickListener { checkFilter(btn.id) }
+        }
+    }
+
+    // Централизованная функция переключения фильтров между тремя группами
+    private fun checkFilter(checkedId: Int) {
+        if (isUpdatingFilters) return
+        isUpdatingFilters = true
+
+        val allGroups = listOf(
+            binding.toggleGroupAll,
+            binding.toggleGroupStatus,
+            binding.toggleGroupUnexpected
+        )
+
+        // Определяем, к какой группе принадлежит нажатая кнопка
+        val targetGroup = when (checkedId) {
+            R.id.btnFilterAll -> binding.toggleGroupAll
+            R.id.btnFilterUnexpected -> binding.toggleGroupUnexpected
+            else -> binding.toggleGroupStatus
+        }
+
+        // Обновляем визуальное состояние групп
+        allGroups.forEach { group ->
+            if (group == targetGroup) {
+                if (group.checkedButtonId != checkedId) {
+                    group.check(checkedId)
+                }
+            } else {
+                group.clearChecked()
+            }
+        }
+
+        // Определяем, какой статус искать в списке (null = показываем все)
+        currentFilterType = when (checkedId) {
+            R.id.btnFilterMatched -> CompareStatus.MATCHED
+            R.id.btnFilterMissing -> CompareStatus.MISSING
+            R.id.btnFilterMismatch -> CompareStatus.STEP_MISMATCH
+            R.id.btnFilterUnexpected -> CompareStatus.UNEXPECTED
+            else -> null
+        }
+
+        isUpdatingFilters = false
+        applyFilters()
+    }
+
+    // Динамически показываем/скрываем третью строку с "Лишними"
+    private fun updateUnexpectedVisibility() {
+        val hasUnexpected = allProducts.any { it.compareStatus == CompareStatus.UNEXPECTED }
+
+        binding.toggleGroupUnexpected.visibility = if (hasUnexpected) View.VISIBLE else View.GONE
+
+        // Если пользователь выбрал фильтр "Лишние", но данные обновились и лишних больше нет —
+        // сбрасываем фильтр на "Все", чтобы не показывать пустой экран
+        if (!hasUnexpected && currentFilterType == CompareStatus.UNEXPECTED) {
+            checkFilter(R.id.btnFilterAll)
+        }
+    }
+
     // ---------- Observers ----------
 
     private fun observeState() {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
-            val results = state.compareResults
 
-            adapter.submitList(buildListItems(results))
+            allProducts = state.compareResults
 
-            b.toolbarTitle.text = getString(R.string.inventory_results_title, state.currentInventory?.id)
+            b.toolbarTitle.text =
+                getString(R.string.inventory_results_title, state.currentInventory?.id)
 
-            b.tvDbTotal.text = results.sumOf { it.dbCount }.toString()
-            b.tvScannedTotal.text = results.sumOf { it.scannedCount }.toString()
+            // Подсчет сводки по плоскому списку, опираясь на compareStatus
+            val dbTotal = allProducts.count { it.accountingStepDefinition != null }
+            val scannedTotal = allProducts.count { it.inventoryStepDefinition != null }
+            val diffTotal = allProducts.count { it.compareStatus != CompareStatus.MATCHED }
 
-            val totalDiff = results.sumOf { it.missing.size + it.unexpected.size }
-            b.tvDiffTotal.text = totalDiff.toString()
+            b.tvDbTotal.text = dbTotal.toString()
+            b.tvScannedTotal.text = scannedTotal.toString()
+            b.tvDiffTotal.text = diffTotal.toString()
+
+            // Обновляем UI фильтров и применяем их
+            updateUnexpectedVisibility()
+            applyFilters()
         }
     }
 
-    // ---------- List building ----------
+    // ---------- Filtering ----------
 
-    private fun buildListItems(
-        results: List<InventoryCompareResult>,
-    ): List<InventoryResultListItem> = buildList {
-        // Группируем строго по ID процесса (теперь он точно Int)
-        val grouped = results.groupBy { it.stepDefinition.process.id }
-        val sortedKeys = grouped.keys.sorted() // Обычная сортировка чисел
+    private fun applyFilters() {
+        var filteredList = allProducts
 
-        for (processId in sortedKeys) {
-            val items = grouped.getValue(processId)
-
-            // Имя берем из первого элемента
-            val processName = items.first().stepDefinition.process.name
-
-            add(InventoryResultListItem.Header(processId, processName))
-
-            // Сортируем по порядку этапа
-            val sortedItems = items.sortedBy { it.stepDefinition.order }
-            sortedItems.forEach { add(InventoryResultListItem.Result(it)) }
+        // 1. Применяем текстовый поиск (по серийному номеру)
+        if (currentSearchQuery.isNotEmpty()) {
+            filteredList = filteredList.filter {
+                it.serialNumber.contains(currentSearchQuery, ignoreCase = true)
+            }
         }
+
+        // 2. Применяем фильтр по выбранной кнопке (если не выбрана "Все")
+        if (currentFilterType != null) {
+            filteredList = filteredList.filter { it.compareStatus == currentFilterType }
+        }
+
+        adapter.submitList(filteredList)
     }
 
-// ---------- Navigation ----------
+    // ---------- Navigation ----------
 
-    private fun onUnexpectedClick(result: InventoryCompareResult) {
-        if (result.unexpected.isEmpty()) return
+    private fun onProductClick(item: ProductInventoryCompareItem) {
+        if (item.compareStatus == CompareStatus.MATCHED) return
 
-        val stepId = result.stepDefinition.id
-        // Переходим в универсальный фрагмент, передавая тип конфликта STEP_MISMATCH
+        // Определяем ID этапа, страницу которого нужно открыть
+        val stepId = when (item.compareStatus) {
+            CompareStatus.MISSING -> item.accountingStepDefinition?.id
+            CompareStatus.UNEXPECTED,
+            CompareStatus.STEP_MISMATCH -> item.inventoryStepDefinition?.id
+            CompareStatus.MATCHED -> null
+        } ?: return
+
+        // Используем имя из CompareStatus вместо удаленного ConflictType
+        val conflictName = item.compareStatus.name
+
         findNavController().navigateSafely(
             InventoryResultsFragmentDirections
                 .actionInventoryResultsFragmentToInventoryConflictDetailFragment(
                     stepDefinitionId = stepId,
-                    conflictType = ConflictType.STEP_MISMATCH.name
+                    conflictType = conflictName
                 )
         )
     }
-
-    private fun onMissingClick(result: InventoryCompareResult) {
-        if (result.missing.isEmpty()) return
-
-        val stepId = result.stepDefinition.id
-        // Переходим в универсальный фрагмент, передавая тип конфликта MISSING
-        findNavController().navigateSafely(
-            InventoryResultsFragmentDirections
-                .actionInventoryResultsFragmentToInventoryConflictDetailFragment(
-                    stepDefinitionId = stepId,
-                    conflictType = ConflictType.MISSING.name
-                )
-        )
-    }
-
 }

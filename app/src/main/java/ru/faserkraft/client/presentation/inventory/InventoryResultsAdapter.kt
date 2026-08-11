@@ -1,118 +1,126 @@
 package ru.faserkraft.client.presentation.inventory
 
+import android.content.res.ColorStateList
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.R
-import ru.faserkraft.client.databinding.ItemInventoryResultBinding
-import ru.faserkraft.client.databinding.ItemInventoryResultHeaderBinding
-import ru.faserkraft.client.domain.model.InventoryCompareResult
+import ru.faserkraft.client.databinding.ItemInventoryProductResultBinding
+import ru.faserkraft.client.domain.model.ProductInventoryCompareItem
 
-sealed class InventoryResultListItem {
-    data class Header(val processId: Int, val processName: String) : InventoryResultListItem()
-    data class Result(val data: InventoryCompareResult) : InventoryResultListItem()
-}
+class InventoryProductResultsAdapter(
+    private val onItemClick: (ProductInventoryCompareItem) -> Unit
+) : ListAdapter<ProductInventoryCompareItem, InventoryProductResultsAdapter.ProductViewHolder>(DiffCallback) {
 
-class InventoryResultsAdapter(
-    private val onUnexpectedClick: (InventoryCompareResult) -> Unit,
-    private val onMissingClick: (InventoryCompareResult) -> Unit,
-) : ListAdapter<InventoryResultListItem, RecyclerView.ViewHolder>(DiffCallback) {
-
-    // ---------- ViewHolders ----------
-
-    class HeaderViewHolder(
-        private val binding: ItemInventoryResultHeaderBinding,
-    ) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: InventoryResultListItem.Header) {
-            binding.tvProcessName.text = item.processName
-        }
-    }
-
-    inner class ResultViewHolder(
-        private val binding: ItemInventoryResultBinding,
+    inner class ProductViewHolder(
+        private val binding: ItemInventoryProductResultBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: InventoryResultListItem.Result) = with(binding) {
-            val result = item.data
-
-            tvStepName.text = result.stepDefinition.name
-
-            tvDbCount.text = root.context.getString(R.string.inventory_db_count, result.dbCount)
-            tvScannedCount.text =
-                root.context.getString(R.string.inventory_scanned_count, result.scannedCount)
-
-            tvMissingChip.text =
-                root.context.getString(R.string.inventory_missing_count, result.missing.size)
-
-            tvUnexpectedChip.text =
-                root.context.getString(R.string.inventory_unexpected_count, result.unexpected.size)
-
-            tvOkChip.text =
-                root.context.getString(R.string.inventory_matched_count, result.matched.size)
-
-            tvUnexpectedChip.setOnClickListener {
-                onUnexpectedClick(result)
-            }
-
-            tvMissingChip.setOnClickListener {
-                onMissingClick(result)
+        init {
+            binding.root.setOnClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onItemClick(getItem(position))
+                }
             }
         }
-    }
 
-    // ---------- Adapter ----------
+        fun bind(item: ProductInventoryCompareItem) = with(binding) {
+            val context = root.context
+            tvSerialNumber.text = item.serialNumber
 
-    override fun getItemViewType(position: Int) = when (getItem(position)) {
-        is InventoryResultListItem.Header -> VIEW_TYPE_HEADER
-        is InventoryResultListItem.Result -> VIEW_TYPE_RESULT
-    }
+            // 1. Статус продукта
+            val dbStatusText = when (item.status?.name) {
+                "IN_PRODUCTION" -> "В производстве"
+                "PACKAGED" -> "Упакован"
+                "SHIPPED" -> "Отгружен"
+                "DEFECTIVE" -> "Брак"
+                null -> "Неизвестно"
+                else -> item.status.name
+            }
+            tvProductStatus.text = context.getString(R.string.product_status_format, dbStatusText)
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val inflater = LayoutInflater.from(parent.context)
-        return when (viewType) {
-            VIEW_TYPE_HEADER -> HeaderViewHolder(
-                ItemInventoryResultHeaderBinding.inflate(inflater, parent, false)
-            )
+            // 2. Названия этапов
+            val accStep = item.accountingStepDefinition
+            val invStep = item.inventoryStepDefinition
 
-            else -> ResultViewHolder(
-                ItemInventoryResultBinding.inflate(inflater, parent, false)
-            )
+            tvAccountingStep.text = accStep?.name ?: "Отсутствует/Упакован"
+            tvInventoryStep.text = invStep?.name ?: "Не отсканирован"
+
+            // 3. Определение статуса расхождения через CompareStatus
+            val (statusText, colorResId, iconRes) = when (item.compareStatus) {
+                CompareStatus.MISSING -> Triple(
+                    "ОТСУТСТВУЕТ",
+                    R.color.step_mismatch,
+                    R.drawable.ic_error_outline
+                )
+                CompareStatus.UNEXPECTED -> Triple(
+                    "ЛИШНИЙ",
+                    R.color.step_mismatch,
+                    R.drawable.ic_warning
+                )
+                CompareStatus.STEP_MISMATCH -> Triple(
+                    "ОШИБКА ЭТАПА",
+                    R.color.step_mismatch,
+                    R.drawable.ic_warning
+                )
+                CompareStatus.MATCHED -> Triple(
+                    "СОВПАЛ",
+                    R.color.step_match,
+                    R.drawable.ic_check_circle
+                )
+            }
+
+            // 4. Применение текстов и иконок
+            tvStatusLabel.text = statusText
+            ivStatusIcon.setImageResource(iconRes)
+
+            // 5. Разрешение цветов (прямо из R.color)
+            val resolvedColor = ContextCompat.getColor(context, colorResId)
+
+            tvStatusLabel.setTextColor(resolvedColor)
+            ivStatusIcon.imageTintList = ColorStateList.valueOf(resolvedColor)
+
+            // 6. Подсветка текста этапа инвентаризации при несовпадении
+            if (item.compareStatus != CompareStatus.MATCHED) {
+                tvInventoryStep.setTextColor(resolvedColor)
+            } else {
+                // Извлечение цвета colorOnSurface из темы
+                val typedValue = TypedValue()
+                context.theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true)
+                tvInventoryStep.setTextColor(ContextCompat.getColor(context, typedValue.resourceId))
+            }
         }
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when (val item = getItem(position)) {
-            is InventoryResultListItem.Header -> (holder as HeaderViewHolder).bind(item)
-            is InventoryResultListItem.Result -> (holder as ResultViewHolder).bind(item)
-        }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
+        val binding = ItemInventoryProductResultBinding.inflate(
+            LayoutInflater.from(parent.context), parent, false
+        )
+        return ProductViewHolder(binding)
     }
 
-    // ---------- DiffCallback ----------
+    override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
+        holder.bind(getItem(position))
+    }
 
-    private object DiffCallback : DiffUtil.ItemCallback<InventoryResultListItem>() {
+    private object DiffCallback : DiffUtil.ItemCallback<ProductInventoryCompareItem>() {
         override fun areItemsTheSame(
-            a: InventoryResultListItem,
-            b: InventoryResultListItem,
-        ) = when (a) {
-            is InventoryResultListItem.Header if b is InventoryResultListItem.Header ->
-                a.processId == b.processId
-
-            is InventoryResultListItem.Result if b is InventoryResultListItem.Result ->
-                a.data.stepDefinition.id == b.data.stepDefinition.id
-
-            else -> false
+            oldItem: ProductInventoryCompareItem,
+            newItem: ProductInventoryCompareItem
+        ): Boolean {
+            return oldItem.serialNumber == newItem.serialNumber
         }
 
         override fun areContentsTheSame(
-            a: InventoryResultListItem,
-            b: InventoryResultListItem,
-        ) = a == b
-    }
-
-    companion object {
-        private const val VIEW_TYPE_HEADER = 0
-        private const val VIEW_TYPE_RESULT = 1
+            oldItem: ProductInventoryCompareItem,
+            newItem: ProductInventoryCompareItem
+        ): Boolean {
+            return oldItem == newItem
+        }
     }
 }

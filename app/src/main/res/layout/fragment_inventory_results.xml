@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Корневой макет теперь LinearLayout -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:orientation="vertical"
     tools:context=".presentation.inventory.InventoryResultsFragment">
 
+    <!-- 1. Тулбар вынесен на самый верх. Он всегда статичен и никуда не уезжает -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="?attr/actionBarSize"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         app:title="">
 
         <TextView
@@ -21,123 +22,191 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="start|center_vertical"
-            android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:textAppearance="?attr/textAppearanceHeadlineSmall"
             android:textColor="?attr/colorOnSurface"
-            tools:text="Результаты инвентаризации № 42" />
+            tools:text="Инвентаризация № 42" />
     </com.google.android.material.appbar.MaterialToolbar>
 
-    <!-- Сводка вверху -->
-    <LinearLayout
-        android:id="@+id/llSummary"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+    <!-- 2. CoordinatorLayout теперь отвечает ТОЛЬКО за фильтры и список -->
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <!-- В базе -->
-        <LinearLayout
-            android:layout_width="0dp"
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
+            android:background="@android:color/transparent"
+            app:elevation="0dp"
+            app:liftOnScroll="false">
 
-            <TextView
-                android:id="@+id/tvDbTotal"
-                android:layout_width="wrap_content"
+            <!-- 3. Теперь блок фильтров — единственный и первый элемент в AppBarLayout.
+                 Скролл будет работать безупречно. -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                tools:text="120" />
+                android:orientation="vertical"
+                app:layout_scrollFlags="scroll|enterAlways">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/inventory_summary_db"
-                android:textSize="12sp"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:gravity="center" />
-        </LinearLayout>
+                <!-- Сводка вверху -->
+                <LinearLayout
+                    android:id="@+id/llSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
 
-        <!-- Отсканировано -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView android:id="@+id/tvDbTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="22sp" android:textStyle="bold" tools:text="120" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:text="@string/inventory_summary_db" android:textColor="?attr/colorOnSurfaceVariant" android:textSize="12sp" />
+                    </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvScannedTotal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                tools:text="118" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView android:id="@+id/tvScannedTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="22sp" android:textStyle="bold" tools:text="118" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:text="@string/inventory_summary_scanned" android:textColor="?attr/colorOnSurfaceVariant" android:textSize="12sp" />
+                    </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/inventory_summary_scanned"
-                android:textSize="12sp"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:gravity="center" />
-        </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+                        <TextView android:id="@+id/tvDiffTotal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="22sp" android:textStyle="bold" tools:text="4" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:text="@string/inventory_summary_diff" android:textColor="?attr/colorOnSurfaceVariant" android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
 
-        <!-- Расхождения -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
+                <!-- Поиск -->
+                <androidx.appcompat.widget.SearchView
+                    android:id="@+id/searchView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_search_view"
+                    app:iconifiedByDefault="false"
+                    app:queryBackground="@android:color/transparent"
+                    app:queryHint="Поиск по серийному номеру..." />
 
-            <TextView
-                android:id="@+id/tvDiffTotal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                tools:text="4" />
+                <!-- Фильтры -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/inventory_summary_diff"
-                android:textSize="12sp"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:gravity="center" />
-        </LinearLayout>
+                    <!-- Ряд 1: Все -->
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/toggleGroupAll"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:singleSelection="true">
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnFilterAll"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Все продукты" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
 
-    </LinearLayout>
-    <View
-        android:id="@+id/divider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_marginTop="12dp"
-        android:background="?attr/colorOutline"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/llSummary" />
+                    <!-- Ряд 2: Внутренние расхождения -->
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/toggleGroupStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        app:singleSelection="true">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvResults"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:clipToPadding="false"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/divider"
-        tools:listitem="@layout/item_inventory_result" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnFilterMatched"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:paddingHorizontal="4dp"
+                            android:text="ОК"
+                            app:icon="@drawable/ic_check_circle"
+                            app:iconGravity="textStart"
+                            app:iconPadding="4dp" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnFilterMissing"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:paddingHorizontal="4dp"
+                            android:text="Нехватка"
+                            app:icon="@drawable/ic_error_outline"
+                            app:iconGravity="textStart"
+                            app:iconPadding="4dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnFilterMismatch"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:paddingHorizontal="4dp"
+                            android:text="Ошибка"
+                            app:icon="@drawable/ic_warning"
+                            app:iconGravity="textStart"
+                            app:iconPadding="4dp" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                    <!-- Ряд 3: Лишние (Скрыт по умолчанию) -->
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/toggleGroupUnexpected"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:visibility="gone"
+                        app:singleSelection="true"
+                        tools:visibility="visible">
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnFilterUnexpected"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Лишние"
+                            app:iconGravity="textStart" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                </LinearLayout>
+
+                <View
+                    android:id="@+id/divider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="8dp"
+                    android:background="?attr/colorOutlineVariant" />
+            </LinearLayout>
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <!-- Список. Связывается с AppBarLayout через layout_behavior -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvResults"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="8dp"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            tools:listitem="@layout/item_inventory_product_result" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</LinearLayout>
