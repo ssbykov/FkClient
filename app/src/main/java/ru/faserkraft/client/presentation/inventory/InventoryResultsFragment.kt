@@ -4,7 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -13,6 +15,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentInventoryResultsBinding
 import ru.faserkraft.client.domain.model.ProductInventoryCompareItem
+import ru.faserkraft.client.presentation.product.detail.ProductEvent
+import ru.faserkraft.client.presentation.product.detail.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.navigateSafely
 
@@ -35,6 +39,8 @@ val ProductInventoryCompareItem.compareStatus: CompareStatus
 class InventoryResultsFragment : Fragment() {
 
     private val viewModel: InventoryViewModel by activityViewModels()
+
+    private val productViewModel: ProductViewModel by activityViewModels()
 
     private var _binding: FragmentInventoryResultsBinding? = null
     private val binding get() = _binding!!
@@ -67,11 +73,14 @@ class InventoryResultsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         setupToolbar()
         setupRecyclerView()
         setupSearch()
         setupFilters()
         observeState()
+        observeEvents()
+        observeProductLoading()
     }
 
     override fun onDestroyView() {
@@ -94,6 +103,10 @@ class InventoryResultsFragment : Fragment() {
     }
 
     private fun setupSearch() {
+        if (currentSearchQuery.isNotEmpty()) {
+            binding.searchView.setQuery(currentSearchQuery, false)
+        }
+
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 binding.searchView.clearFocus()
@@ -111,10 +124,6 @@ class InventoryResultsFragment : Fragment() {
     // ---------- Filters Setup & Logic ----------
 
     private fun setupFilters() {
-        // По умолчанию выбираем "Все"
-        checkFilter(R.id.btnFilterAll)
-
-        // Список всех кнопок-фильтров
         val filterButtons = listOf(
             binding.btnFilterAll,
             binding.btnFilterMatched,
@@ -123,10 +132,18 @@ class InventoryResultsFragment : Fragment() {
             binding.btnFilterUnexpected
         )
 
-        // Вешаем простой клик на каждую кнопку
         filterButtons.forEach { btn ->
             btn.setOnClickListener { checkFilter(btn.id) }
         }
+
+        val initialButtonId = when (currentFilterType) {
+            CompareStatus.MATCHED -> R.id.btnFilterMatched
+            CompareStatus.MISSING -> R.id.btnFilterMissing
+            CompareStatus.STEP_MISMATCH -> R.id.btnFilterMismatch
+            CompareStatus.UNEXPECTED -> R.id.btnFilterUnexpected
+            null -> R.id.btnFilterAll
+        }
+        checkFilter(initialButtonId)
     }
 
     // Централизованная функция переключения фильтров между тремя группами
@@ -210,6 +227,51 @@ class InventoryResultsFragment : Fragment() {
         }
     }
 
+    private fun observeEvents() {
+        // События жизненного цикла продукта
+        collectFlow(productViewModel.events) { event ->
+            when (event) {
+                is ProductEvent.NavigateToProduct -> {
+                    findNavController().navigateSafely(
+                        InventoryResultsFragmentDirections
+                            .actionInventoryResultsFragmentToProductFullFragment()
+                    )
+                }
+
+                is ProductEvent.NavigateToNewProduct -> {
+                    Toast.makeText(
+                        requireContext(),
+                        "Продукт не найден", // или "Продукт не найден"
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                else -> Unit
+            }
+        }
+
+        // События инвентаризации
+        collectFlow(viewModel.events) { event ->
+            when (event) {
+                is InventoryEvent.ShowError -> {
+                    Toast.makeText(requireContext(), event.message, Toast.LENGTH_LONG).show()
+                }
+
+                else -> Unit
+            }
+        }
+    }
+
+    private fun observeProductLoading() {
+        collectFlow(productViewModel.uiState) { state ->
+            val b = _binding ?: return@collectFlow
+
+            // Показываем/скрываем ProgressBar и блокируем повторные клики
+            b.progressBar.isVisible = state.isLoading
+            b.rvResults.isEnabled = !state.isLoading
+        }
+    }
+
     // ---------- Filtering ----------
 
     private fun applyFilters() {
@@ -233,25 +295,7 @@ class InventoryResultsFragment : Fragment() {
     // ---------- Navigation ----------
 
     private fun onProductClick(item: ProductInventoryCompareItem) {
-        if (item.compareStatus == CompareStatus.MATCHED) return
-
-        // Определяем ID этапа, страницу которого нужно открыть
-        val stepId = when (item.compareStatus) {
-            CompareStatus.MISSING -> item.accountingStepDefinition?.id
-            CompareStatus.UNEXPECTED,
-            CompareStatus.STEP_MISMATCH -> item.inventoryStepDefinition?.id
-            CompareStatus.MATCHED -> null
-        } ?: return
-
-        // Используем имя из CompareStatus вместо удаленного ConflictType
-        val conflictName = item.compareStatus.name
-
-        findNavController().navigateSafely(
-            InventoryResultsFragmentDirections
-                .actionInventoryResultsFragmentToInventoryConflictDetailFragment(
-                    stepDefinitionId = stepId,
-                    conflictType = conflictName
-                )
-        )
+        if (productViewModel.uiState.value.isLoading) return
+        productViewModel.loadProduct(item.serialNumber)
     }
 }
