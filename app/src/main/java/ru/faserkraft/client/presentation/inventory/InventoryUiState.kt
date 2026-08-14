@@ -11,6 +11,7 @@ data class InventoryUiState(
     val currentInventory: Inventory? = null,
     val currentInventoryItems: List<InventoryItem> = emptyList(),
     val pendingProduct: Product? = null,
+    val selectedProduct: Product? = null,
     val availableSteps: List<StepDefinition> = emptyList(),
     val preselectedStepId: Int? = null,
     val compareResults: List<ProductInventoryCompareItem> = emptyList(),
