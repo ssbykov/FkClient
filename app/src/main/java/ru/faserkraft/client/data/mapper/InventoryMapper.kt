@@ -40,7 +40,7 @@ fun ProductInventoryCompareItemDto.toDomain(): ProductInventoryCompareItem {
     return ProductInventoryCompareItem(
         id = id,
         serialNumber = serialNumber,
-        status = status?.toDomain(),
+        status = status.toDomain(),
         inventoryStepDefinition = inventoryStepDefinition?.toDomain(),
         accountingStepDefinition = accountingStepDefinition?.toDomain(),
         performedAt = parsedDate
