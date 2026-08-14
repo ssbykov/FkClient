@@ -11,10 +11,13 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemInventoryProductResultBinding
 import ru.faserkraft.client.domain.model.ProductInventoryCompareItem
+import ru.faserkraft.client.presentation.product.detail.toUiProductStatus
 
 class InventoryProductResultsAdapter(
     private val onItemClick: (ProductInventoryCompareItem) -> Unit
-) : ListAdapter<ProductInventoryCompareItem, InventoryProductResultsAdapter.ProductViewHolder>(DiffCallback) {
+) : ListAdapter<ProductInventoryCompareItem, InventoryProductResultsAdapter.ProductViewHolder>(
+    DiffCallback
+) {
 
     inner class ProductViewHolder(
         private val binding: ItemInventoryProductResultBinding
@@ -34,15 +37,9 @@ class InventoryProductResultsAdapter(
             tvSerialNumber.text = item.serialNumber
 
             // 1. Статус продукта
-            val dbStatusText = when (item.status?.name) {
-                "IN_PRODUCTION" -> "В производстве"
-                "PACKAGED" -> "Упакован"
-                "SHIPPED" -> "Отгружен"
-                "DEFECTIVE" -> "Брак"
-                null -> "Неизвестно"
-                else -> item.status.name
-            }
-            tvProductStatus.text = context.getString(R.string.product_status_format, dbStatusText)
+            val dbStatusText = item.status.toUiProductStatus().getTitle(context)
+            tvProductStatus.text =
+                context.getString(R.string.product_status_format, dbStatusText)
 
             // 2. Названия этапов
             val accStep = item.accountingStepDefinition
@@ -58,16 +55,19 @@ class InventoryProductResultsAdapter(
                     R.color.step_mismatch,
                     R.drawable.ic_error_outline
                 )
+
                 CompareStatus.UNEXPECTED -> Triple(
                     "ЛИШНИЙ",
                     R.color.step_mismatch,
                     R.drawable.ic_warning
                 )
+
                 CompareStatus.STEP_MISMATCH -> Triple(
                     "ОШИБКА ЭТАПА",
                     R.color.step_mismatch,
                     R.drawable.ic_warning
                 )
+
                 CompareStatus.MATCHED -> Triple(
                     "СОВПАЛ",
                     R.color.step_match,
@@ -91,7 +91,11 @@ class InventoryProductResultsAdapter(
             } else {
                 // Извлечение цвета colorOnSurface из темы
                 val typedValue = TypedValue()
-                context.theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true)
+                context.theme.resolveAttribute(
+                    com.google.android.material.R.attr.colorOnSurface,
+                    typedValue,
+                    true
+                )
                 tvInventoryStep.setTextColor(ContextCompat.getColor(context, typedValue.resourceId))
             }
         }
