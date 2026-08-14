@@ -24,7 +24,7 @@ data class InventoryItem(
 data class ProductInventoryCompareItem(
     val id: Int?,
     val serialNumber: String,
-    val status: ProductStatus?,
+    val status: ProductStatus,
     val inventoryStepDefinition: StepDefinitionWithProcess?,
     val accountingStepDefinition: StepDefinitionWithProcess?,
     val performedAt: LocalDateTime?
