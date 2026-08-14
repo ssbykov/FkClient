@@ -29,10 +29,12 @@ data class ProductStatusUi(
      * View не знает про условия REWORK, SCRAP и т.д.
      */
     fun getTitle(context: Context): String {
-        return when (originalStatus) {
-            ProductStatus.REWORK, ProductStatus.SCRAP -> context.getString(titleRes)
-            else -> originalStatus.name
+        val resId = when (originalStatus) {
+            ProductStatus.NORMAL -> R.string.normal
+            ProductStatus.REWORK -> R.string.rework
+            ProductStatus.SCRAP -> R.string.scrap
         }
+        return context.getString(resId)
     }
 }
 
