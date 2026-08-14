@@ -42,7 +42,7 @@ data class ProductInventoryCompareItemDto(
     @SerializedName("serial_number")
     val serialNumber: String,
     @SerializedName("status")
-    val status: ProductStatusDto?,
+    val status: ProductStatusDto,
     @SerializedName("inventory_step_definition")
     val inventoryStepDefinition: StepDefinitionWithProcessDto?,
     @SerializedName("accounting_step_definition")
