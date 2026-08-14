@@ -179,10 +179,6 @@
             app:destination="@id/inventoryResultsFragment" />
 
         <action
-            android:id="@+id/action_inventoryContainerFragment_to_inventoryConflictDetailFragment"
-            app:destination="@id/inventoryConflictDetailFragment" />
-
-        <action
             android:id="@+id/action_inventoryContainerFragment_to_inventoryListFragment"
             app:destination="@id/inventoryListFragment" />
 
@@ -222,27 +218,11 @@
         tools:layout="@layout/fragment_inventory_results">
 
         <action
-            android:id="@+id/action_inventoryResultsFragment_to_inventoryConflictDetailFragment"
-            app:destination="@id/inventoryConflictDetailFragment" />
+            android:id="@+id/action_inventoryResultsFragment_to_productFullFragment"
+            app:destination="@id/productFullFragment" />
 
     </fragment>
 
-    <!-- УНИВЕРСАЛЬНЫЙ ФРАГМЕНТ для деталей конфликтов (расхождений и недостач) -->
-    <fragment
-        android:id="@+id/inventoryConflictDetailFragment"
-        android:name="ru.faserkraft.client.presentation.inventory.InventoryConflictDetailFragment"
-        android:label="Детали конфликтов"
-        tools:layout="@layout/fragment_inventory_conflict_detail">
-
-        <argument
-            android:name="stepDefinitionId"
-            app:argType="integer" />
-
-        <argument
-            android:name="conflictType"
-            app:argType="string" />
-
-    </fragment>
 
     <!-- Экран сканирования -->
     <fragment
