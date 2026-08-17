@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentStatisticsBinding
 
 @AndroidEntryPoint
@@ -112,7 +113,7 @@ class StatisticsFragment : Fragment() {
             // Карточка 1: Общее количество
             totalProcessAdapter.submitList(state.totalByProcess)
             val grandTotal = state.totalByProcess.sumOf { it.completedProducts }
-            tvGrandTotal.text = "$grandTotal шт."
+            tvGrandTotal.text = getString(R.string.grand_total_format, grandTotal)
 
             // Карточка 2: Этапы
             stepsProcessAdapter.submitList(state.stepsByProcess)
