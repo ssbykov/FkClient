@@ -63,6 +63,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
+        android:contentDescription="@null"
         app:srcCompat="@drawable/ic_scanner"
         app:tint="@android:color/white"
         app:backgroundTint="@android:color/holo_blue_light"
