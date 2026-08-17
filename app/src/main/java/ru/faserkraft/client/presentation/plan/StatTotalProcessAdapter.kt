@@ -5,8 +5,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemStatTotalProcessRowBinding
-
 
 
 class StatTotalProcessAdapter :
@@ -15,9 +15,10 @@ class StatTotalProcessAdapter :
     class VH(private val binding: ItemStatTotalProcessRowBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: ProcessTotalUiItem) {
-            binding.tvProcessName.text = item.processName
-            binding.tvProcessCount.text = "${item.completedProducts} шт."
+        fun bind(item: ProcessTotalUiItem) = with(binding) {
+            tvProcessName.text = item.processName
+            tvProcessCount.text =
+                root.context.getString(R.string.process_count_format, item.completedProducts)
         }
     }
 

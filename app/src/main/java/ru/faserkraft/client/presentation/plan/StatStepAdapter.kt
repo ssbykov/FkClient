@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemStatStepRowBinding
 
 
@@ -13,9 +14,9 @@ class StatStepAdapter : ListAdapter<StepCountUiItem, StatStepAdapter.ViewHolder>
     class ViewHolder(
         private val binding: ItemStatStepRowBinding
     ) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: StepCountUiItem) {
-            binding.tvStepName.text = item.stepName
-            binding.tvStepCount.text = "${item.count} шт."
+        fun bind(item: StepCountUiItem) = with(binding) {
+            tvStepName.text = item.stepName
+            tvStepCount.text = root.context.getString(R.string.step_count_format, item.count)
         }
     }
 
