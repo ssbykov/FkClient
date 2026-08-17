@@ -14,44 +14,34 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentInventoryResultsBinding
-import ru.faserkraft.client.domain.model.ProductInventoryCompareItem
+import ru.faserkraft.client.domain.model.StepDefinitionWithProcess
 import ru.faserkraft.client.presentation.product.detail.ProductEvent
 import ru.faserkraft.client.presentation.product.detail.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.navigateSafely
 
-// Единый enum для всех статусов расхождений
-enum class CompareStatus {
-    MATCHED, MISSING, UNEXPECTED, STEP_MISMATCH
-}
-
-// Extension-свойство для вычисления статуса элемента
-val ProductInventoryCompareItem.compareStatus: CompareStatus
-    get() = when {
-        inventoryStepDefinition == null && accountingStepDefinition != null -> CompareStatus.MISSING
-        inventoryStepDefinition != null && accountingStepDefinition == null -> CompareStatus.UNEXPECTED
-        inventoryStepDefinition != null && accountingStepDefinition != null && inventoryStepDefinition.id != accountingStepDefinition.id -> CompareStatus.STEP_MISMATCH
-        else -> CompareStatus.MATCHED
-    }
-
-
 @AndroidEntryPoint
 class InventoryResultsFragment : Fragment() {
 
     private val viewModel: InventoryViewModel by activityViewModels()
-
     private val productViewModel: ProductViewModel by activityViewModels()
 
     private var _binding: FragmentInventoryResultsBinding? = null
     private val binding get() = _binding!!
 
-    // Адаптер для отображения карточек продуктов
     private val adapter = InventoryProductResultsAdapter(
-        onItemClick = ::onProductClick
+        onItemClick = ::onProductClick,
+        onAcceptAccountingStep = { item, step ->
+            // viewModel.resolveProductDiscrepancy(item.domainItem, step)
+        },
+        onAcceptInventoryStep = { item, step ->
+            // viewModel.resolveProductDiscrepancy(item.domainItem, step)
+        },
+        onSelectCustomStep = ::onSelectCustomStep
     )
 
-    // Исходный список от API
-    private var allProducts: List<ProductInventoryCompareItem> = emptyList()
+    // Список UI-элементов, сформированный из state
+    private var allUiProducts: List<ProductInventoryCompareUiItem> = emptyList()
 
     // Текущие фильтры (null означает выбор "Все")
     private var currentSearchQuery = ""
@@ -146,7 +136,6 @@ class InventoryResultsFragment : Fragment() {
         checkFilter(initialButtonId)
     }
 
-    // Централизованная функция переключения фильтров между тремя группами
     private fun checkFilter(checkedId: Int) {
         if (isUpdatingFilters) return
         isUpdatingFilters = true
@@ -157,14 +146,12 @@ class InventoryResultsFragment : Fragment() {
             binding.toggleGroupUnexpected
         )
 
-        // Определяем, к какой группе принадлежит нажатая кнопка
         val targetGroup = when (checkedId) {
             R.id.btnFilterAll -> binding.toggleGroupAll
             R.id.btnFilterUnexpected -> binding.toggleGroupUnexpected
             else -> binding.toggleGroupStatus
         }
 
-        // Обновляем визуальное состояние групп
         allGroups.forEach { group ->
             if (group == targetGroup) {
                 if (group.checkedButtonId != checkedId) {
@@ -175,7 +162,6 @@ class InventoryResultsFragment : Fragment() {
             }
         }
 
-        // Определяем, какой статус искать в списке (null = показываем все)
         currentFilterType = when (checkedId) {
             R.id.btnFilterMatched -> CompareStatus.MATCHED
             R.id.btnFilterMissing -> CompareStatus.MISSING
@@ -188,14 +174,11 @@ class InventoryResultsFragment : Fragment() {
         applyFilters()
     }
 
-    // Динамически показываем/скрываем третью строку с "Лишними"
     private fun updateUnexpectedVisibility() {
-        val hasUnexpected = allProducts.any { it.compareStatus == CompareStatus.UNEXPECTED }
+        val hasUnexpected = allUiProducts.any { it.compareStatus == CompareStatus.UNEXPECTED }
 
-        binding.toggleGroupUnexpected.visibility = if (hasUnexpected) View.VISIBLE else View.GONE
+        binding.toggleGroupUnexpected.isVisible = hasUnexpected
 
-        // Если пользователь выбрал фильтр "Лишние", но данные обновились и лишних больше нет —
-        // сбрасываем фильтр на "Все", чтобы не показывать пустой экран
         if (!hasUnexpected && currentFilterType == CompareStatus.UNEXPECTED) {
             checkFilter(R.id.btnFilterAll)
         }
@@ -207,28 +190,27 @@ class InventoryResultsFragment : Fragment() {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
-            allProducts = state.compareResults
+            // Маппим доменные элементы в UI-модели (с сохранением локально разрешенного этапа, если есть)
+            allUiProducts = state.compareResults.map { it.toUiItem() }
 
             b.toolbarTitle.text =
                 getString(R.string.inventory_results_title, state.currentInventory?.id)
 
-            // Подсчет сводки по плоскому списку, опираясь на compareStatus
-            val dbTotal = allProducts.count { it.accountingStepDefinition != null }
-            val scannedTotal = allProducts.count { it.inventoryStepDefinition != null }
-            val diffTotal = allProducts.count { it.compareStatus != CompareStatus.MATCHED }
+            // Подсчет сводки по UI-списку
+            val dbTotal = allUiProducts.count { it.accountingStep != null }
+            val scannedTotal = allUiProducts.count { it.inventoryStep != null }
+            val diffTotal = allUiProducts.count { it.isMismatch }
 
             b.tvDbTotal.text = dbTotal.toString()
             b.tvScannedTotal.text = scannedTotal.toString()
             b.tvDiffTotal.text = diffTotal.toString()
 
-            // Обновляем UI фильтров и применяем их
             updateUnexpectedVisibility()
             applyFilters()
         }
     }
 
     private fun observeEvents() {
-        // События жизненного цикла продукта
         collectFlow(productViewModel.events) { event ->
             when (event) {
                 is ProductEvent.NavigateToProduct -> {
@@ -241,7 +223,7 @@ class InventoryResultsFragment : Fragment() {
                 is ProductEvent.NavigateToNewProduct -> {
                     Toast.makeText(
                         requireContext(),
-                        "Продукт не найден", // или "Продукт не найден"
+                        getString(R.string.product_not_found),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -250,7 +232,6 @@ class InventoryResultsFragment : Fragment() {
             }
         }
 
-        // События инвентаризации
         collectFlow(viewModel.events) { event ->
             when (event) {
                 is InventoryEvent.ShowError -> {
@@ -265,8 +246,6 @@ class InventoryResultsFragment : Fragment() {
     private fun observeProductLoading() {
         collectFlow(productViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
-
-            // Показываем/скрываем ProgressBar и блокируем повторные клики
             b.progressBar.isVisible = state.isLoading
             b.rvResults.isEnabled = !state.isLoading
         }
@@ -275,16 +254,14 @@ class InventoryResultsFragment : Fragment() {
     // ---------- Filtering ----------
 
     private fun applyFilters() {
-        var filteredList = allProducts
+        var filteredList = allUiProducts
 
-        // 1. Применяем текстовый поиск (по серийному номеру)
         if (currentSearchQuery.isNotEmpty()) {
             filteredList = filteredList.filter {
                 it.serialNumber.contains(currentSearchQuery, ignoreCase = true)
             }
         }
 
-        // 2. Применяем фильтр по выбранной кнопке (если не выбрана "Все")
         if (currentFilterType != null) {
             filteredList = filteredList.filter { it.compareStatus == currentFilterType }
         }
@@ -292,10 +269,20 @@ class InventoryResultsFragment : Fragment() {
         adapter.submitList(filteredList)
     }
 
-    // ---------- Navigation ----------
+    // ---------- Actions & Navigation ----------
 
-    private fun onProductClick(item: ProductInventoryCompareItem) {
+    private fun onProductClick(item: ProductInventoryCompareUiItem) {
         if (productViewModel.uiState.value.isLoading) return
         productViewModel.loadProduct(item.serialNumber)
+    }
+
+    private fun onStepResolved(item: ProductInventoryCompareUiItem, selectedStep: StepDefinitionWithProcess) {
+        // Передаем утвержденный этап во ViewModel для фиксации расхождения
+//        viewModel.resolveProductDiscrepancy(item.domainItem, selectedStep)
+    }
+
+    private fun onSelectCustomStep(item: ProductInventoryCompareUiItem) {
+        // Открытие BottomSheetDialog / диалога со справочником этапов
+//        viewModel.openCustomStepSelection(item.domainItem)
     }
 }

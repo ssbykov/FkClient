@@ -1,21 +1,28 @@
 package ru.faserkraft.client.presentation.inventory
 
 import android.content.res.ColorStateList
-import android.util.TypedValue
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.R as MaterialR
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.color.MaterialColors
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemInventoryProductResultBinding
-import ru.faserkraft.client.domain.model.ProductInventoryCompareItem
+import ru.faserkraft.client.domain.model.StepDefinitionWithProcess
 import ru.faserkraft.client.presentation.product.detail.toUiProductStatus
 
 class InventoryProductResultsAdapter(
-    private val onItemClick: (ProductInventoryCompareItem) -> Unit
-) : ListAdapter<ProductInventoryCompareItem, InventoryProductResultsAdapter.ProductViewHolder>(
+    private val onItemClick: (ProductInventoryCompareUiItem) -> Unit,
+    private val onAcceptAccountingStep: (ProductInventoryCompareUiItem, StepDefinitionWithProcess) -> Unit,
+    private val onAcceptInventoryStep: (ProductInventoryCompareUiItem, StepDefinitionWithProcess) -> Unit,
+    private val onSelectCustomStep: (ProductInventoryCompareUiItem) -> Unit
+) : ListAdapter<ProductInventoryCompareUiItem, InventoryProductResultsAdapter.ProductViewHolder>(
     DiffCallback
 ) {
 
@@ -23,8 +30,19 @@ class InventoryProductResultsAdapter(
         private val binding: ItemInventoryProductResultBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        // Кэшируем цвета темы один раз на ViewHolder для высокой производительности скролла
+        private val transparentColor = ColorStateList.valueOf(Color.TRANSPARENT)
+        private val activeRippleColor = MaterialColors.getColorStateList(
+            binding.root.context,
+            android.R.attr.colorControlHighlight,
+            ColorStateList.valueOf(ContextCompat.getColor(binding.root.context, R.color.step_match))
+        )
+        private val activeStrokeColor = MaterialColors.getColor(binding.root, MaterialR.attr.colorOutline)
+        private val passiveStrokeColor = MaterialColors.getColor(binding.root, MaterialR.attr.colorOutlineVariant)
+        private val defaultTextColor = MaterialColors.getColor(binding.root, MaterialR.attr.colorOnSurface)
+
         init {
-            binding.root.setOnClickListener {
+            binding.layoutHeader.setOnClickListener {
                 val position = bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     onItemClick(getItem(position))
@@ -32,99 +50,91 @@ class InventoryProductResultsAdapter(
             }
         }
 
-        fun bind(item: ProductInventoryCompareItem) = with(binding) {
+        fun bind(item: ProductInventoryCompareUiItem) = with(binding) {
             val context = root.context
-            tvSerialNumber.text = item.serialNumber
+            val isMismatch = item.isMismatch
 
-            // 1. Статус продукта
+            // 1. Заголовок и статус продукта
+            tvSerialNumber.text = item.serialNumber
             val dbStatusText = item.status.toUiProductStatus().getTitle(context)
-            tvProductStatus.text =
-                context.getString(R.string.product_status_format, dbStatusText)
+            tvProductStatus.text = context.getString(R.string.product_status_format, dbStatusText)
 
             // 2. Названия этапов
-            val accStep = item.accountingStepDefinition
-            val invStep = item.inventoryStepDefinition
+            val accStep = item.accountingStep
+            val invStep = item.inventoryStep
+            tvAccountingStep.text = accStep?.name ?: context.getString(R.string.step_missing_packed)
+            tvInventoryStep.text = invStep?.name ?: context.getString(R.string.step_not_scanned)
 
-            tvAccountingStep.text = accStep?.name ?: "Отсутствует/Упакован"
-            tvInventoryStep.text = invStep?.name ?: "Не отсканирован"
+            // 3. Оформление бейджа и иконки
+            val status = item.compareStatus
+            val statusColor = ContextCompat.getColor(context, status.colorRes)
+            tvStatusLabel.setText(status.titleRes)
+            tvStatusLabel.setTextColor(statusColor)
+            ivStatusIcon.setImageResource(status.iconRes)
+            ivStatusIcon.imageTintList = ColorStateList.valueOf(statusColor)
 
-            // 3. Определение статуса расхождения через CompareStatus
-            val (statusText, colorResId, iconRes) = when (item.compareStatus) {
-                CompareStatus.MISSING -> Triple(
-                    "ОТСУТСТВУЕТ",
-                    R.color.step_mismatch,
-                    R.drawable.ic_error_outline
-                )
+            // 4. Текст этапа инвентаризации
+            tvInventoryStep.setTextColor(if (isMismatch) statusColor else defaultTextColor)
 
-                CompareStatus.UNEXPECTED -> Triple(
-                    "ЛИШНИЙ",
-                    R.color.step_mismatch,
-                    R.drawable.ic_warning
-                )
+            // 5. Видимость вспомогательных элементов
+            tvResolvePrompt.isVisible = isMismatch
+            btnCustomStep.isVisible = isMismatch
 
-                CompareStatus.STEP_MISMATCH -> Triple(
-                    "ОШИБКА ЭТАПА",
-                    R.color.step_mismatch,
-                    R.drawable.ic_warning
-                )
+            // 6. Настройка карточки «По учету»
+            cardAccountingOption.setupOption(
+                isAvailable = isMismatch && accStep != null,
+                isSelected = item.resolvedStep?.id == accStep?.id,
+                onClick = { accStep?.let { onAcceptAccountingStep(item, it) } }
+            )
 
-                CompareStatus.MATCHED -> Triple(
-                    "СОВПАЛ",
-                    R.color.step_match,
-                    R.drawable.ic_check_circle
-                )
-            }
+            // 7. Настройка карточки «Фактически»
+            cardInventoryOption.setupOption(
+                isAvailable = isMismatch && invStep != null,
+                isSelected = item.resolvedStep?.id == invStep?.id,
+                onClick = { invStep?.let { onAcceptInventoryStep(item, it) } }
+            )
 
-            // 4. Применение текстов и иконок
-            tvStatusLabel.text = statusText
-            ivStatusIcon.setImageResource(iconRes)
+            // 8. Кнопка ручного выбора
+            btnCustomStep.setOnClickListener(if (isMismatch) { { onSelectCustomStep(item) } } else null)
+        }
 
-            // 5. Разрешение цветов (прямо из R.color)
-            val resolvedColor = ContextCompat.getColor(context, colorResId)
-
-            tvStatusLabel.setTextColor(resolvedColor)
-            ivStatusIcon.imageTintList = ColorStateList.valueOf(resolvedColor)
-
-            // 6. Подсветка текста этапа инвентаризации при несовпадении
-            if (item.compareStatus != CompareStatus.MATCHED) {
-                tvInventoryStep.setTextColor(resolvedColor)
-            } else {
-                // Извлечение цвета colorOnSurface из темы
-                val typedValue = TypedValue()
-                context.theme.resolveAttribute(
-                    com.google.android.material.R.attr.colorOnSurface,
-                    typedValue,
-                    true
-                )
-                tvInventoryStep.setTextColor(ContextCompat.getColor(context, typedValue.resourceId))
-            }
+        /**
+         * Компактная настройка визуального и интерактивного состояния опции выбора
+         */
+        private fun MaterialCardView.setupOption(
+            isAvailable: Boolean,
+            isSelected: Boolean,
+            onClick: () -> Unit
+        ) {
+            rippleColor = if (isAvailable) activeRippleColor else transparentColor
+            isClickable = isAvailable
+            isFocusable = isAvailable
+            isCheckable = isAvailable
+            isChecked = isAvailable && isSelected
+            strokeColor = if (isAvailable) activeStrokeColor else passiveStrokeColor
+            setOnClickListener(if (isAvailable) { { onClick() } } else null)
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
-        val binding = ItemInventoryProductResultBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder =
+        ProductViewHolder(
+            ItemInventoryProductResultBinding.inflate(
+                LayoutInflater.from(parent.context), parent, false
+            )
         )
-        return ProductViewHolder(binding)
-    }
 
-    override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ProductViewHolder, position: Int) =
         holder.bind(getItem(position))
-    }
 
-    private object DiffCallback : DiffUtil.ItemCallback<ProductInventoryCompareItem>() {
+    private object DiffCallback : DiffUtil.ItemCallback<ProductInventoryCompareUiItem>() {
         override fun areItemsTheSame(
-            oldItem: ProductInventoryCompareItem,
-            newItem: ProductInventoryCompareItem
-        ): Boolean {
-            return oldItem.serialNumber == newItem.serialNumber
-        }
+            oldItem: ProductInventoryCompareUiItem,
+            newItem: ProductInventoryCompareUiItem
+        ): Boolean = oldItem.serialNumber == newItem.serialNumber
 
         override fun areContentsTheSame(
-            oldItem: ProductInventoryCompareItem,
-            newItem: ProductInventoryCompareItem
-        ): Boolean {
-            return oldItem == newItem
-        }
+            oldItem: ProductInventoryCompareUiItem,
+            newItem: ProductInventoryCompareUiItem
+        ): Boolean = oldItem == newItem
     }
 }

@@ -189,7 +189,7 @@
     <string name="inventory_summary_db">В производстве</string>
     <string name="inventory_summary_scanned">Отсканировано</string>
     <string name="inventory_summary_diff">Расхождения</string>
-    <string name="product_status_format">Статус: %s</string>
+    <string name="product_status_format">Статус: %1$s</string>
 
     <!-- Счетчики -->
     <string name="inventory_db_count">В базе: %1$d</string>
@@ -224,8 +224,21 @@
     <!-- Карточка продукта в результатах инвентаризации -->
     <string name="inventory_step_accounting_label">По учету:</string>
     <string name="inventory_step_inventory_label">Фактически:</string>
-    <string name="inventory_step_none_accounting">Отсутствует/Упакован</string>
-    <string name="inventory_step_none_scanned">Не отсканирован</string>
+    <string name="step_missing_packed">Отсутствует/Упакован</string>
+    <string name="step_not_scanned">Не отсканирован</string>
+
+    <!-- Заголовок выбора и действия резолюции -->
+    <string name="resolve_step_title">Утвердить правильный этап:</string>
+    <string name="action_choose_custom_step">Выбрать другой этап…</string>
+
+    <!-- Бейджи статусов сравнения (CompareStatus) -->
+    <string name="compare_status_matched">Совпал</string>
+    <string name="compare_status_step_mismatch">Ошибка этапа</string>
+    <string name="compare_status_missing">Отсутствует</string>
+    <string name="compare_status_unexpected">Лишний</string>
+
+    <!-- Сообщения фрагмента результатов инвентаризации -->
+    <string name="product_not_found">Продукт не найден</string>
 
     <!-- ============================================== -->
     <!-- КОНФЛИКТЫ ИНВЕНТАРИЗАЦИИ / INVENTORY CONFLICTS -->
@@ -265,6 +278,9 @@
     <string name="period_month">Месяц</string>
     <string name="period_quarter">Квартал</string>
     <string name="total_completed_label">Всего изготовлено</string>
+    <string name="grand_total_format">%1$d шт.</string>
+    <string name="step_count_format">%1$d шт.</string>
+    <string name="process_count_format">%1$d шт.</string>
     <string name="by_steps">По этапам</string>
 
 </resources>
