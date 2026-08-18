@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -14,10 +15,10 @@ import ru.faserkraft.client.databinding.FragmentEmployeePlanProductsBinding
 import ru.faserkraft.client.domain.model.DailyPlan
 import ru.faserkraft.client.domain.model.DailyPlanStep
 import ru.faserkraft.client.domain.model.Product
-import ru.faserkraft.client.presentation.product.detail.ProductEvent
-import ru.faserkraft.client.presentation.product.detail.ProductViewModel
 import ru.faserkraft.client.presentation.inventory.overview.ProductsOverviewByProcessAdapter
 import ru.faserkraft.client.presentation.inventory.overview.ProductsOverviewByProcessUiItem
+import ru.faserkraft.client.presentation.product.detail.ProductEvent
+import ru.faserkraft.client.presentation.product.detail.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.converter.convertDate
 import ru.faserkraft.client.utils.ext.navigateSafely
@@ -34,6 +35,8 @@ class EmployeePlanProductsFragment : Fragment() {
     private var step: DailyPlanStep? = null
 
     private val adapter = ProductsOverviewByProcessAdapter { serialNumber ->
+        if (_binding == null) return@ProductsOverviewByProcessAdapter
+        if (productViewModel.uiState.value.isLoading || planViewModel.uiState.value.isLoading) return@ProductsOverviewByProcessAdapter
         productViewModel.loadProduct(serialNumber)
     }
 
@@ -60,6 +63,7 @@ class EmployeePlanProductsFragment : Fragment() {
         setupRecycler()
         renderHeader()
         observeState()
+        observeProductState()
         observeEvents()
         observeProductEvents()
         setupRefresh()
@@ -102,15 +106,37 @@ class EmployeePlanProductsFragment : Fragment() {
         collectFlow(planViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
-            b.swipeRefreshDetail.isRefreshing = state.isLoading
+            updateLoadingState()
 
             val currentStep = step ?: return@collectFlow
             adapter.submitList(state.filteredProducts.toUiItems(currentStep.stepDefinitionId))
         }
     }
 
+    private fun observeProductState() {
+        collectFlow(productViewModel.uiState) {
+            updateLoadingState()
+        }
+    }
+
+    private fun updateLoadingState() {
+        val b = _binding ?: return
+        val isPlanLoading = planViewModel.uiState.value.isLoading
+        val isProductLoading = productViewModel.uiState.value.isLoading
+
+        val isSwipeRefreshing = b.swipeRefreshDetail.isRefreshing
+        if (isSwipeRefreshing && !isPlanLoading) {
+            b.swipeRefreshDetail.isRefreshing = false
+        }
+
+        val showCenterProgress = (isPlanLoading && !isSwipeRefreshing) || isProductLoading
+        b.progressBar.isVisible = showCenterProgress
+        b.rvProductsDetail.isEnabled = !showCenterProgress
+    }
+
     private fun observeEvents() {
         collectFlow(planViewModel.events) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 is PlanEvent.ShowError -> showDialog(event.message)
             }
@@ -143,7 +169,6 @@ class EmployeePlanProductsFragment : Fragment() {
         val currentPlan = plan ?: return
         val currentStep = step ?: return
 
-        adapter.submitList(emptyList())
         planViewModel.loadProductsByStepEmployeeDay(
             stepDefinitionId = currentStep.stepDefinitionId,
             day = currentPlan.date,

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -62,11 +63,12 @@ class DayPlanFragment : Fragment() {
         observeState()
         observeEvents()
 
-        if (savedInstanceState == null) {
-            viewModel.loadPlans(getToday())
-            viewModel.loadEmployees()
-            viewModel.loadProcesses()
-        }
+        // Берём ранее выбранную дату из ViewModel или сегодняшнюю при первом старте
+        val currentDate = viewModel.uiState.value.date.ifEmpty { getToday() }
+        viewModel.recomputeCanEdit(currentDate)
+        viewModel.loadPlans(currentDate)
+        viewModel.loadEmployees()
+        viewModel.loadProcesses()
     }
 
     override fun onDestroyView() {
@@ -108,7 +110,7 @@ class DayPlanFragment : Fragment() {
 
             override fun getSwipeDirs(rv: RecyclerView, vh: RecyclerView.ViewHolder): Int {
                 val state = viewModel.uiState.value
-                if (!state.canEdit || state.isPastDate) return 0
+                if (!state.canEdit || state.isPastDate || state.isLoading) return 0
                 val item = plansAdapter.currentList.getOrNull(vh.bindingAdapterPosition)
                 return if (item is EmployeePlanUiItem.Header) 0
                 else super.getSwipeDirs(rv, vh)
@@ -118,7 +120,6 @@ class DayPlanFragment : Fragment() {
                 val position = vh.bindingAdapterPosition
                 val item = plansAdapter.currentList.getOrNull(position)
 
-                // Визуально откатываем свайп — удаляем только после подтверждения
                 plansAdapter.notifyItemChanged(position)
 
                 if (item !is EmployeePlanUiItem.Step || !isAdded) return
@@ -135,10 +136,17 @@ class DayPlanFragment : Fragment() {
     }
 
     private fun setupDateControls() {
-        binding.btnPrevDate.setOnClickListener { viewModel.shiftDate(-1) }
-        binding.btnNextDate.setOnClickListener { viewModel.shiftDate(+1) }
+        binding.btnPrevDate.setOnClickListener {
+            if (viewModel.uiState.value.isLoading) return@setOnClickListener
+            viewModel.shiftDate(-1)
+        }
+        binding.btnNextDate.setOnClickListener {
+            if (viewModel.uiState.value.isLoading) return@setOnClickListener
+            viewModel.shiftDate(+1)
+        }
 
         binding.etDate.setOnClickListener {
+            if (viewModel.uiState.value.isLoading) return@setOnClickListener
             it.clearFocus()
             showDatePicker()
         }
@@ -146,13 +154,15 @@ class DayPlanFragment : Fragment() {
 
     private fun setupSwipeRefresh() {
         binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadPlans(viewModel.uiState.value.date)
+            val date = viewModel.uiState.value.date.ifEmpty { getToday() }
+            viewModel.loadPlans(date)
         }
     }
 
     private fun setupFab() {
         binding.fabAddPlan.setOnClickListener {
             val state = viewModel.uiState.value
+            if (state.isLoading) return@setOnClickListener
             if (state.isPastDate) showCopyPlanDialog() else openAddPlanScreen()
         }
     }
@@ -163,17 +173,26 @@ class DayPlanFragment : Fragment() {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
-            // Загрузка
-            b.swipeRefresh.isRefreshing = state.isLoading
+            val isSwipeRefreshing = b.swipeRefresh.isRefreshing
+            if (isSwipeRefreshing && !state.isLoading) {
+                b.swipeRefresh.isRefreshing = false
+            }
+
+            // Индикатор загрузки и блокировка контролов
+            b.progressBar.isVisible = state.isLoading && !isSwipeRefreshing
+            b.btnPrevDate.isEnabled = !state.isLoading
+            b.btnNextDate.isEnabled = !state.isLoading
             b.etDate.isEnabled = !state.isLoading
             b.fabAddPlan.isEnabled = !state.isLoading
 
             // Дата
-            b.etDate.setText(convertDate(state.date)) // api → ui формат
+            if (state.date.isNotEmpty()) {
+                b.etDate.setText(convertDate(state.date))
+            }
 
             // FAB видимость и иконка
             if (state.canEdit) {
-                b.fabAddPlan.visibility = View.VISIBLE
+                b.fabAddPlan.isVisible = true
                 if (state.isPastDate) {
                     b.fabAddPlan.setImageResource(R.drawable.ic_copy)
                     b.fabAddPlan.contentDescription = getString(R.string.copy_plan)
@@ -182,17 +201,19 @@ class DayPlanFragment : Fragment() {
                     b.fabAddPlan.contentDescription = getString(R.string.add_plan)
                 }
             } else {
-                b.fabAddPlan.visibility = View.GONE
+                b.fabAddPlan.isVisible = false
             }
 
             plansAdapter.setCanEdit(state.canEdit && !state.isPastDate)
-
             plansAdapter.submitPlans(state.plans)
+
+            checkEmpty()
         }
     }
 
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 is PlanEvent.ShowError -> showErrorSnackbar(event.message)
             }
@@ -203,9 +224,9 @@ class DayPlanFragment : Fragment() {
 
     private fun checkEmpty() {
         val b = _binding ?: return
-        val isEmpty = plansAdapter.itemCount == 0
-        b.tvEmptyPlans.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        b.rvPlans.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        val isEmpty = plansAdapter.itemCount == 0 && !b.progressBar.isVisible
+        b.tvEmptyPlans.isVisible = isEmpty
+        b.rvPlans.isVisible = !isEmpty
     }
 
     // ---------- DatePicker ----------

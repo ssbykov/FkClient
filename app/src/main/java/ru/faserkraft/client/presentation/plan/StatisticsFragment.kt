@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -44,7 +45,6 @@ class StatisticsFragment : Fragment() {
     }
 
     private fun setupRecyclerViews() {
-        // Адаптер для верхней карточки (Итого по процессам)
         totalProcessAdapter = StatTotalProcessAdapter()
         binding.rvTotalByProcess.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -52,7 +52,6 @@ class StatisticsFragment : Fragment() {
             itemAnimator = null
         }
 
-        // Адаптер для нижней карточки (Этапы по процессам)
         stepsProcessAdapter = StatProcessStepsAdapter()
         binding.rvStepsByProcess.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -64,6 +63,7 @@ class StatisticsFragment : Fragment() {
     private fun setupListeners() {
         binding.apply {
             chipGroupPeriod.setOnCheckedStateChangeListener { _, checkedIds ->
+                if (viewModel.uiState.value.isLoading) return@setOnCheckedStateChangeListener
                 val period = when (checkedIds.firstOrNull()) {
                     chipQuarter.id -> StatPeriod.QUARTER
                     chipYear.id -> StatPeriod.YEAR
@@ -73,10 +73,12 @@ class StatisticsFragment : Fragment() {
             }
 
             btnPrevPeriod.setOnClickListener {
+                if (viewModel.uiState.value.isLoading) return@setOnClickListener
                 viewModel.shiftPeriod(-1)
             }
 
             btnNextPeriod.setOnClickListener {
+                if (viewModel.uiState.value.isLoading) return@setOnClickListener
                 viewModel.shiftPeriod(1)
             }
 
@@ -97,6 +99,7 @@ class StatisticsFragment : Fragment() {
 
                 launch {
                     viewModel.events.collect { event ->
+                        if (_binding == null || !isAdded) return@collect
                         when (event) {
                             is StatisticsEvent.ShowError -> {
                                 Toast.makeText(requireContext(), event.message, Toast.LENGTH_SHORT).show()
@@ -109,7 +112,22 @@ class StatisticsFragment : Fragment() {
     }
 
     private fun renderState(state: StatisticsUiState) {
-        binding.apply {
+        val b = _binding ?: return
+        b.apply {
+            // Разделение индикации SwipeRefresh и центральной крутилки
+            val isSwipeRefreshing = swipeRefresh.isRefreshing
+            if (isSwipeRefreshing && !state.isLoading) {
+                swipeRefresh.isRefreshing = false
+            }
+
+            progressBar.isVisible = state.isLoading && !isSwipeRefreshing
+            btnPrevPeriod.isEnabled = !state.isLoading
+            btnNextPeriod.isEnabled = !state.isLoading
+            chipGroupPeriod.isEnabled = !state.isLoading
+            chipMonth.isEnabled = !state.isLoading
+            chipQuarter.isEnabled = !state.isLoading
+            chipYear.isEnabled = !state.isLoading
+
             // Карточка 1: Общее количество
             totalProcessAdapter.submitList(state.totalByProcess)
             val grandTotal = state.totalByProcess.sumOf { it.completedProducts }
@@ -117,20 +135,17 @@ class StatisticsFragment : Fragment() {
 
             // Карточка 2: Этапы
             stepsProcessAdapter.submitList(state.stepsByProcess)
+            cardSteps.isVisible = state.stepsByProcess.isNotEmpty()
 
-            // Скрываем вторую карточку, если этапов нет (чтобы не висела пустая)
-            cardSteps.visibility = if (state.stepsByProcess.isEmpty()) View.GONE else View.VISIBLE
-
-            // Период и загрузка
+            // Период
             tvPeriodLabel.text = state.periodLabel
-            swipeRefresh.isRefreshing = state.isLoading
         }
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
         binding.rvTotalByProcess.adapter = null
         binding.rvStepsByProcess.adapter = null
         _binding = null
+        super.onDestroyView()
     }
 }

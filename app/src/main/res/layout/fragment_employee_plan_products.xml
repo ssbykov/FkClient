@@ -42,7 +42,6 @@
             android:padding="12dp">
 
             <!-- Процесс -->
-
             <TextView
                 android:id="@+id/tvProcessName"
                 android:layout_width="match_parent"
@@ -53,7 +52,6 @@
                 tools:text="УФ-3-20-ПС" />
 
             <!-- Сотрудник -->
-
             <TextView
                 android:id="@+id/tvEmployeeName"
                 android:layout_width="match_parent"
@@ -102,5 +100,18 @@
             android:layout_height="match_parent"
             tools:listitem="@layout/item_product_detail" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardEmployeePlan"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
