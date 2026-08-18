@@ -78,7 +78,6 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-
     <!-- Список модулей -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshModules"
@@ -99,5 +98,18 @@
             android:layout_height="match_parent"
             tools:listitem="@layout/item_product_detail" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardProcessStatus"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

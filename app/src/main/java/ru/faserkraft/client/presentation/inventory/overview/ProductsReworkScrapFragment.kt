@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -91,8 +92,12 @@ class ProductsReworkScrapFragment : androidx.fragment.app.Fragment() {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
-            b.swipeRefreshReworkScrap.isRefreshing = state.isLoading
-            b.swipeRefreshReworkScrap.isEnabled = !state.isLoading
+            val isSwipeRefreshing = b.swipeRefreshReworkScrap.isRefreshing
+            if (isSwipeRefreshing && !state.isLoading) {
+                b.swipeRefreshReworkScrap.isRefreshing = false
+            }
+
+            b.progressBar.isVisible = state.isLoading && !isSwipeRefreshing
 
             adapter.submitList(buildUiItems(state.reworkScrapProducts))
 
@@ -134,8 +139,8 @@ class ProductsReworkScrapFragment : androidx.fragment.app.Fragment() {
 
     private fun updateEmptyView() {
         val b = _binding ?: return
-        val isEmpty = adapter.itemCount == 0
-        b.tvEmptyReworkScrap.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        b.rvReworkScrap.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        val isEmpty = adapter.itemCount == 0 && !b.progressBar.isVisible
+        b.tvEmptyReworkScrap.isVisible = isEmpty
+        b.rvReworkScrap.isVisible = !isEmpty
     }
 }

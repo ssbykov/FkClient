@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><!-- Корневой макет теперь LinearLayout -->
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -8,7 +8,7 @@
     android:orientation="vertical"
     tools:context=".presentation.inventory.InventoryResultsFragment">
 
-    <!-- 1. Тулбар вынесен на самый верх. Он всегда статичен и никуда не уезжает -->
+    <!-- 1. Тулбар вынесен на самый верх -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -29,7 +29,7 @@
             tools:text="Инвентаризация № 42" />
     </com.google.android.material.appbar.MaterialToolbar>
 
-    <!-- 2. CoordinatorLayout теперь отвечает ТОЛЬКО за фильтры и список -->
+    <!-- 2. CoordinatorLayout для фильтров и списка -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -41,8 +41,6 @@
             app:elevation="0dp"
             app:liftOnScroll="false">
 
-            <!-- 3. Теперь блок фильтров — единственный и первый элемент в AppBarLayout.
-                 Скролл будет работать безупречно. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -242,7 +240,7 @@
             </LinearLayout>
         </com.google.android.material.appbar.AppBarLayout>
 
-        <!-- Список. Связывается с AppBarLayout через layout_behavior -->
+        <!-- Список -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvResults"
             android:layout_width="match_parent"
@@ -254,10 +252,13 @@
 
         <ProgressBar
             android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleLarge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:visibility="gone" />
+            android:indeterminate="true"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </LinearLayout>

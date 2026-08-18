@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -91,8 +92,14 @@ class ProductsOverviewFragment : androidx.fragment.app.Fragment() {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
-            b.swipeRefreshStats.isRefreshing = state.isLoading
-            b.swipeRefreshStats.isEnabled = !state.isLoading
+            // Если список уже есть и пользователь потянул свайп — крутим индикатор свайпа
+            // Если экран пустой (первичная загрузка) — показываем центральный ProgressBar
+            val isSwipeRefreshing = b.swipeRefreshStats.isRefreshing
+            if (isSwipeRefreshing && !state.isLoading) {
+                b.swipeRefreshStats.isRefreshing = false
+            }
+
+            b.progressBar.isVisible = state.isLoading && !isSwipeRefreshing
 
             adapter.submitList(buildUiItems(state.productsOverview))
 
@@ -123,8 +130,8 @@ class ProductsOverviewFragment : androidx.fragment.app.Fragment() {
 
     private fun updateEmptyView() {
         val b = _binding ?: return
-        val isEmpty = adapter.itemCount == 0
-        b.tvEmptyInventory.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        b.rvProductsStats.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        val isEmpty = adapter.itemCount == 0 && !b.progressBar.isVisible
+        b.tvEmptyInventory.isVisible = isEmpty
+        b.rvProductsStats.isVisible = !isEmpty
     }
 }

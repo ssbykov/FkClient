@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.navigation.fragment.findNavController
@@ -47,6 +48,7 @@ class ProductsReworkScrapListFragment : androidx.fragment.app.Fragment() {
 
         setupAdapter()
         observeState()
+        observeProductState()
         observeEvents()
         renderHeader()
         loadData()
@@ -64,8 +66,8 @@ class ProductsReworkScrapListFragment : androidx.fragment.app.Fragment() {
 
     private fun setupAdapter() {
         adapter = ProductsReworkScrapListAdapter { serialNumber ->
+            if (_binding == null) return@ProductsReworkScrapListAdapter
             productViewModel.loadProduct(serialNumber)
-            // Навигация произойдёт через ProductEvent.NavigateToProduct
         }
         binding.rvModules.layoutManager = LinearLayoutManager(requireContext())
         binding.rvModules.adapter = adapter
@@ -77,8 +79,7 @@ class ProductsReworkScrapListFragment : androidx.fragment.app.Fragment() {
         collectFlow(productsOverviewViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
-            b.swipeRefreshModules.isRefreshing = state.isLoading
-            b.swipeRefreshModules.isEnabled = !state.isLoading
+            updateLoadingState()
 
             val selection = state.selectedScrapReworkItem ?: return@collectFlow
 
@@ -109,8 +110,29 @@ class ProductsReworkScrapListFragment : androidx.fragment.app.Fragment() {
         }
     }
 
+    private fun observeProductState() {
+        collectFlow(productViewModel.uiState) {
+            updateLoadingState()
+        }
+    }
+
+    private fun updateLoadingState() {
+        val b = _binding ?: return
+        val isOverviewLoading = productsOverviewViewModel.uiState.value.isLoading
+        val isProductLoading = productViewModel.uiState.value.isLoading
+
+        val isSwipeRefreshing = b.swipeRefreshModules.isRefreshing
+        if (isSwipeRefreshing && !isOverviewLoading) {
+            b.swipeRefreshModules.isRefreshing = false
+        }
+
+        val showCenterProgress = (isOverviewLoading && !isSwipeRefreshing) || isProductLoading
+        b.progressBar.isVisible = showCenterProgress
+    }
+
     private fun observeEvents() {
         collectFlow(productViewModel.events) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 is ProductEvent.NavigateToProduct -> {
                     findNavController().navigateSafely(
@@ -137,7 +159,6 @@ class ProductsReworkScrapListFragment : androidx.fragment.app.Fragment() {
     // ---------- Load ----------
 
     private fun loadData() {
-        adapter.submitList(emptyList())
         productsOverviewViewModel.loadReworkScrapProducts()
     }
 }

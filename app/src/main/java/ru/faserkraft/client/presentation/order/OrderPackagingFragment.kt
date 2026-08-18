@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -50,6 +51,7 @@ class OrderPackagingFragment : Fragment() {
         setupAdapter()
         setupRecyclerView()
         observeState()
+        observePackagingState()
         observeOrderEvents()
         observePackagingEvents()
     }
@@ -66,6 +68,7 @@ class OrderPackagingFragment : Fragment() {
 
     private fun setupAdapter() {
         adapter = PackagingListAdapter { item ->
+            if (_binding == null) return@PackagingListAdapter
             packagingViewModel.loadPackaging(item.serialNumber)
         }
     }
@@ -78,18 +81,36 @@ class OrderPackagingFragment : Fragment() {
     private fun observeState() {
         collectFlow(orderViewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
+
+            updateLoadingState()
+
             val order = state.currentOrder
             if (order != null) {
                 renderOrder(order)
             } else {
-                b.tvEmptyStorage.visibility = View.VISIBLE
-                b.rvPackagingStats.visibility = View.GONE
+                val isLoading = b.progressBar.isVisible
+                b.tvEmptyStorage.isVisible = !isLoading
+                b.rvPackagingStats.isVisible = false
             }
         }
     }
 
+    private fun observePackagingState() {
+        collectFlow(packagingViewModel.uiState) {
+            updateLoadingState()
+        }
+    }
+
+    private fun updateLoadingState() {
+        val b = _binding ?: return
+        val isLoading = orderViewModel.uiState.value.isLoading ||
+                packagingViewModel.uiState.value.isLoading
+        b.progressBar.isVisible = isLoading
+    }
+
     private fun observeOrderEvents() {
         collectFlow(orderViewModel.events) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 is OrderEvent.ShowError -> showErrorSnackbar(event.message)
                 else -> Unit
@@ -99,11 +120,15 @@ class OrderPackagingFragment : Fragment() {
 
     private fun observePackagingEvents() {
         collectFlow(packagingViewModel.events) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 is PackagingEvent.NavigateToPackaging -> {
-                    val action = OrderPackagingFragmentDirections.actionOrderPackagingFragmentToPackagingFragment(null)
+                    val action = OrderPackagingFragmentDirections
+                        .actionOrderPackagingFragmentToPackagingFragment(null)
                     findNavController().navigateSafely(action)
                 }
+
+                is PackagingEvent.ShowError -> showErrorSnackbar(event.message)
                 else -> Unit
             }
         }
@@ -128,9 +153,9 @@ class OrderPackagingFragment : Fragment() {
 
         adapter.submitList(uiItems)
 
-        val isEmpty = uiItems.isEmpty()
-        b.tvEmptyStorage.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        b.rvPackagingStats.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        val isEmpty = uiItems.isEmpty() && !b.progressBar.isVisible
+        b.tvEmptyStorage.isVisible = isEmpty
+        b.rvPackagingStats.isVisible = !isEmpty
 
         updateSwipeHelper(order)
     }

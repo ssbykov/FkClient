@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -50,6 +51,7 @@ class PackagingFragment : Fragment() {
 
         setupRecyclerView()
         observeState()
+        observeProductState()
         observePackagingEvents()
         observeProductEvents()
 
@@ -68,6 +70,7 @@ class PackagingFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter = PackagingContentAdapter { serialNumber ->
+            if (_binding == null) return@PackagingContentAdapter
             productViewModel.loadProduct(serialNumber)
         }
         binding.rvPackagingProducts.layoutManager = LinearLayoutManager(requireContext())
@@ -77,6 +80,8 @@ class PackagingFragment : Fragment() {
     private fun observeState() {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
+
+            updateLoadingState()
 
             val packaging = state.currentPackaging
 
@@ -103,8 +108,22 @@ class PackagingFragment : Fragment() {
         }
     }
 
+    private fun observeProductState() {
+        collectFlow(productViewModel.uiState) {
+            updateLoadingState()
+        }
+    }
+
+    private fun updateLoadingState() {
+        val b = _binding ?: return
+        val isLoading =
+            viewModel.uiState.value.isLoading || productViewModel.uiState.value.isLoading
+        b.progressBar.isVisible = isLoading
+    }
+
     private fun observePackagingEvents() {
         collectFlow(viewModel.events) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 is PackagingEvent.ShowError -> {
                     showErrorSnackbar(event.message)
@@ -123,6 +142,7 @@ class PackagingFragment : Fragment() {
 
     private fun observeProductEvents() {
         collectFlow(productViewModel.events) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 is ProductEvent.NavigateToProduct -> {
                     findNavController().navigateSafely(

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -128,7 +129,12 @@ class OrdersFragment : Fragment() {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
-            b.swipeRefresh.isRefreshing = state.isLoading
+            val isSwipeRefreshing = b.swipeRefresh.isRefreshing
+            if (isSwipeRefreshing && !state.isLoading) {
+                b.swipeRefresh.isRefreshing = false
+            }
+
+            b.progressBar.isVisible = state.isLoading && !isSwipeRefreshing
 
             val items = mapOrdersToUiItems(state.orders)
             adapter.submitList(items) { checkEmpty() }
@@ -219,8 +225,8 @@ class OrdersFragment : Fragment() {
 
     private fun checkEmpty() {
         val b = _binding ?: return
-        val isEmpty = adapter.itemCount == 0
-        b.tvEmpty.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        b.rvOrders.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        val isEmpty = adapter.itemCount == 0 && !b.progressBar.isVisible
+        b.tvEmpty.isVisible = isEmpty
+        b.rvOrders.isVisible = !isEmpty
     }
 }

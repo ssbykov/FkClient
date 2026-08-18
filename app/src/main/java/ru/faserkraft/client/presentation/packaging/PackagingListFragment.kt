@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -62,6 +63,7 @@ class PackagingListFragment : Fragment() {
     private fun setupRecyclerView() {
         adapter = PackagingListAdapter(
             onItemClick = { item ->
+                if (_binding == null) return@PackagingListAdapter
                 // Загружаем упаковку во ViewModel перед переходом
                 viewModel.loadPackaging(item.serialNumber)
             }
@@ -73,6 +75,8 @@ class PackagingListFragment : Fragment() {
     private fun observeState(process: String) {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
+
+            b.progressBar.isVisible = state.isLoading
 
             val uiItems = state.packagingInStorage
                 .filter { box ->
@@ -91,13 +95,16 @@ class PackagingListFragment : Fragment() {
                 }
 
             adapter.submitList(uiItems)
-            b.tvEmptyPackaging.visibility = if (uiItems.isEmpty()) View.VISIBLE else View.GONE
-            b.rvProducts.visibility = if (uiItems.isEmpty()) View.GONE else View.VISIBLE
+
+            val isEmpty = uiItems.isEmpty() && !state.isLoading
+            b.tvEmptyPackaging.isVisible = isEmpty
+            b.rvProducts.isVisible = !isEmpty
         }
     }
 
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 is PackagingEvent.ShowError -> showErrorSnackbar(event.message)
                 PackagingEvent.NavigateToPackaging -> {

@@ -69,8 +69,8 @@ class InventoryResultsFragment : Fragment() {
         setupSearch()
         setupFilters()
         observeState()
+        observeProductState()
         observeEvents()
-        observeProductLoading()
     }
 
     override fun onDestroyView() {
@@ -190,13 +190,13 @@ class InventoryResultsFragment : Fragment() {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
-            // Маппим доменные элементы в UI-модели (с сохранением локально разрешенного этапа, если есть)
+            updateLoadingState()
+
             allUiProducts = state.compareResults.map { it.toUiItem() }
 
             b.toolbarTitle.text =
                 getString(R.string.inventory_results_title, state.currentInventory?.id)
 
-            // Подсчет сводки по UI-списку
             val dbTotal = allUiProducts.count { it.accountingStep != null }
             val scannedTotal = allUiProducts.count { it.inventoryStep != null }
             val diffTotal = allUiProducts.count { it.isMismatch }
@@ -210,8 +210,25 @@ class InventoryResultsFragment : Fragment() {
         }
     }
 
+    private fun observeProductState() {
+        collectFlow(productViewModel.uiState) {
+            updateLoadingState()
+        }
+    }
+
+    private fun updateLoadingState() {
+        val b = _binding ?: return
+        val isInventoryBusy = viewModel.uiState.value.isLoading || viewModel.uiState.value.isActionInProgress
+        val isProductBusy = productViewModel.uiState.value.isLoading
+
+        val isBusy = isInventoryBusy || isProductBusy
+        b.progressBar.isVisible = isBusy
+        b.rvResults.isEnabled = !isBusy
+    }
+
     private fun observeEvents() {
         collectFlow(productViewModel.events) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 is ProductEvent.NavigateToProduct -> {
                     findNavController().navigateSafely(
@@ -233,6 +250,7 @@ class InventoryResultsFragment : Fragment() {
         }
 
         collectFlow(viewModel.events) { event ->
+            if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 is InventoryEvent.ShowError -> {
                     Toast.makeText(requireContext(), event.message, Toast.LENGTH_LONG).show()
@@ -240,14 +258,6 @@ class InventoryResultsFragment : Fragment() {
 
                 else -> Unit
             }
-        }
-    }
-
-    private fun observeProductLoading() {
-        collectFlow(productViewModel.uiState) { state ->
-            val b = _binding ?: return@collectFlow
-            b.progressBar.isVisible = state.isLoading
-            b.rvResults.isEnabled = !state.isLoading
         }
     }
 
@@ -272,17 +282,15 @@ class InventoryResultsFragment : Fragment() {
     // ---------- Actions & Navigation ----------
 
     private fun onProductClick(item: ProductInventoryCompareUiItem) {
-        if (productViewModel.uiState.value.isLoading) return
+        if (productViewModel.uiState.value.isLoading || viewModel.uiState.value.isLoading) return
         productViewModel.loadProduct(item.serialNumber)
     }
 
     private fun onStepResolved(item: ProductInventoryCompareUiItem, selectedStep: StepDefinitionWithProcess) {
-        // Передаем утвержденный этап во ViewModel для фиксации расхождения
-//        viewModel.resolveProductDiscrepancy(item.domainItem, selectedStep)
+        // viewModel.resolveProductDiscrepancy(item.domainItem, selectedStep)
     }
 
     private fun onSelectCustomStep(item: ProductInventoryCompareUiItem) {
-        // Открытие BottomSheetDialog / диалога со справочником этапов
-//        viewModel.openCustomStepSelection(item.domainItem)
+        // viewModel.openCustomStepSelection(item.domainItem)
     }
 }

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -71,6 +72,7 @@ class InventoryListFragment : Fragment() {
                 viewModel.openInventoryDetail(inventory)
             },
             onDeleteClick = { inventory ->
+                if (_binding == null) return@InventoryListAdapter
                 showDeleteConfirmDialog(inventory)
             }
         )
@@ -103,8 +105,13 @@ class InventoryListFragment : Fragment() {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
-            b.swipeRefresh.isRefreshing = state.isLoading
-            b.swipeRefresh.isEnabled = !state.isLoading
+            val isSwipeRefreshing = b.swipeRefresh.isRefreshing
+            if (isSwipeRefreshing && !state.isLoading) {
+                b.swipeRefresh.isRefreshing = false
+            }
+
+            val isBusy = state.isLoading || state.isActionInProgress
+            b.progressBar.isVisible = isBusy && !isSwipeRefreshing
             b.fabNewInventory.isEnabled = !state.isActionInProgress
 
             adapter.submitList(
@@ -171,8 +178,8 @@ class InventoryListFragment : Fragment() {
 
     private fun updateEmptyView() {
         val b = _binding ?: return
-        val isEmpty = adapter.itemCount == 0
-        b.tvEmpty.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        b.rvInventories.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        val isEmpty = adapter.itemCount == 0 && !b.progressBar.isVisible
+        b.tvEmpty.isVisible = isEmpty
+        b.rvInventories.isVisible = !isEmpty
     }
 }

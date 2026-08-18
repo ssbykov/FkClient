@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -54,6 +55,7 @@ class StorageFragment : Fragment() {
 
     private fun setupAdapter() {
         adapter = ProductsStorageAdapter { item ->
+            if (_binding == null) return@ProductsStorageAdapter
             val action = StorageContainerFragmentDirections
                 .actionStorageContainerFragmentToPackagingListFragment(item.process)
 
@@ -76,7 +78,13 @@ class StorageFragment : Fragment() {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
-            b.swipeRefreshStats.isRefreshing = state.isLoading
+            val isSwipeRefreshing = b.swipeRefreshStats.isRefreshing
+            if (isSwipeRefreshing && !state.isLoading) {
+                b.swipeRefreshStats.isRefreshing = false
+            }
+
+            b.progressBar.isVisible = state.isLoading && !isSwipeRefreshing
+
             val uiList = mapToUiItems(state.packagingInStorage)
             adapter.submitList(uiList) { checkEmpty() }
         }
@@ -106,8 +114,8 @@ class StorageFragment : Fragment() {
 
     private fun checkEmpty() {
         val b = _binding ?: return
-        val isEmpty = adapter.itemCount == 0
-        b.tvEmptyStorage.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        b.rvProductsStats.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        val isEmpty = adapter.itemCount == 0 && !b.progressBar.isVisible
+        b.tvEmptyStorage.isVisible = isEmpty
+        b.rvProductsStats.isVisible = !isEmpty
     }
 }

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.addCallback
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.NavHostFragment
@@ -64,9 +65,13 @@ class InventoryDetailFragment : Fragment() {
 
     private fun setupButtons() {
         binding.btnAddItems.setOnClickListener {
+            val state = viewModel.uiState.value
+            if (state.isLoading || state.isActionInProgress) return@setOnClickListener
             viewModel.continueInventory()
         }
         binding.btnCompare.setOnClickListener {
+            val state = viewModel.uiState.value
+            if (state.isLoading || state.isActionInProgress) return@setOnClickListener
             viewModel.compareInventory()
         }
     }
@@ -92,11 +97,9 @@ class InventoryDetailFragment : Fragment() {
             )
 
             val uiItems = mutableListOf<InventoryItemUiItem>()
-            // Группируем элементы по объекту ProcessShort
             val groupedItems = state.currentInventoryItems.groupBy { it.stepDefinition.process }
 
             for ((process, processItems) in groupedItems) {
-                // Извлекаем имя из объекта процесса для заголовка
                 uiItems.add(InventoryItemUiItem.ProcessHeader(process.name))
 
                 val sortedItems = processItems.sortedByDescending { it.scannedAt }
@@ -105,15 +108,16 @@ class InventoryDetailFragment : Fragment() {
 
             adapter.submitList(uiItems)
 
-            b.btnAddItems.visibility = if (inventory.isOpen) View.VISIBLE else View.GONE
-            b.btnCompare.visibility = if (inventory.isOpen) View.VISIBLE else View.GONE
-            b.btnCompare.isEnabled =
-                state.currentInventoryItems.isNotEmpty() &&
-                        !state.isLoading &&
-                        !state.isActionInProgress
+            val isBusy = state.isLoading || state.isActionInProgress
 
-            b.progressBar.visibility =
-                if (state.isLoading || state.isActionInProgress) View.VISIBLE else View.GONE
+            b.btnAddItems.isVisible = inventory.isOpen
+            b.btnAddItems.isEnabled = !isBusy
+
+            b.btnCompare.isVisible = inventory.isOpen
+            b.btnCompare.isEnabled = state.currentInventoryItems.isNotEmpty() && !isBusy
+
+            b.progressBar.isVisible = isBusy
+            b.rvItems.isEnabled = !isBusy
         }
     }
 
@@ -124,7 +128,6 @@ class InventoryDetailFragment : Fragment() {
 
     private fun observeEvents() {
         collectFlow(viewModel.events) { event ->
-            android.util.Log.d("INV_DEBUG", "event=$event, fragment=${this::class.java.simpleName}")
             if (_binding == null || !isAdded) return@collectFlow
 
             when (event) {
@@ -136,7 +139,7 @@ class InventoryDetailFragment : Fragment() {
                 }
 
                 InventoryEvent.NavigateToResults -> {
-                    getNavController().navigate(
+                    getNavController().navigateSafely(
                         InventoryDetailFragmentDirections
                             .actionInventoryDetailFragmentToInventoryResultsFragment()
                     )
