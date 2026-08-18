@@ -54,14 +54,13 @@ class ScannerViewModel @Inject constructor(
                         _events.send(ScannerEvent.OpenDeviceRegistration(result.request))
 
                     QrParseResult.Unknown -> {
-                        _events.send(ScannerEvent.ShowError("Нераспознанный QR-код"))
                         isHandled = false
+                        _events.send(ScannerEvent.ShowError("Нераспознанный QR-код"))
                     }
                 }
             } catch (e: Exception) {
-                // Если парсинг упадет, мы не заблокируем сканер навсегда
-                _events.send(ScannerEvent.ShowError("Ошибка при чтении QR-кода"))
                 isHandled = false
+                _events.send(ScannerEvent.ShowError("Ошибка при чтении QR-кода"))
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
             }

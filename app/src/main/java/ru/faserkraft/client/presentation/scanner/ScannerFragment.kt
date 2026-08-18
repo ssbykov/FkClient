@@ -6,6 +6,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.journeyapps.barcodescanner.BarcodeView
@@ -68,6 +69,7 @@ class ScannerFragment : BaseScannerFragment() {
     override fun onResume() {
         super.onResume()
         scannerViewModel.resetHandled()
+        updateLoadingOverlay()
         binding.etManualInput.setText(R.string.uf_0000000)
         binding.etManualInput.clearFocus()
     }
@@ -80,11 +82,27 @@ class ScannerFragment : BaseScannerFragment() {
     // ---------- Observers ----------
 
     private fun observeScannerState() {
-        collectFlow(scannerViewModel.uiState) { state ->
-            val b = _binding ?: return@collectFlow
-            b.loadingOverlay.visibility = if (state.isLoading) View.VISIBLE else View.GONE
-            if (state.isLoading) pauseScanner()
-            else resumeScanner()
+        // Подписываемся на состояния загрузки всех задействованных ViewModel
+        collectFlow(scannerViewModel.uiState) { updateLoadingOverlay() }
+        collectFlow(productViewModel.uiState) { updateLoadingOverlay() }
+        collectFlow(packagingViewModel.uiState) { updateLoadingOverlay() }
+    }
+
+    /**
+     * Показывает индикатор загрузки, если хотя бы одна из ViewModel
+     * находится в процессе выполнения операции или сетевого запроса.
+     */
+    private fun updateLoadingOverlay() {
+        val b = _binding ?: return
+        val isLoading = scannerViewModel.uiState.value.isLoading ||
+                productViewModel.uiState.value.isLoading ||
+                packagingViewModel.uiState.value.isLoading
+
+        b.loadingOverlay.isVisible = isLoading
+        if (isLoading) {
+            pauseScanner()
+        } else {
+            resumeScanner()
         }
     }
 
@@ -135,10 +153,14 @@ class ScannerFragment : BaseScannerFragment() {
             if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 is ProductEvent.NavigateToProduct ->
-                    findNavController().navigateSafely(R.id.action_scannerFragment_to_productFragment)
+                    findNavController().navigateSafely(
+                        R.id.action_scannerFragment_to_productFragment
+                    )
 
                 is ProductEvent.NavigateToNewProduct ->
-                    findNavController().navigateSafely(R.id.action_scannerFragment_to_newProductFragment)
+                    findNavController().navigateSafely(
+                        R.id.action_scannerFragment_to_newProductFragment
+                    )
 
                 is ProductEvent.ShowError ->
                     handleScannerError(event.message)
@@ -176,7 +198,8 @@ class ScannerFragment : BaseScannerFragment() {
     private fun setupManualInputButton() {
         binding.tilManualInput.setEndIconOnClickListener {
             val current = binding.etManualInput.text.toString()
-            if (current != "uf-0000000") {
+            val placeholder = getString(R.string.uf_0000000)
+            if (current != placeholder) {
                 scannerViewModel.decodeQrCode(current)
                 binding.etManualInput.setText(R.string.uf_0000000)
                 binding.etManualInput.clearFocus()
@@ -210,7 +233,7 @@ class ScannerFragment : BaseScannerFragment() {
 
     private fun handleScannerError(message: String) {
         scannerViewModel.resetHandled()
-        resumeScanner()
+        updateLoadingOverlay()
         showErrorSnackbar(message)
     }
 }
