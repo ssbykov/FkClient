@@ -134,6 +134,10 @@ interface Api {
         @Query("new_employee_id") newEmployeeId: Int,
     ): Response<ProductDto>
 
+    @POST(BASE_URL + "products_steps/reset")
+    suspend fun resetStep(
+        @Query("step_id") stepId: Int,
+    ): Response<ProductDto>
 
     // ================== УПАКОВКА (PACKAGING) ==================
 

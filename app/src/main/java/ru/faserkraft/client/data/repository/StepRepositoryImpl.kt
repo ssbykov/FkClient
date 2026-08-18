@@ -1,6 +1,5 @@
 package ru.faserkraft.client.data.repository
 
-
 import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.domain.model.Product
@@ -18,4 +17,7 @@ class StepRepositoryImpl @Inject constructor(
 
     override suspend fun changeStepPerformer(stepId: Int, newEmployeeId: Int): Product =
         requireNotNull(callApi { api.changeStepPerformer(stepId, newEmployeeId) }).toDomain()
+
+    override suspend fun resetStep(stepId: Int): Product =
+        requireNotNull(callApi { api.resetStep(stepId) }).toDomain()
 }
