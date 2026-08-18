@@ -23,6 +23,7 @@ import ru.faserkraft.client.domain.usecase.product.CreateProductUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductUseCase
 import ru.faserkraft.client.domain.usecase.step.ChangeStepPerformerUseCase
 import ru.faserkraft.client.domain.usecase.step.CloseStepUseCase
+import ru.faserkraft.client.domain.usecase.step.ResetStepUseCase
 import ru.faserkraft.client.error.AppError
 import ru.faserkraft.client.presentation.app.AppSessionCoordinator
 import ru.faserkraft.client.presentation.app.AppSessionEvent
@@ -37,6 +38,7 @@ class ProductViewModel @Inject constructor(
     private val changeProductProcessUseCase: ChangeProductProcessUseCase,
     private val closeStepUseCase: CloseStepUseCase,
     private val changeStepPerformerUseCase: ChangeStepPerformerUseCase,
+    private val resetStepUseCase: ResetStepUseCase,
     private val getProcessesUseCase: GetProcessesUseCase,
     private val getEmployeesUseCase: GetEmployeesUseCase,
     private val appAuth: AppAuth,
@@ -222,7 +224,17 @@ class ProductViewModel @Inject constructor(
         withActionProgress {
             runCatching { changeStepPerformerUseCase(stepId, newEmployeeId) }
                 .onSuccess { product ->
-                    _uiState.update { it.copy(product = product, userRole = currentRole()) }
+                    updateProductState(product)
+                }
+                .onFailure { emitError(it) }
+        }
+    }
+
+    fun resetStep(stepId: Int) {
+        withActionProgress {
+            runCatching { resetStepUseCase(stepId) }
+                .onSuccess { product ->
+                    updateProductState(product)
                 }
                 .onFailure { emitError(it) }
         }

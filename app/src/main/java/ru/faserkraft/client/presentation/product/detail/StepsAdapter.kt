@@ -4,6 +4,7 @@ import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -13,13 +14,18 @@ import ru.faserkraft.client.databinding.ItemStepBinding
 import ru.faserkraft.client.domain.model.Step
 import ru.faserkraft.client.utils.converter.formatIsoToUi
 
+enum class StepAction {
+    CHANGE_PERFORMER,
+    RESET_STEP,
+}
+
 class StepsAdapter(
-    private val onItemClick: (StepUiItem) -> Unit,
+    private val onActionClick: (StepUiItem, StepAction) -> Unit,
 ) : ListAdapter<StepUiItem, StepsAdapter.StepVH>(StepDiff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StepVH {
         val binding = ItemStepBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return StepVH(binding, onItemClick)
+        return StepVH(binding, onActionClick)
     }
 
     override fun onBindViewHolder(holder: StepVH, position: Int) {
@@ -28,7 +34,7 @@ class StepsAdapter(
 
     class StepVH(
         private val binding: ItemStepBinding,
-        private val onItemClick: (StepUiItem) -> Unit,
+        private val onActionClick: (StepUiItem, StepAction) -> Unit,
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: StepUiItem) = with(binding) {
@@ -52,11 +58,32 @@ class StepsAdapter(
             )
 
             if (item.isEditable) {
-                btnEdit.visibility = View.VISIBLE
-                btnEdit.setOnClickListener { onItemClick(item) }
+                btnMenu.visibility = View.VISIBLE
+                btnMenu.setOnClickListener { view ->
+                    showPopupMenu(view, item)
+                }
             } else {
-                btnEdit.visibility = View.GONE
+                btnMenu.visibility = View.GONE
             }
+        }
+
+        private fun showPopupMenu(view: View, item: StepUiItem) {
+            val popup = PopupMenu(view.context, view)
+            popup.inflate(R.menu.menu_step_actions)
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.action_change_performer -> {
+                        onActionClick(item, StepAction.CHANGE_PERFORMER)
+                        true
+                    }
+                    R.id.action_reset_step -> {
+                        onActionClick(item, StepAction.RESET_STEP)
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
         }
     }
 

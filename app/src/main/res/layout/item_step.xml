@@ -33,20 +33,20 @@
             tools:text="Склейка корпуса" />
 
         <ImageButton
-            android:id="@+id/btnEdit"
+            android:id="@+id/btnMenu"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:layout_marginStart="8dp"
-            android:background="@drawable/bg_edit_circle"
-            android:contentDescription="@string/edit"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/menu"
             android:padding="6dp"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_edit"
+            android:src="@drawable/ic_more_vert"
             android:visibility="gone"
-            app:tint="@color/status_success_text" />
+            app:tint="@color/status_success_text"
+            tools:visibility="visible" />
 
     </LinearLayout>
-
 
     <TextView
         android:id="@+id/tvExecutor"

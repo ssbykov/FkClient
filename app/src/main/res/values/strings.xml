@@ -5,6 +5,7 @@
     <!-- ============================================== -->
     <string name="app_name">Фазеркрафт-учет</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="menu">Меню</string>
     <string name="back">Назад</string>
     <string name="save">Сохранить</string>
     <string name="cancel">Отменить</string>
@@ -58,6 +59,14 @@
     <string name="step_last_desc_done">Этап закрыт</string>
     <string name="step_last_desc_pending">Этап не закрыт</string>
     <string name="step_order_and_name">%1$d. %2$s</string>
+
+    <!-- Новые строки для меню и сброса -->
+    <string name="action_change_performer">Сменить исполнителя</string>
+    <string name="action_reset_step">Сбросить этап</string>
+    <string name="reset">Сбросить</string>
+    <string name="reset_step_title">Сброс этапа производства</string>
+    <string name="reset_step_confirm_message">Сбросить этап «%1$s» и все последующие этапы в состояние ожидания?</string>
+    <string name="step_reset_success">Этап успешно сброшен</string>
 
     <string name="status">Статус</string>
     <string name="current_status">Текущий статус</string>

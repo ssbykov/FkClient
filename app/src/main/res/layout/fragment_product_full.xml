@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     tools:context=".presentation.product.detail.ProductFullFragment">
 
-    <!-- Заголовок списка САМОМ ВЕРХУ -->
+    <!-- Заголовок списка -->
     <TextView
         android:id="@+id/tvStepsTitle"
         android:layout_width="0dp"
@@ -21,6 +21,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Карточка продукта -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardProduct"
         android:layout_width="0dp"
@@ -82,8 +83,7 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-
-    <!-- Скроллируемые этапы между карточкой и кнопкой -->
+    <!-- Скроллируемые этапы -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvSteps"
         android:layout_width="0dp"
@@ -96,7 +96,19 @@
         app:layout_constraintTop_toBottomOf="@id/cardProduct"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Индикатор загрузки / выполнения действия -->
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
