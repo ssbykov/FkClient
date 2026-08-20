@@ -35,6 +35,11 @@ class StatisticsViewModel @Inject constructor(
     private var currentPeriod: StatPeriod = StatPeriod.MONTH
     private var currentOffset: Int = 0
 
+    var currentDateFrom: String = ""
+        private set
+    var currentDateTo: String = ""
+        private set
+
     init {
         observeSessionEvents()
         loadStatistics()
@@ -56,7 +61,11 @@ class StatisticsViewModel @Inject constructor(
         _uiState.value = StatisticsUiState()
     }
 
-    // ---------- Управление периодом ----------
+    // ---------- Управление режимом и периодом ----------
+
+    fun setMode(mode: StatMode) {
+        _uiState.update { it.copy(mode = mode) }
+    }
 
     fun setPeriod(period: StatPeriod) {
         currentPeriod = period
@@ -75,6 +84,8 @@ class StatisticsViewModel @Inject constructor(
 
     fun loadStatistics() {
         val (dateFrom, dateTo) = computeDateRange(currentPeriod, currentOffset)
+        currentDateFrom = dateFrom.format(API_DATE_FORMAT)
+        currentDateTo = dateTo.format(API_DATE_FORMAT)
         val periodLabel = formatPeriodLabel(dateFrom, currentPeriod)
 
         viewModelScope.launch {
@@ -82,12 +93,12 @@ class StatisticsViewModel @Inject constructor(
 
             runCatching {
                 getProductsStatisticsUseCase(
-                    dateFrom = dateFrom.format(API_DATE_FORMAT),
-                    dateTo = dateTo.format(API_DATE_FORMAT),
+                    dateFrom = currentDateFrom,
+                    dateTo = currentDateTo,
                 )
             }
                 .onSuccess { statsData ->
-                    // 1. Верхняя карточка: группируем готовые продукты по процессам
+                    // 1. Общее количество по видам продукции (процессам)
                     val totalItems = statsData.finishedProducts
                         .map { stat ->
                             ProcessTotalUiItem(
@@ -98,22 +109,20 @@ class StatisticsViewModel @Inject constructor(
                         }
                         .sortedByDescending { it.completedProducts }
 
-                    // 2. Нижняя карточка: группируем этапы по процессам, а внутри процесса — суммируем этапы
+                    // 2. Этапы по видам продукции
                     val stepsItems = statsData.totalSteps
                         .groupBy { it.processId to it.processName }
                         .map { (processKey, employeeSteps) ->
-
-                            // Группируем, сортируем по order и мапим в UI-модель
                             val groupedSteps = employeeSteps
                                 .groupBy { it.stepDefinitionId }
-                                .values // Получаем списки одинаковых этапов
-                                .sortedBy { sameStepsList -> sameStepsList.first().order }
-                                .map { sameStepsList ->
-                                    val firstItem = sameStepsList.first()
+                                .values
+                                .sortedBy { sameList -> sameList.first().order }
+                                .map { sameList ->
+                                    val firstItem = sameList.first()
                                     StepCountUiItem(
                                         stepDefinitionId = firstItem.stepDefinitionId,
                                         stepName = firstItem.stepName,
-                                        count = sameStepsList.sumOf { it.count }
+                                        count = sameList.sumOf { it.count }
                                     )
                                 }
 
@@ -126,10 +135,53 @@ class StatisticsViewModel @Inject constructor(
                         .sortedByDescending { it.steps.sumOf { step -> step.count } }
                         .filter { it.steps.isNotEmpty() }
 
+                    // 3. Сотрудники -> Типоразмеры -> Этапы
+                    val employeeItems = statsData.totalSteps
+                        .groupBy { it.employeeId to it.employeeName }
+                        .map { (employeeKey, employeeSteps) ->
+                            val sizeTypes = employeeSteps
+                                .groupBy {
+                                    (it.sizeTypeId ?: -1) to (it.sizeTypeName ?: "Без типоразмера")
+                                }
+                                .map { (sizeTypeKey, sizeTypeSteps) ->
+                                    val groupedSteps = sizeTypeSteps
+                                        .groupBy { it.order to it.stepName }
+                                        .values
+                                        .sortedBy { sameList -> sameList.first().order }
+                                        .map { sameList ->
+                                            val firstItem = sameList.first()
+                                            StepCountUiItem(
+                                                stepDefinitionId = firstItem.stepDefinitionId,
+                                                stepName = firstItem.stepName,
+                                                count = sameList.sumOf { it.count }
+                                            )
+                                        }
+
+                                    EmployeeSizeTypeUiItem(
+                                        sizeTypeId = sizeTypeKey.first.takeIf { it != -1 },
+                                        sizeTypeName = sizeTypeKey.second,
+                                        totalCompleted = groupedSteps.sumOf { it.count },
+                                        steps = groupedSteps
+                                    )
+                                }
+                                .sortedByDescending { it.totalCompleted }
+                                .filter { it.steps.isNotEmpty() }
+
+                            EmployeeStatsUiItem(
+                                employeeId = employeeKey.first,
+                                employeeName = employeeKey.second,
+                                totalCompleted = sizeTypes.sumOf { it.totalCompleted },
+                                sizeTypes = sizeTypes
+                            )
+                        }
+                        .sortedByDescending { it.totalCompleted }
+                        .filter { it.sizeTypes.isNotEmpty() }
+
                     _uiState.update {
                         it.copy(
                             totalByProcess = totalItems,
-                            stepsByProcess = stepsItems
+                            stepsByProcess = stepsItems,
+                            employees = employeeItems
                         )
                     }
                 }
@@ -138,8 +190,6 @@ class StatisticsViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = false) }
         }
     }
-
-    // ---------- Вычисление дат ----------
 
     private fun computeDateRange(
         period: StatPeriod,
@@ -151,6 +201,7 @@ class StatisticsViewModel @Inject constructor(
                 val base = today.withDayOfMonth(1).plusMonths(offset.toLong())
                 base to base.plusMonths(1).minusDays(1)
             }
+
             StatPeriod.QUARTER -> {
                 val quarterIndex = (today.monthValue - 1) / 3
                 val firstMonth = quarterIndex * 3 + 1
@@ -160,6 +211,7 @@ class StatisticsViewModel @Inject constructor(
                     .plusMonths((offset * 3).toLong())
                 base to base.plusMonths(3).minusDays(1)
             }
+
             StatPeriod.YEAR -> {
                 val base = today.withDayOfYear(1).plusYears(offset.toLong())
                 base to base.plusYears(1).minusDays(1)
@@ -182,8 +234,6 @@ class StatisticsViewModel @Inject constructor(
                 from.year.toString()
         }
     }
-
-    // ---------- Ошибки ----------
 
     private suspend fun emitError(e: Throwable) {
         _events.send(StatisticsEvent.ShowError(e.toErrorMessage()))

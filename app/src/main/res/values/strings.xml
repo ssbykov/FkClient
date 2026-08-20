@@ -291,5 +291,10 @@
     <string name="step_count_format">%1$d шт.</string>
     <string name="process_count_format">%1$d шт.</string>
     <string name="by_steps">По этапам</string>
+    <string name="size_type_format">Типоразмер: %1$s</string>
+
+    <!-- Переключатель режимов статистики -->
+    <string name="stat_mode_processes">По процессам</string>
+    <string name="stat_mode_employees">По сотрудникам</string>
 
 </resources>

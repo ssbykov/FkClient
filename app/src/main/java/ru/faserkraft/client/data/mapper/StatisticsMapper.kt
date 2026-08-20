@@ -11,6 +11,8 @@ fun StepCountStatDto.toDomain(): StepCountStat {
     return StepCountStat(
         processId = this.processId,
         processName = this.processName,
+        sizeTypeId = this.sizeTypeId,
+        sizeTypeName = this.sizeTypeName,
         stepDefinitionId = this.stepDefinitionId,
         order = this.order,
         stepName = this.stepName,

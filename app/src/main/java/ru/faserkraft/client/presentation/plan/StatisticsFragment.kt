@@ -27,6 +27,7 @@ class StatisticsFragment : Fragment() {
     private val viewModel: StatisticsViewModel by viewModels()
     private lateinit var totalProcessAdapter: StatTotalProcessAdapter
     private lateinit var stepsProcessAdapter: StatProcessStepsAdapter
+    private lateinit var employeeAdapter: EmployeeStatAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -58,10 +59,35 @@ class StatisticsFragment : Fragment() {
             adapter = stepsProcessAdapter
             itemAnimator = null
         }
+
+        employeeAdapter = EmployeeStatAdapter { employee ->
+            // Задел под переход на экран детальной статистики сотрудника
+            // val action = StatisticsFragmentDirections.actionStatisticsToEmployeeDetail(
+            //     employeeId = employee.employeeId,
+            //     employeeName = employee.employeeName,
+            //     dateFrom = viewModel.currentDateFrom,
+            //     dateTo = viewModel.currentDateTo
+            // )
+            // findNavController().navigate(action)
+        }
+        binding.rvEmployees.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = employeeAdapter
+            itemAnimator = null
+        }
     }
 
     private fun setupListeners() {
         binding.apply {
+            toggleGroupMode.addOnButtonCheckedListener { _, checkedId, isChecked ->
+                if (!isChecked) return@addOnButtonCheckedListener
+                val mode = when (checkedId) {
+                    btnModeEmployees.id -> StatMode.BY_EMPLOYEE
+                    else -> StatMode.BY_PROCESS
+                }
+                viewModel.setMode(mode)
+            }
+
             chipGroupPeriod.setOnCheckedStateChangeListener { _, checkedIds ->
                 if (viewModel.uiState.value.isLoading) return@setOnCheckedStateChangeListener
                 val period = when (checkedIds.firstOrNull()) {
@@ -114,7 +140,6 @@ class StatisticsFragment : Fragment() {
     private fun renderState(state: StatisticsUiState) {
         val b = _binding ?: return
         b.apply {
-            // Разделение индикации SwipeRefresh и центральной крутилки
             val isSwipeRefreshing = swipeRefresh.isRefreshing
             if (isSwipeRefreshing && !state.isLoading) {
                 swipeRefresh.isRefreshing = false
@@ -127,24 +152,40 @@ class StatisticsFragment : Fragment() {
             chipMonth.isEnabled = !state.isLoading
             chipQuarter.isEnabled = !state.isLoading
             chipYear.isEnabled = !state.isLoading
-
-            // Карточка 1: Общее количество
-            totalProcessAdapter.submitList(state.totalByProcess)
-            val grandTotal = state.totalByProcess.sumOf { it.completedProducts }
-            tvGrandTotal.text = getString(R.string.grand_total_format, grandTotal)
-
-            // Карточка 2: Этапы
-            stepsProcessAdapter.submitList(state.stepsByProcess)
-            cardSteps.isVisible = state.stepsByProcess.isNotEmpty()
+            toggleGroupMode.isEnabled = !state.isLoading
 
             // Период
             tvPeriodLabel.text = state.periodLabel
+
+            // Переключение видимости блоков режимов
+            val isProcessMode = state.mode == StatMode.BY_PROCESS
+            containerProcesses.isVisible = isProcessMode
+            rvEmployees.isVisible = !isProcessMode
+
+            if (isProcessMode) {
+                // Карточка 1 (Итого): скрываем целиком, если список пуст
+                cardTotal.isVisible = state.totalByProcess.isNotEmpty()
+                if (state.totalByProcess.isNotEmpty()) {
+                    totalProcessAdapter.submitList(state.totalByProcess)
+                    val grandTotal = state.totalByProcess.sumOf { it.completedProducts }
+                    tvGrandTotal.text = getString(R.string.grand_total_format, grandTotal)
+                } else {
+                    totalProcessAdapter.submitList(emptyList())
+                }
+
+                // Карточка 2 (Этапы): скрываем, если этапов нет
+                cardSteps.isVisible = state.stepsByProcess.isNotEmpty()
+                stepsProcessAdapter.submitList(state.stepsByProcess)
+            } else {
+                employeeAdapter.submitList(state.employees)
+            }
         }
     }
 
     override fun onDestroyView() {
         binding.rvTotalByProcess.adapter = null
         binding.rvStepsByProcess.adapter = null
+        binding.rvEmployees.adapter = null
         _binding = null
         super.onDestroyView()
     }

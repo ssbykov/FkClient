@@ -5,6 +5,8 @@ import com.google.gson.annotations.SerializedName
 data class StepCountStatDto(
     @SerializedName("process_id") val processId: Int,
     @SerializedName("process_name") val processName: String,
+    @SerializedName("size_type_id") val sizeTypeId: Int,
+    @SerializedName("size_type_name") val sizeTypeName: String,
     @SerializedName("step_definition_id") val stepDefinitionId: Int,
     @SerializedName("order") val order: Int,
     @SerializedName("step_name") val stepName: String,
@@ -12,7 +14,6 @@ data class StepCountStatDto(
     @SerializedName("employee_name") val employeeName: String,
     @SerializedName("count") val count: Int
 )
-
 data class ProcessCountStatDto(
     @SerializedName("process_id") val processId: Int,
     @SerializedName("process_name") val processName: String,

@@ -4,6 +4,8 @@ package ru.faserkraft.client.domain.model
 data class StepCountStat(
     val processId: Int,
     val processName: String,
+    val sizeTypeId: Int,
+    val sizeTypeName: String,
     val stepDefinitionId: Int,
     val order: Int,
     val stepName: String,

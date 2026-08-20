@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="6dp"
+    android:layout_marginBottom="6dp"
+    android:orientation="vertical">
+
+    <!-- Заголовок типоразмера и общее количество по нему -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvProcessName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="Типоразмер 3м2" />
+
+        <TextView
+            android:id="@+id/tvProcessTotal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/brand_blue"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="45 шт." />
+
+    </LinearLayout>
+
+    <!-- Список этапов конкретного типоразмера -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSteps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:nestedScrollingEnabled="false"
+        tools:itemCount="2"
+        tools:listitem="@layout/item_stat_step_row" />
+
+</LinearLayout>

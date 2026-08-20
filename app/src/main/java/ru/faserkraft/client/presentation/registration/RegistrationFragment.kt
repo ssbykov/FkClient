@@ -87,7 +87,6 @@ class RegistrationFragment : Fragment() {
                 appViewModel.logout()
                 scannerViewModel.clearState()
                 dialog.dismiss()
-                findNavController().navigateUp()
             }
             .setNegativeButton("Отмена") { dialog, _ ->
                 dialog.dismiss()
