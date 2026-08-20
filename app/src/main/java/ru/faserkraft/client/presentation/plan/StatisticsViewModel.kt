@@ -141,7 +141,7 @@ class StatisticsViewModel @Inject constructor(
                         .map { (employeeKey, employeeSteps) ->
                             val sizeTypes = employeeSteps
                                 .groupBy {
-                                    (it.sizeTypeId ?: -1) to (it.sizeTypeName ?: "Без типоразмера")
+                                    (it.sizeTypeId) to (it.sizeTypeName)
                                 }
                                 .map { (sizeTypeKey, sizeTypeSteps) ->
                                     val groupedSteps = sizeTypeSteps
