@@ -19,7 +19,6 @@ import ru.faserkraft.client.data.dto.OrderItemDto
 import ru.faserkraft.client.data.dto.OrderUpdateDto
 import ru.faserkraft.client.data.dto.ProcessDto
 import ru.faserkraft.client.data.network.Api
-import ru.faserkraft.client.domain.model.Order
 import ru.faserkraft.client.domain.model.OrderItem
 import ru.faserkraft.client.domain.model.Process
 import ru.faserkraft.client.error.AppError
@@ -252,15 +251,16 @@ class OrderRepositoryImplTest {
     }
 
     @Test
-    fun `updateOrderItems - throws IllegalArgumentException when response body is null`() = runTest {
-        coEvery { api.updateOrderItems(any(), any()) } returns Response.success(null)
+    fun `updateOrderItems - throws IllegalArgumentException when response body is null`() =
+        runTest {
+            coEvery { api.updateOrderItems(any(), any()) } returns Response.success(null)
 
-        val ex = catchError<IllegalArgumentException> {
-            repository.updateOrderItems(100, listOf(orderItem))
+            val ex = catchError<IllegalArgumentException> {
+                repository.updateOrderItems(100, listOf(orderItem))
+            }
+
+            assertNotNull(ex)
         }
-
-        assertNotNull(ex)
-    }
 
     // ─── closeOrder ───────────────────────────────────────────────────────────
 
