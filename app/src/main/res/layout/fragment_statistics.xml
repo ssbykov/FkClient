@@ -276,13 +276,31 @@
                             android:orientation="vertical"
                             android:padding="12dp">
 
-                            <TextView
-                                android:layout_width="wrap_content"
+                            <!-- Шапка: заголовок и количество рабочих дней периода -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="@string/by_steps"
-                                android:textColor="@color/black"
-                                android:textSize="16sp"
-                                android:textStyle="bold" />
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/by_steps"
+                                    android:textColor="@color/black"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+
+                                <!-- Количество рабочих дней в периоде -->
+                                <TextView
+                                    android:id="@+id/tvStepsWorkingDays"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="12sp"
+                                    tools:text="13 раб. дн." />
+
+                            </LinearLayout>
 
                             <View
                                 android:layout_width="match_parent"

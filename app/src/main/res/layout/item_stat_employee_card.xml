@@ -19,7 +19,7 @@
         android:orientation="vertical"
         android:padding="12dp">
 
-        <!-- Имя сотрудника и общий итог по всем этапам/типоразмерам -->
+        <!-- Имя сотрудника, рабочие дни и общий итог по всем этапам/типоразмерам -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -35,6 +35,15 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 tools:text="Иванов Иван" />
+
+            <!-- Количество отработанных дней -->
+            <TextView
+                android:id="@+id/tvWorkingDays"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:textSize="12sp"
+                tools:text="13 раб. дн." />
 
             <TextView
                 android:id="@+id/tvEmployeeTotal"

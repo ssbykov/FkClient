@@ -128,7 +128,8 @@ class StatisticsFragment : Fragment() {
                         if (_binding == null || !isAdded) return@collect
                         when (event) {
                             is StatisticsEvent.ShowError -> {
-                                Toast.makeText(requireContext(), event.message, Toast.LENGTH_SHORT).show()
+                                Toast.makeText(requireContext(), event.message, Toast.LENGTH_SHORT)
+                                    .show()
                             }
                         }
                     }
@@ -175,7 +176,13 @@ class StatisticsFragment : Fragment() {
 
                 // Карточка 2 (Этапы): скрываем, если этапов нет
                 cardSteps.isVisible = state.stepsByProcess.isNotEmpty()
-                stepsProcessAdapter.submitList(state.stepsByProcess)
+                if (state.stepsByProcess.isNotEmpty()) {
+                    tvStepsWorkingDays.text =
+                        getString(R.string.stat_working_days_format, state.periodWorkingDays)
+                    stepsProcessAdapter.submitList(state.stepsByProcess)
+                } else {
+                    stepsProcessAdapter.submitList(emptyList())
+                }
             } else {
                 employeeAdapter.submitList(state.employees)
             }

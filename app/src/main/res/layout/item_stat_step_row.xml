@@ -1,42 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:paddingStart="12dp"
-    android:paddingTop="4dp"
-    android:paddingEnd="0dp"
-    android:paddingBottom="4dp">
-
-    <!-- Точка-буллит для визуала -->
-    <View
-        android:layout_width="4dp"
-        android:layout_height="4dp"
-        android:layout_gravity="center_vertical"
-        android:layout_marginEnd="8dp"
-        android:background="@drawable/bg_dot_blue"
-        tools:ignore="SpeakableTextPresentCheck" />
+    android:paddingVertical="6dp">
 
     <!-- Название этапа -->
     <TextView
         android:id="@+id/tvStepName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_marginEnd="8dp"
         android:textColor="@color/black"
-        android:textSize="14sp"
-        tools:text="Заливка" />
+        android:textSize="13sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/tvPercentage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Подготовка к упаковке" />
 
-    <!-- Количество -->
+    <!-- Процент выполнения -->
     <TextView
-        android:id="@+id/tvStepCount"
+        android:id="@+id/tvPercentage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:textColor="@color/brand_blue"
-        android:textSize="14sp"
+        android:textSize="13sp"
         android:textStyle="bold"
-        tools:text="142 шт." />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="98%" />
 
-</LinearLayout>
+    <!-- Подстрока: Факт/План и среднее в день -->
+    <TextView
+        android:id="@+id/tvStepDetails"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvStepName"
+        tools:text="78 из 138 шт.  •  ~6,0 шт/день" />
+
+    <!-- Полоса прогресса с контрастной подложкой -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progressStep"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        app:indicatorColor="@color/brand_blue"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvStepDetails"
+        app:trackColor="@color/progress_track"
+        app:trackCornerRadius="3dp"
+        app:trackThickness="6dp"
+        tools:progress="56" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
