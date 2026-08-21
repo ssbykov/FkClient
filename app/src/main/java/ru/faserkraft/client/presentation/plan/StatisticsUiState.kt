@@ -13,8 +13,9 @@ enum class StatPeriod {
 
 data class StatisticsUiState(
     val isLoading: Boolean = false,
-    val periodLabel: String = "",
     val mode: StatMode = StatMode.BY_PROCESS,
+    val periodLabel: String = "",
+    val periodWorkingDays: Int = 0,
     val totalByProcess: List<ProcessTotalUiItem> = emptyList(),
     val stepsByProcess: List<ProcessStepsUiItem> = emptyList(),
     val employees: List<EmployeeStatsUiItem> = emptyList(),
@@ -42,6 +43,7 @@ data class EmployeeSizeTypeUiItem(
 data class EmployeeStatsUiItem(
     val employeeId: Int,
     val employeeName: String,
+    val workingDays: Int,
     val totalCompleted: Int,
     val sizeTypes: List<EmployeeSizeTypeUiItem>
 )
@@ -49,5 +51,8 @@ data class EmployeeStatsUiItem(
 data class StepCountUiItem(
     val stepDefinitionId: Int,
     val stepName: String,
-    val count: Int
+    val count: Int,
+    val planCount: Int? = null,
+    val completionPercentage: Double? = null,
+    val dailyAverage: Double = 0.0
 )
