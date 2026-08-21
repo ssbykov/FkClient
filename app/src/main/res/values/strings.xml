@@ -4,23 +4,17 @@
     <!-- ОБЩИЕ / COMMON -->
     <!-- ============================================== -->
     <string name="app_name">Фазеркрафт-учет</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="menu">Меню</string>
-    <string name="back">Назад</string>
     <string name="save">Сохранить</string>
     <string name="cancel">Отменить</string>
-    <string name="close">Закрыть</string>
     <string name="delete">Удалить</string>
     <string name="edit">Изменить</string>
-    <string name="refresh">Обновить</string>
-    <string name="more_actions">Другие действия</string>
     <string name="select_all">Выбрать все</string>
     <string name="date">Дата</string>
     <string name="quantity">Количество</string>
     <string name="unit_count">Количество (шт.)</string>
     <string name="total_label">Итого:</string>
     <string name="exit">Выйти</string>
-    <string name="sep_1">"   /   "</string>
     <string name="access_denied">Нет доступа к разделу</string>
     <string name="account_access_denied">У вашей учетной записи нет прав для просмотра этого раздела</string>
 
@@ -38,27 +32,23 @@
     <string name="new_product_header">Новый продукт</string>
 
     <string name="process">Процесс</string>
-    <string name="edit_process">Изменить</string>
     <string name="process_edit">Изменение процесса</string>
 
     <string name="step">Этап</string>
     <string name="steps_header">Все этапы</string>
     <string name="step_header">Этап производства</string>
     <string name="step_name">Название этапа</string>
-    <string name="step_subtitle">Этап: %1$s</string>
     <string name="show_steps_button">Показать все этапы</string>
     <string name="close_step_button">Закрыть этап</string>
     <string name="step_edit">Изменение этапа</string>
     <string name="step_executor">Выполнил: %1$s</string>
     <string name="step_completed_at">Завершено: %1$s</string>
-    <string name="step_closed">Этап закрыт:</string>
     <string name="closed_at">Этап закрыт: %1$s</string>
     <string name="step_last_title">Этап: %1$s</string>
     <string name="step_last_status_done">Статус: Выполнено</string>
     <string name="step_last_status_pending">Статус: Ожидает начала</string>
     <string name="step_last_desc_done">Этап закрыт</string>
     <string name="step_last_desc_pending">Этап не закрыт</string>
-    <string name="step_order_and_name">%1$d. %2$s</string>
 
     <!-- Новые строки для меню и сброса -->
     <string name="action_change_performer">Сменить исполнителя</string>
@@ -66,7 +56,6 @@
     <string name="reset">Сбросить</string>
     <string name="reset_step_title">Сброс этапа производства</string>
     <string name="reset_step_confirm_message">Сбросить этап «%1$s» и все последующие этапы в состояние ожидания?</string>
-    <string name="step_reset_success">Этап успешно сброшен</string>
 
     <string name="status">Статус</string>
     <string name="current_status">Текущий статус</string>
@@ -81,7 +70,6 @@
     <!-- ============================================== -->
     <string name="scanner">Сканер</string>
     <string name="zxing_status_prompt">Отсканируйте QR-код</string>
-    <string name="scan_result_placeholder">Результат сканирования</string>
     <string name="confirm_scan">Подтвердите сканирование</string>
     <string name="registration">Регистрация</string>
     <string name="qr_code">QR-код</string>
@@ -114,14 +102,10 @@
 
     <string name="new_packaging">Новая упаковка</string>
     <string name="packaging_number">Номер упаковки</string>
-    <string name="create_packaging">Создать упаковку</string>
-    <string name="packaging_boxes">Упаковок</string>
-    <string name="packaging_count">Количество упаковок:</string>
     <string name="packaging_count_format">Упаковок сформировано: %1$d</string>
     <string name="packaging_contents">Модули в упаковке</string>
     <string name="packaging_for_shipment">Упаковки для отправки</string>
 
-    <string name="products_count">Количество модулей: </string>
     <string name="total_items_count">Всего: %1$d модулей</string>
     <string name="total_packaging_count">Всего: %1$d упаковок</string>
     <string name="items_count">Позиций: %1$d</string>
@@ -130,16 +114,11 @@
     <string name="state_count">Количество: %1$d</string>
     <string name="chip_progress_format">%1$s: %2$d / %3$d шт.</string>
 
-    <string name="shipped">Отгрузки</string>
-    <string name="shipped_by_date">Отгрузки на дату: %1$s</string>
-    <string name="shipped_partitions">Отгруженные партии</string>
-
     <!-- Empty states -->
     <string name="no_products_in_storage">Нет упакованных товаров для отгрузки!</string>
     <string name="empty_production">Нет модулей в производстве!</string>
     <string name="no_product_for_packaging">Нет доступных продуктов для упаковки</string>
     <string name="empty_rework_scrap">Нет модулей в статусе брак/восстановление</string>
-    <string name="no_shipped_partitions">Нет отгруженных партий</string>
 
     <!-- ============================================== -->
     <!-- ЗАКАЗЫ / ORDERS -->
@@ -171,7 +150,6 @@
     <string name="order_header_active">В работе</string>
     <string name="order_header_completed">Завершенные</string>
 
-    <string name="order_stats_format">Упаковок: %1$d • Модулей: %2$d</string>
     <string name="order_progress_format">%1$d / %2$d шт.</string>
     <string name="packaging_title_format">Упаковки: Договор № %1$s</string>
     <string name="added_modules">Собрано модулей:</string>
@@ -193,7 +171,6 @@
     <string name="delete_inventory_message">Вы уверены, что хотите удалить инвентаризацию № %1$d?</string>
 
     <!-- Сводка инвентаризации -->
-    <string name="inventory_by_stages">Остатки по этапам</string>
     <string name="inventory_results_title">Инвентаризация № %1$d</string>
     <string name="inventory_summary_db">В производстве</string>
     <string name="inventory_summary_scanned">Отсканировано</string>
@@ -201,11 +178,7 @@
     <string name="product_status_format">Статус: %1$s</string>
 
     <!-- Счетчики -->
-    <string name="inventory_db_count">В базе: %1$d</string>
     <string name="inventory_scanned_count">Отсканировано: %1$d</string>
-    <string name="inventory_missing_count">− %1$d</string>
-    <string name="inventory_unexpected_count">+ %1$d</string>
-    <string name="inventory_matched_count">= %1$d</string>
 
     <string name="last_scanned">Последний отсканированный</string>
     <string name="inventory_item_scanned_at">Отсканировано: %1$s</string>
@@ -213,15 +186,7 @@
     <!-- Кнопки в инвентаризации -->
     <string name="inventory_add_items">Добавить</string>
     <string name="inventory_compare_and_close">Сравнить</string>
-    <string name="inventory_finish_button">Завершить</string>
-
     <string name="inventory_empty">Список инвентаризации пуст</string>
-
-    <!-- Статусы расхождений в инвентаризации -->
-    <string name="inventory_status_missing">Отсутствует</string>
-    <string name="inventory_status_unexpected">Лишний</string>
-    <string name="inventory_status_mismatch">Ошибка этапа</string>
-    <string name="inventory_status_matched">Совпал</string>
 
     <!-- Фильтры инвентаризации -->
     <string name="inventory_filter_all">Все продукты</string>
@@ -250,35 +215,6 @@
     <string name="product_not_found">Продукт не найден</string>
 
     <!-- ============================================== -->
-    <!-- КОНФЛИКТЫ ИНВЕНТАРИЗАЦИИ / INVENTORY CONFLICTS -->
-    <!-- ============================================== -->
-    <string name="title_all_conflicts">Все конфликты</string>
-    <string name="title_missing_items">Недостача</string>
-    <string name="title_mismatch_items">Расхождение этапов</string>
-
-    <string name="in_database">По базе данных:</string>
-    <string name="in_inventory_result">При инвентаризации:</string>
-    <string name="step_not_found">Этап: %1$s (не найден)</string>
-    <string name="not_scanned">Не обнаружен</string>
-    <string name="performed_at_label">Отсканирован: %1$s</string>
-    <string name="performed_at_none">Дата скана отсутствует</string>
-
-    <!-- Типы конфликтов (чип-бейдж) -->
-    <string name="conflict_missing">Не найден</string>
-    <string name="conflict_db_ahead">Учёт опережает</string>
-    <string name="conflict_scan_ahead">Учёт отстаёт</string>
-
-    <!-- Кнопки действий -->
-    <string name="action_mark_missing">Отметить отсутствие</string>
-    <string name="action_correct_db_step">Исправить в учёте</string>
-    <string name="action_update_db_step">Обновить учёт</string>
-
-    <!-- Подсказки под кнопкой -->
-    <string name="hint_missing">Числится в учёте, при инвентаризации не обнаружен</string>
-    <string name="hint_db_ahead">В учёте зафиксирован более поздний этап, чем найдено физически</string>
-    <string name="hint_scan_ahead">Физически продукт дальше по процессу, чем отражено в учёте</string>
-
-    <!-- ============================================== -->
     <!-- СТАТИСТИКА / STATISTICS -->
     <!-- ============================================== -->
     <string name="statistics">Статистика</string>
@@ -288,10 +224,14 @@
     <string name="period_quarter">Квартал</string>
     <string name="total_completed_label">Всего изготовлено</string>
     <string name="grand_total_format">%1$d шт.</string>
-    <string name="step_count_format">%1$d шт.</string>
     <string name="process_count_format">%1$d шт.</string>
     <string name="by_steps">По этапам</string>
     <string name="size_type_format">Типоразмер: %1$s</string>
+    <string name="count_units_format">%1$d шт.</string>
+    <string name="stat_percentage_format">%1$d%%</string>
+    <string name="stat_step_details_with_plan_format">%1$d из %2$d шт.  •  ~%3$s шт/день</string>
+    <string name="stat_step_details_avg_only_format">~%1$s шт/день</string>
+    <string name="stat_working_days_format">%1$d раб. дн.</string>
 
     <!-- Переключатель режимов статистики -->
     <string name="stat_mode_processes">По процессам</string>

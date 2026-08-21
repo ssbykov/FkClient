@@ -11,9 +11,13 @@
     <color name="brand_blue_dark">#0D75C9</color>
     <color name="brand_blue_light">#B4D6F5</color>
 
-    <!-- Фоны -->
+    <!-- Фоны и подложки -->
     <color name="bg_app">#F5F0F5</color>
     <color name="bg_card">#FFFFFF</color>
+    <color name="progress_track">#E3EDF7</color> <!-- Мягкая пастельная подложка прогресс-бара -->
+
+    <!-- Тексты -->
+    <color name="text_secondary">#757575</color> <!-- Нейтральный серый для доп. сведений -->
 
     <color name="status_success_bg">#E3F7E8</color>   <!-- NORMAL -->
     <color name="status_success_text">#1B5E20</color>
