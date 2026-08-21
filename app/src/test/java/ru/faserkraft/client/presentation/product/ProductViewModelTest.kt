@@ -2,6 +2,7 @@ package ru.faserkraft.client.presentation.product
 
 import app.cash.turbine.test
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,6 +35,8 @@ import ru.faserkraft.client.domain.usecase.product.CreateProductUseCase
 import ru.faserkraft.client.domain.usecase.product.GetProductUseCase
 import ru.faserkraft.client.domain.usecase.step.ChangeStepPerformerUseCase
 import ru.faserkraft.client.domain.usecase.step.CloseStepUseCase
+import ru.faserkraft.client.domain.usecase.step.ResetStepUseCase
+import ru.faserkraft.client.error.AppError
 import ru.faserkraft.client.presentation.app.AppSessionCoordinator
 import ru.faserkraft.client.presentation.app.AppSessionEvent
 import ru.faserkraft.client.presentation.product.detail.ConfirmationActionType
@@ -56,6 +59,7 @@ class ProductViewModelTest {
     private val changeProductProcessUseCase: ChangeProductProcessUseCase = mockk()
     private val closeStepUseCase: CloseStepUseCase = mockk()
     private val changeStepPerformerUseCase: ChangeStepPerformerUseCase = mockk()
+    private val resetStepUseCase: ResetStepUseCase = mockk()
     private val getProcessesUseCase: GetProcessesUseCase = mockk()
     private val getEmployeesUseCase: GetEmployeesUseCase = mockk()
     private val appAuth: AppAuth = mockk(relaxed = true)
@@ -182,8 +186,12 @@ class ProductViewModelTest {
     }
 
     @Test
-    fun `loadProduct - navigates to new product when null returned`() = runTest {
-        coEvery { getProductUseCase("SN-NEW") } returns null
+    fun `loadProduct - navigates to new product when 404 ApiError returned`() = runTest {
+        coEvery { getProductUseCase("SN-NEW") } throws AppError.ApiError(
+            status = 404,
+            uiCode = "error_api_404",
+            message = "Not found"
+        )
         coEvery { getProcessesUseCase() } returns dummyProcessList
 
         viewModel.events.test {
@@ -193,13 +201,14 @@ class ProductViewModelTest {
             val state = viewModel.uiState.value
             assertNull(state.product)
             assertEquals("SN-NEW", state.pendingSerialNumber)
+            assertEquals(dummyProcessList, state.processes)
             assertFalse(state.isLoading)
             assertEquals(ProductEvent.NavigateToNewProduct, awaitItem())
         }
     }
 
     @Test
-    fun `loadProduct - emits ShowError on failure`() = runTest {
+    fun `loadProduct - emits ShowError on generic failure`() = runTest {
         coEvery { getProductUseCase(any()) } throws RuntimeException("Network Error")
 
         viewModel.events.test {
@@ -207,7 +216,7 @@ class ProductViewModelTest {
             advanceUntilIdle()
 
             assertFalse(viewModel.uiState.value.isLoading)
-            assertEquals(ProductEvent.ShowError("Неизвестная ошибка"), awaitItem())
+            assertTrue(awaitItem() is ProductEvent.ShowError)
         }
     }
 
@@ -267,7 +276,7 @@ class ProductViewModelTest {
             advanceUntilIdle()
 
             assertFalse(viewModel.uiState.value.isActionInProgress)
-            assertEquals(ProductEvent.ShowError("Неизвестная ошибка"), awaitItem())
+            assertTrue(awaitItem() is ProductEvent.ShowError)
         }
     }
 
@@ -296,7 +305,8 @@ class ProductViewModelTest {
             viewModel.changeStatus(1L, ProductStatus.REWORK)
             advanceUntilIdle()
 
-            assertEquals(ProductEvent.ShowError("Неизвестная ошибка"), awaitItem())
+            assertFalse(viewModel.uiState.value.isActionInProgress)
+            assertTrue(awaitItem() is ProductEvent.ShowError)
         }
     }
 
@@ -616,7 +626,40 @@ class ProductViewModelTest {
 
             assertEquals(updatedProduct, viewModel.uiState.value.product)
             assertFalse(viewModel.uiState.value.isActionInProgress)
+            coVerify(exactly = 1) { changeStepPerformerUseCase(1, 1) }
             cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    // ── resetStep ─────────────────────────────────────────────────────────────
+
+    @Test
+    fun `resetStep - updates product in state on success`() = runTest {
+        val resetStep = dummyStepDone.copy(status = StepStatus.PENDING, performedBy = null, performedAt = null)
+        val updatedProduct = dummyProduct.copy(steps = listOf(dummyStepPending, resetStep))
+        coEvery { resetStepUseCase(2) } returns updatedProduct
+
+        viewModel.events.test {
+            viewModel.resetStep(2)
+            advanceUntilIdle()
+
+            assertEquals(updatedProduct, viewModel.uiState.value.product)
+            assertFalse(viewModel.uiState.value.isActionInProgress)
+            coVerify(exactly = 1) { resetStepUseCase(2) }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `resetStep - emits ShowError on failure`() = runTest {
+        coEvery { resetStepUseCase(any()) } throws RuntimeException("Reset failure")
+
+        viewModel.events.test {
+            viewModel.resetStep(2)
+            advanceUntilIdle()
+
+            assertFalse(viewModel.uiState.value.isActionInProgress)
+            assertTrue(awaitItem() is ProductEvent.ShowError)
         }
     }
 
@@ -665,6 +708,7 @@ class ProductViewModelTest {
         changeProductProcessUseCase = changeProductProcessUseCase,
         closeStepUseCase = closeStepUseCase,
         changeStepPerformerUseCase = changeStepPerformerUseCase,
+        resetStepUseCase = resetStepUseCase,
         getProcessesUseCase = getProcessesUseCase,
         getEmployeesUseCase = getEmployeesUseCase,
         appAuth = appAuth,

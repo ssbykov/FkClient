@@ -84,18 +84,16 @@ class ProductRepositoryImplTest {
         assertNull(result?.packagingSerialNumber)
     }
 
-    @Test
-    fun `getProduct returns null when api returns 404`() = runTest {
+    @Test(expected = AppError.ApiError::class)
+    fun `getProduct throws ApiError when api returns 404`() = runTest {
         coEvery { mockApi.getProduct("UNKNOWN") } returns
                 Response.error(404, "".toResponseBody())
 
-        val result = repository.getProduct("UNKNOWN")
-
-        assertNull(result)
+        repository.getProduct("UNKNOWN")
     }
 
     @Test(expected = AppError.ApiError::class)
-    fun `getProduct rethrows ApiError when status is not 404`() = runTest {
+    fun `getProduct rethrows ApiError when status is 500`() = runTest {
         coEvery { mockApi.getProduct("SN-ERR") } returns
                 Response.error(500, "".toResponseBody())
 
@@ -480,6 +478,8 @@ class ProductRepositoryImplTest {
                 StepCountStatDto(
                     processId = 1,
                     processName = "Process A",
+                    sizeTypeId = 15,
+                    sizeTypeName = "100x200",
                     stepDefinitionId = 10,
                     order = 1,
                     stepName = "Step A",
@@ -487,7 +487,8 @@ class ProductRepositoryImplTest {
                     employeeName = "Emp A",
                     count = 5
                 )
-            )
+            ),
+            employeePlans = emptyList() // ← добавлено недостающее поле
         )
         coEvery {
             mockApi.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")
@@ -502,8 +503,11 @@ class ProductRepositoryImplTest {
         assertEquals(10, result.finishedProducts.first().count)
 
         assertEquals(1, result.totalSteps.size)
+        assertEquals(15, result.totalSteps.first().sizeTypeId)
+        assertEquals("100x200", result.totalSteps.first().sizeTypeName)
         assertEquals(10, result.totalSteps.first().stepDefinitionId)
         assertEquals(5, result.totalSteps.first().count)
+        assertTrue(result.employeePlans.isEmpty())
 
         coVerify(exactly = 1) {
             mockApi.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")

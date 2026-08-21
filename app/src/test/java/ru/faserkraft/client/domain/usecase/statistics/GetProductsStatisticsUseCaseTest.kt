@@ -37,6 +37,8 @@ class GetProductsStatisticsUseCaseTest {
                 StepCountStat(
                     processId = 1,
                     processName = "Process A",
+                    sizeTypeId = 15,
+                    sizeTypeName = "100x200",
                     stepDefinitionId = 10,
                     order = 1,
                     stepName = "Step A",
@@ -44,7 +46,8 @@ class GetProductsStatisticsUseCaseTest {
                     employeeName = "Emp A",
                     count = 5
                 )
-            )
+            ),
+            employeePlans = emptyList() // ← добавлено поле
         )
 
         coEvery {
