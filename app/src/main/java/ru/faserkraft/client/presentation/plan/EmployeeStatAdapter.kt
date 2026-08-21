@@ -29,6 +29,7 @@ class EmployeeStatAdapter(
 
         fun bind(item: EmployeeStatsUiItem) = with(binding) {
             tvEmployeeName.text = item.employeeName
+            tvWorkingDays.text = root.context.getString(R.string.stat_working_days_format, item.workingDays)
             tvEmployeeTotal.text = root.context.getString(
                 R.string.grand_total_format, item.totalCompleted
             )
