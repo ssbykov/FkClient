@@ -11,7 +11,6 @@ import ru.faserkraft.client.domain.model.ProductShort
 import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.model.ProductsOverview
 import ru.faserkraft.client.domain.repository.ProductRepository
-import ru.faserkraft.client.error.AppError
 import ru.faserkraft.client.utils.logger.Logger
 import ru.faserkraft.client.utils.timeprovider.TimeProvider
 import javax.inject.Inject
