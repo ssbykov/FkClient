@@ -22,5 +22,13 @@ data class ProcessCountStat(
 
 data class PeriodStatistics(
     val finishedProducts: List<ProcessCountStat>,
-    val totalSteps: List<StepCountStat>
+    val totalSteps: List<StepCountStat>,
+    val employeePlans: List<EmployeePlanStat>
+)
+
+data class EmployeePlanStat(
+    val employeeId: Int,
+    val employeeName: String,
+    val workingDays: Int,
+    val steps: List<DailyPlanStep>
 )

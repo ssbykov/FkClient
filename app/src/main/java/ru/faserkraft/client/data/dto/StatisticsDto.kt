@@ -14,13 +14,22 @@ data class StepCountStatDto(
     @SerializedName("employee_name") val employeeName: String,
     @SerializedName("count") val count: Int
 )
+
 data class ProcessCountStatDto(
     @SerializedName("process_id") val processId: Int,
     @SerializedName("process_name") val processName: String,
     @SerializedName("count") val count: Int
 )
 
+data class EmployeePlanStatDto(
+    @SerializedName("employee_id") val employeeId: Int,
+    @SerializedName("employee_name") val employeeName: String,
+    @SerializedName("working_days") val workingDays: Int,
+    @SerializedName("steps") val steps: List<DayPlanStepDto>
+)
+
 data class PeriodStatisticsDto(
     @SerializedName("finished_products") val finishedProducts: List<ProcessCountStatDto>,
-    @SerializedName("total_steps") val totalSteps: List<StepCountStatDto>
+    @SerializedName("total_steps") val totalSteps: List<StepCountStatDto>,
+    @SerializedName("employee_plans") val employeePlans: List<EmployeePlanStatDto>
 )
