@@ -56,6 +56,18 @@
 
         </LinearLayout>
 
+        <!-- Сумма выработки сотрудника в рублях за период -->
+        <TextView
+            android:id="@+id/tvEmployeeEarned"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="end"
+            android:textColor="@color/brand_blue"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="68 536,72 ₽" />
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"

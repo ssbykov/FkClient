@@ -232,6 +232,9 @@
     <string name="stat_step_details_with_plan_format">%1$d из %2$d шт.  •  ~%3$s шт/день</string>
     <string name="stat_step_details_avg_only_format">~%1$s шт/день</string>
     <string name="stat_working_days_format">%1$d раб. дн.</string>
+    <string name="stat_earned_format">%1$s ₽</string>
+    <string name="stat_step_amount_format">%1$s ₽</string>
+
 
     <!-- Переключатель режимов статистики -->
     <string name="stat_mode_processes">По процессам</string>

@@ -14,6 +14,7 @@ import ru.faserkraft.client.presentation.app.AppSessionCoordinator
 import ru.faserkraft.client.presentation.app.AppSessionEvent
 import ru.faserkraft.client.presentation.base.toErrorMessage
 import ru.faserkraft.client.utils.timeprovider.RealTimeProvider
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -61,8 +62,6 @@ class StatisticsViewModel @Inject constructor(
         _uiState.value = StatisticsUiState()
     }
 
-    // ---------- Управление режимом и периодом ----------
-
     fun setMode(mode: StatMode) {
         _uiState.update { it.copy(mode = mode) }
     }
@@ -98,15 +97,10 @@ class StatisticsViewModel @Inject constructor(
                 )
             }
                 .onSuccess { statsData ->
-                    // Карта планов сотрудников: employeeId -> EmployeePlanStat
                     val plansByEmployeeId = statsData.employeePlans.associateBy { it.employeeId }
+                    val earningsByEmployeeId = statsData.employeeEarnings.associateBy { it.employeeId }
 
-                    // Реальное количество рабочих дней в периоде (максимум среди сотрудников)
-                    val periodWorkingDays = statsData.employeePlans
-                        .maxOfOrNull { it.workingDays }
-                        ?.coerceAtLeast(1) ?: 1
-
-                    // Все плановые этапы по всем сотрудникам для суммарного плана этапа
+                    val periodWorkingDays = statsData.totalWorkingDays.coerceAtLeast(1)
                     val allPlanSteps = statsData.employeePlans.flatMap { it.steps }
 
                     // 1. Общее количество по видам продукции (процессам)
@@ -120,7 +114,7 @@ class StatisticsViewModel @Inject constructor(
                         }
                         .sortedByDescending { it.completedProducts }
 
-                    // 2. Этапы по видам продукции (по процессам)
+                    // 2. Этапы по видам продукции (по процессам) — БЕЗ сумм в рублях
                     val stepsItems = statsData.totalSteps
                         .groupBy { it.processId to it.processName }
                         .map { (processKey, processSteps) ->
@@ -132,7 +126,6 @@ class StatisticsViewModel @Inject constructor(
                                     val firstItem = sameList.first()
                                     val factCount = sameList.sumOf { it.count }
 
-                                    // Суммарный план этапа по всем сотрудникам
                                     val totalPlanCount = allPlanSteps
                                         .filter { it.stepDefinitionId == firstItem.stepDefinitionId }
                                         .sumOf { it.plannedQuantity }
@@ -142,7 +135,6 @@ class StatisticsViewModel @Inject constructor(
                                         (factCount.toDouble() / plan) * 100.0
                                     }
 
-                                    // Делим суммарный факт на реальное число рабочих дней периода
                                     val dailyAvg = factCount.toDouble() / periodWorkingDays
 
                                     StepCountUiItem(
@@ -152,6 +144,7 @@ class StatisticsViewModel @Inject constructor(
                                         planCount = totalPlanCount,
                                         completionPercentage = completionRate,
                                         dailyAverage = dailyAvg
+                                        // amount не заполняется — режим "по процессам" суммы не показывает
                                     )
                                 }
 
@@ -164,16 +157,23 @@ class StatisticsViewModel @Inject constructor(
                         .sortedByDescending { it.steps.sumOf { step -> step.count } }
                         .filter { it.steps.isNotEmpty() }
 
-                    // 3. Сотрудники -> Типоразмеры -> Этапы
+                    // 3. Сотрудники -> Типоразмеры -> Этапы — С суммами в рублях
                     val employeeItems = statsData.totalSteps
                         .groupBy { it.employeeId to it.employeeName }
                         .map { (employeeKey, employeeSteps) ->
                             val employeeId = employeeKey.first
                             val employeePlan = plansByEmployeeId[employeeId]
+                            val employeeEarnings = earningsByEmployeeId[employeeId]
 
-                            // Персональные рабочие дни конкретного сотрудника
                             val employeeWorkingDays =
                                 employeePlan?.workingDays?.coerceAtLeast(1) ?: 1
+
+                            val amountByStepDefinitionId = employeeEarnings?.steps
+                                ?.groupBy { it.stepDefinitionId }
+                                ?.mapValues { (_, steps) ->
+                                    steps.fold(BigDecimal.ZERO) { acc, s -> acc + s.totalAmount }
+                                }
+                                ?: emptyMap()
 
                             val sizeTypes = employeeSteps
                                 .groupBy { it.sizeTypeId to it.sizeTypeName }
@@ -195,9 +195,11 @@ class StatisticsViewModel @Inject constructor(
                                                 (factCount.toDouble() / plan) * 100.0
                                             }
 
-                                            // Персональный средний темп сотрудника
                                             val dailyAvg =
                                                 factCount.toDouble() / employeeWorkingDays
+
+                                            val amount = amountByStepDefinitionId[firstItem.stepDefinitionId]
+                                                ?: BigDecimal.ZERO
 
                                             StepCountUiItem(
                                                 stepDefinitionId = firstItem.stepDefinitionId,
@@ -205,7 +207,8 @@ class StatisticsViewModel @Inject constructor(
                                                 count = factCount,
                                                 planCount = planCount,
                                                 completionPercentage = completionRate,
-                                                dailyAverage = dailyAvg
+                                                dailyAverage = dailyAvg,
+                                                amount = amount
                                             )
                                         }
 
@@ -224,6 +227,7 @@ class StatisticsViewModel @Inject constructor(
                                 employeeName = employeeKey.second,
                                 workingDays = employeeWorkingDays,
                                 totalCompleted = sizeTypes.sumOf { it.totalCompleted },
+                                totalEarned = employeeEarnings?.totalEarned ?: BigDecimal.ZERO,
                                 sizeTypes = sizeTypes
                             )
                         }
@@ -232,7 +236,7 @@ class StatisticsViewModel @Inject constructor(
 
                     _uiState.update {
                         it.copy(
-                            periodWorkingDays = periodWorkingDays,
+                            periodWorkingDays = statsData.totalWorkingDays,
                             totalByProcess = totalItems,
                             stepsByProcess = stepsItems,
                             employees = employeeItems

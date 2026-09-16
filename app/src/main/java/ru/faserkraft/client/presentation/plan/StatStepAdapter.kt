@@ -8,6 +8,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemStatStepRowBinding
+import java.math.BigDecimal
+import java.text.NumberFormat
 import java.util.Locale
 
 
@@ -24,7 +26,8 @@ class StatStepAdapter : ListAdapter<StepCountUiItem, StatStepAdapter.ViewHolder>
 
             if (item.planCount != null && item.completionPercentage != null) {
                 val percentageInt = item.completionPercentage.toInt()
-                tvPercentage.text = root.context.getString(R.string.stat_percentage_format, percentageInt)
+                tvPercentage.text =
+                    root.context.getString(R.string.stat_percentage_format, percentageInt)
                 tvStepDetails.text = root.context.getString(
                     R.string.stat_step_details_with_plan_format,
                     item.count,
@@ -41,6 +44,26 @@ class StatStepAdapter : ListAdapter<StepCountUiItem, StatStepAdapter.ViewHolder>
                 )
                 progressStep.isVisible = false
             }
+
+            // Сумма выработки показывается только если есть ненулевая сумма
+            // (заполняется только в режиме "по сотрудникам")
+            if (item.amount > BigDecimal.ZERO) {
+                tvStepAmount.isVisible = true
+                tvStepAmount.text = root.context.getString(
+                    R.string.stat_step_amount_format,
+                    formatCurrency(item.amount)
+                )
+            } else {
+                tvStepAmount.isVisible = false
+            }
+        }
+
+        private fun formatCurrency(amount: BigDecimal): String {
+            val format = NumberFormat.getNumberInstance(Locale.forLanguageTag("ru")).apply {
+                minimumFractionDigits = 2
+                maximumFractionDigits = 2
+            }
+            return format.format(amount)
         }
     }
 

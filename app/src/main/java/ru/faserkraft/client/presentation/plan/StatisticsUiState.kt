@@ -1,5 +1,7 @@
 package ru.faserkraft.client.presentation.plan
 
+import java.math.BigDecimal
+
 enum class StatMode {
     BY_PROCESS,
     BY_EMPLOYEE
@@ -45,6 +47,7 @@ data class EmployeeStatsUiItem(
     val employeeName: String,
     val workingDays: Int,
     val totalCompleted: Int,
+    val totalEarned: BigDecimal = BigDecimal.ZERO,
     val sizeTypes: List<EmployeeSizeTypeUiItem>
 )
 
@@ -54,5 +57,6 @@ data class StepCountUiItem(
     val count: Int,
     val planCount: Int? = null,
     val completionPercentage: Double? = null,
-    val dailyAverage: Double = 0.0
+    val dailyAverage: Double = 0.0,
+    val amount: BigDecimal = BigDecimal.ZERO
 )

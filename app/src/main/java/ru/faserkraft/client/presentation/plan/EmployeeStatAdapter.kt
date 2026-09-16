@@ -8,6 +8,9 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.ItemStatEmployeeCardBinding
+import java.math.BigDecimal
+import java.text.NumberFormat
+import java.util.Locale
 
 class EmployeeStatAdapter(
     private val onEmployeeClick: ((EmployeeStatsUiItem) -> Unit)? = null
@@ -33,11 +36,23 @@ class EmployeeStatAdapter(
             tvEmployeeTotal.text = root.context.getString(
                 R.string.grand_total_format, item.totalCompleted
             )
+            tvEmployeeEarned.text = root.context.getString(
+                R.string.stat_earned_format,
+                formatCurrency(item.totalEarned)
+            )
             sizeTypeAdapter.submitList(item.sizeTypes)
 
             root.setOnClickListener {
                 onEmployeeClick?.invoke(item)
             }
+        }
+
+        private fun formatCurrency(amount: BigDecimal): String {
+            val format = NumberFormat.getNumberInstance(Locale.forLanguageTag("ru")).apply {
+                minimumFractionDigits = 2
+                maximumFractionDigits = 2
+            }
+            return format.format(amount)
         }
     }
 

@@ -45,6 +45,20 @@
         app:layout_constraintTop_toBottomOf="@id/tvStepName"
         tools:text="78 из 138 шт.  •  ~6,0 шт/день" />
 
+    <!-- Сумма выработки в рублях (только режим "по сотрудникам") -->
+    <TextView
+        android:id="@+id/tvStepAmount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/brand_blue"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvStepDetails"
+        tools:text="24 604,41 ₽" />
+
     <!-- Полоса прогресса с контрастной подложкой -->
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progressStep"
@@ -54,7 +68,7 @@
         app:indicatorColor="@color/brand_blue"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvStepDetails"
+        app:layout_constraintTop_toBottomOf="@id/tvStepAmount"
         app:trackColor="@color/progress_track"
         app:trackCornerRadius="3dp"
         app:trackThickness="6dp"

@@ -12,7 +12,8 @@ data class StepCountStatDto(
     @SerializedName("step_name") val stepName: String,
     @SerializedName("employee_id") val employeeId: Int,
     @SerializedName("employee_name") val employeeName: String,
-    @SerializedName("count") val count: Int
+    @SerializedName("count") val count: Int,
+    @SerializedName("total_amount") val totalAmount: String
 )
 
 data class ProcessCountStatDto(
@@ -28,8 +29,18 @@ data class EmployeePlanStatDto(
     @SerializedName("steps") val steps: List<DayPlanStepDto>
 )
 
+data class EmployeeEarningsDto(
+    @SerializedName("employee_id") val employeeId: Int,
+    @SerializedName("employee_name") val employeeName: String,
+    @SerializedName("total_earned") val totalEarned: String,
+    @SerializedName("steps") val steps: List<StepCountStatDto>
+)
+
 data class PeriodStatisticsDto(
+    @SerializedName("total_working_days") val totalWorkingDays: Int = 0,
     @SerializedName("finished_products") val finishedProducts: List<ProcessCountStatDto>,
     @SerializedName("total_steps") val totalSteps: List<StepCountStatDto>,
-    @SerializedName("employee_plans") val employeePlans: List<EmployeePlanStatDto>
+    @SerializedName("employee_plans") val employeePlans: List<EmployeePlanStatDto>,
+    @SerializedName("employee_earnings") val employeeEarnings: List<EmployeeEarningsDto>,
+    @SerializedName("total_earned_all") val totalEarnedAll: String,
 )
