@@ -18,7 +18,7 @@ import ru.faserkraft.client.domain.model.StepDefinitionWithProcess
 import ru.faserkraft.client.presentation.product.detail.ProductEvent
 import ru.faserkraft.client.presentation.product.detail.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.ext.hideKeyboard
+import ru.faserkraft.client.presentation.ui.hideKeyboard
 import ru.faserkraft.client.utils.ext.navigateSafely
 
 @AndroidEntryPoint
