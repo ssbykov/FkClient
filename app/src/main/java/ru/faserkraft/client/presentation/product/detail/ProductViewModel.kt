@@ -15,6 +15,7 @@ import ru.faserkraft.client.domain.model.ProductStatus
 import ru.faserkraft.client.domain.model.Step
 import ru.faserkraft.client.domain.model.StepStatus
 import ru.faserkraft.client.domain.model.UserRole
+import ru.faserkraft.client.domain.qr.QrInputSource
 import ru.faserkraft.client.domain.usecase.employee.GetEmployeesUseCase
 import ru.faserkraft.client.domain.usecase.process.GetProcessesUseCase
 import ru.faserkraft.client.domain.usecase.product.ChangeProductProcessUseCase
@@ -112,8 +113,10 @@ class ProductViewModel @Inject constructor(
                     _events.send(
                         ProductEvent.ShowError("Нельзя закрыть этап: продукт в статусе РЕМОНТ или БРАК")
                     )
+
                 step.status == StepStatus.DONE ->
                     _events.send(ProductEvent.ShowError("Этап уже выполнен"))
+
                 else ->
                     _events.send(
                         ProductEvent.ShowConfirmationDialog(
@@ -132,10 +135,12 @@ class ProductViewModel @Inject constructor(
         when (actionType) {
             ConfirmationActionType.CHANGE_STATUS ->
                 viewModelScope.launch { _events.send(ProductEvent.NavigateToEditStatus(product.id)) }
+
             ConfirmationActionType.CHANGE_PROCESS -> {
                 loadProcesses()
                 viewModelScope.launch { _events.send(ProductEvent.NavigateToEditProcess(product.id)) }
             }
+
             ConfirmationActionType.CLOSE_STEP -> step?.let { closeStep(it) }
         }
     }
@@ -147,7 +152,7 @@ class ProductViewModel @Inject constructor(
 
     // ---------- Product ----------
 
-    fun loadProduct(serialNumber: String) {
+    fun loadProduct(serialNumber: String, source: QrInputSource = QrInputSource.MANUAL_INPUT) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             runCatching { getProductUseCase(serialNumber) }
@@ -160,9 +165,17 @@ class ProductViewModel @Inject constructor(
                 }
                 .onFailure { error ->
                     if (error is AppError.ApiError && error.status == 404) {
-                        loadProcesses()
-                        _uiState.update { it.copy(pendingSerialNumber = serialNumber) }
-                        _events.send(ProductEvent.NavigateToNewProduct)
+                        if (source == QrInputSource.CAMERA) {
+                            loadProcesses()
+                            _uiState.update { it.copy(pendingSerialNumber = serialNumber) }
+                            _events.send(ProductEvent.NavigateToNewProduct)
+                        } else {
+                            _events.send(
+                                ProductEvent.ShowError(
+                                    "Продукт не найден. Создание нового продукта доступно только при сканировании QR-кода"
+                                )
+                            )
+                        }
                     } else {
                         emitError(error)
                     }
@@ -213,7 +226,11 @@ class ProductViewModel @Inject constructor(
                     val updatedStep = product.steps
                         .find { it.definition.order == step.definition.order }
                     _uiState.update {
-                        it.copy(product = product, selectedStep = updatedStep, userRole = currentRole())
+                        it.copy(
+                            product = product,
+                            selectedStep = updatedStep,
+                            userRole = currentRole()
+                        )
                     }
                 }
                 .onFailure { emitError(it) }

@@ -13,6 +13,7 @@ import com.journeyapps.barcodescanner.BarcodeView
 import dagger.hilt.android.AndroidEntryPoint
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentScannerBinding
+import ru.faserkraft.client.domain.qr.QrInputSource
 import ru.faserkraft.client.presentation.app.AppEvent
 import ru.faserkraft.client.presentation.app.AppViewModel
 import ru.faserkraft.client.presentation.packaging.PackagingEvent
@@ -40,7 +41,7 @@ class ScannerFragment : BaseScannerFragment() {
         _binding?.zxingBarcodeScanner?.barcodeView
 
     override fun onBarcodeDecoded(raw: String) {
-        scannerViewModel.decodeQrCode(raw)
+        scannerViewModel.decodeQrCode(raw, QrInputSource.CAMERA)
     }
 
     // ---------- Lifecycle ----------
@@ -82,16 +83,11 @@ class ScannerFragment : BaseScannerFragment() {
     // ---------- Observers ----------
 
     private fun observeScannerState() {
-        // Подписываемся на состояния загрузки всех задействованных ViewModel
         collectFlow(scannerViewModel.uiState) { updateLoadingOverlay() }
         collectFlow(productViewModel.uiState) { updateLoadingOverlay() }
         collectFlow(packagingViewModel.uiState) { updateLoadingOverlay() }
     }
 
-    /**
-     * Показывает индикатор загрузки, если хотя бы одна из ViewModel
-     * находится в процессе выполнения операции или сетевого запроса.
-     */
     private fun updateLoadingOverlay() {
         val b = _binding ?: return
         val isLoading = scannerViewModel.uiState.value.isLoading ||
@@ -111,7 +107,7 @@ class ScannerFragment : BaseScannerFragment() {
             if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 is ScannerEvent.OpenProduct ->
-                    productViewModel.loadProduct(event.code)
+                    productViewModel.loadProduct(event.code, event.source)
 
                 is ScannerEvent.OpenPackaging ->
                     packagingViewModel.loadPackaging(event.code)
@@ -200,7 +196,7 @@ class ScannerFragment : BaseScannerFragment() {
             val current = binding.etManualInput.text.toString()
             val placeholder = getString(R.string.uf_0000000)
             if (current != placeholder) {
-                scannerViewModel.decodeQrCode(current)
+                scannerViewModel.decodeQrCode(current, QrInputSource.MANUAL_INPUT)
                 binding.etManualInput.setText(R.string.uf_0000000)
                 binding.etManualInput.clearFocus()
             }

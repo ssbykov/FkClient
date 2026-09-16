@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.domain.qr.QrClassifier
+import ru.faserkraft.client.domain.qr.QrInputSource
 import ru.faserkraft.client.domain.qr.QrParseResult
 import javax.inject.Inject
 
@@ -35,7 +36,7 @@ class ScannerViewModel @Inject constructor(
         _uiState.update { ScannerUiState() }
     }
 
-    fun decodeQrCode(raw: String) {
+    fun decodeQrCode(raw: String, source: QrInputSource) {
         if (isHandled) return
         isHandled = true
 
@@ -45,13 +46,23 @@ class ScannerViewModel @Inject constructor(
             try {
                 when (val result = qrClassifier.classify(raw)) {
                     is QrParseResult.Product ->
-                        _events.send(ScannerEvent.OpenProduct(result.code))
+                        _events.send(ScannerEvent.OpenProduct(result.code, source))
 
                     is QrParseResult.Packaging ->
                         _events.send(ScannerEvent.OpenPackaging(result.code))
 
-                    is QrParseResult.DeviceRegistration ->
-                        _events.send(ScannerEvent.OpenDeviceRegistration(result.request))
+                    is QrParseResult.DeviceRegistration -> {
+                        if (source == QrInputSource.CAMERA) {
+                            _events.send(ScannerEvent.OpenDeviceRegistration(result.request))
+                        } else {
+                            isHandled = false
+                            _events.send(
+                                ScannerEvent.ShowError(
+                                    "Регистрация устройства доступна только при сканировании QR-кода"
+                                )
+                            )
+                        }
+                    }
 
                     QrParseResult.Unknown -> {
                         isHandled = false
