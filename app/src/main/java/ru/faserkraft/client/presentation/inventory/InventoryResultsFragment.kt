@@ -18,6 +18,7 @@ import ru.faserkraft.client.domain.model.StepDefinitionWithProcess
 import ru.faserkraft.client.presentation.product.detail.ProductEvent
 import ru.faserkraft.client.presentation.product.detail.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.ext.hideKeyboard
 import ru.faserkraft.client.utils.ext.navigateSafely
 
 @AndroidEntryPoint
@@ -218,7 +219,8 @@ class InventoryResultsFragment : Fragment() {
 
     private fun updateLoadingState() {
         val b = _binding ?: return
-        val isInventoryBusy = viewModel.uiState.value.isLoading || viewModel.uiState.value.isActionInProgress
+        val isInventoryBusy =
+            viewModel.uiState.value.isLoading || viewModel.uiState.value.isActionInProgress
         val isProductBusy = productViewModel.uiState.value.isLoading
 
         val isBusy = isInventoryBusy || isProductBusy
@@ -238,6 +240,7 @@ class InventoryResultsFragment : Fragment() {
                 }
 
                 is ProductEvent.NavigateToNewProduct -> {
+                    hideKeyboard()
                     Toast.makeText(
                         requireContext(),
                         getString(R.string.product_not_found),
@@ -283,10 +286,14 @@ class InventoryResultsFragment : Fragment() {
 
     private fun onProductClick(item: ProductInventoryCompareUiItem) {
         if (productViewModel.uiState.value.isLoading || viewModel.uiState.value.isLoading) return
+        hideKeyboard()
         productViewModel.loadProduct(item.serialNumber)
     }
 
-    private fun onStepResolved(item: ProductInventoryCompareUiItem, selectedStep: StepDefinitionWithProcess) {
+    private fun onStepResolved(
+        item: ProductInventoryCompareUiItem,
+        selectedStep: StepDefinitionWithProcess
+    ) {
         // viewModel.resolveProductDiscrepancy(item.domainItem, selectedStep)
     }
 

@@ -21,6 +21,7 @@ import ru.faserkraft.client.presentation.packaging.PackagingViewModel
 import ru.faserkraft.client.presentation.product.detail.ProductEvent
 import ru.faserkraft.client.presentation.product.detail.ProductViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.ext.hideKeyboard
 import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
@@ -228,6 +229,7 @@ class ScannerFragment : BaseScannerFragment() {
     }
 
     private fun handleScannerError(message: String) {
+        hideKeyboard()
         scannerViewModel.resetHandled()
         updateLoadingOverlay()
         showErrorSnackbar(message)
