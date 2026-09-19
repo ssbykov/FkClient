@@ -59,8 +59,11 @@ class InventoryDetailFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.rvItems.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvItems.adapter = adapter
+        binding.rvItems.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = this@InventoryDetailFragment.adapter
+            itemAnimator = null // отключаем анимацию для предотвращения мигания/задержки отрисовки
+        }
     }
 
     private fun setupButtons() {
@@ -106,6 +109,7 @@ class InventoryDetailFragment : Fragment() {
                 uiItems.addAll(sortedItems.map { InventoryItemUiItem.Entry(it) })
             }
 
+            // Отправляем список
             adapter.submitList(uiItems)
 
             val isBusy = state.isLoading || state.isActionInProgress

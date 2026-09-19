@@ -8,7 +8,8 @@
     android:background="?attr/colorSurface"
     tools:context=".presentation.inventory.InventoryDetailFragment">
 
-    <!-- Шапка с информацией -->
+    <!-- Шапка с информацией. scrollFlags убран, шапка зафиксирована,
+         что устраняет баг нулевой высоты списка при старте экрана. -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -21,8 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
-            app:layout_scrollFlags="scroll|enterAlways|snap">
+            android:padding="16dp">
 
             <TextView
                 android:id="@+id/tvTitle"
@@ -77,35 +77,29 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Список отсканированных позиций -->
-    <FrameLayout
+    <!-- Список отсканированных позиций (напрямую с поведением скролла) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvItems"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="88dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:listitem="@layout/item_inventory_entry" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvItems"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingTop="8dp"
-            android:paddingBottom="88dp"
-            tools:listitem="@layout/item_inventory_entry" />
+    <!-- Индикатор загрузки по центру экрана -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:visibility="gone"
+        tools:visibility="visible" />
 
-        <!-- Индикатор загрузки -->
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:indeterminate="true"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
-    </FrameLayout>
-
-    <!-- Кнопки управления (только для открытой инвентаризации) -->
+    <!-- Кнопки управления внизу экрана -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
