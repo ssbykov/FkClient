@@ -4,9 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingVertical="6dp">
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
 
-    <!-- Название этапа -->
     <TextView
         android:id="@+id/tvStepName"
         android:layout_width="0dp"
@@ -15,63 +15,96 @@
         android:textColor="@color/black"
         android:textSize="13sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@id/tvPercentage"
+        app:layout_constraintEnd_toStartOf="@id/tvStepAmount"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Подготовка к упаковке" />
 
-    <!-- Процент выполнения -->
+    <TextView
+        android:id="@+id/tvStepAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/brand_blue"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="24 604,41 ₽" />
+
+    <!-- ВАЖНО: tvStepCount теперь wrap_content, а не 0dp,
+         иначе он растягивается на всю ширину и не оставляет
+         места для tvStepAvg рядом с собой. -->
+    <TextView
+        android:id="@+id/tvStepCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvStepName"
+        tools:text="78 шт." />
+
+    <!-- Среднее в день - занимает оставшееся место справа от факта -->
+    <TextView
+        android:id="@+id/tvStepAvg"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp"
+        app:layout_constraintBaseline_toBaselineOf="@id/tvStepCount"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/tvStepCount"
+        tools:text="  •  ~6,0 шт/день" />
+
+    <TextView
+        android:id="@+id/tvPlanCount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="8dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toStartOf="@id/tvPercentage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvStepCount"
+        tools:text="из 138 шт." />
+
     <TextView
         android:id="@+id/tvPercentage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/brand_blue"
-        android:textSize="13sp"
+        android:textSize="12sp"
         android:textStyle="bold"
+        app:layout_constraintBaseline_toBaselineOf="@id/tvPlanCount"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         tools:text="98%" />
 
-    <!-- Подстрока: Факт/План и среднее в день -->
-    <TextView
-        android:id="@+id/tvStepDetails"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:textColor="@color/text_secondary"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvStepName"
-        tools:text="78 из 138 шт.  •  ~6,0 шт/день" />
-
-    <!-- Сумма выработки в рублях (только режим "по сотрудникам") -->
-    <TextView
-        android:id="@+id/tvStepAmount"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:textColor="@color/brand_blue"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvStepDetails"
-        tools:text="24 604,41 ₽" />
-
-    <!-- Полоса прогресса с контрастной подложкой -->
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progressStep"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="3dp"
         app:indicatorColor="@color/brand_blue"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvStepAmount"
+        app:layout_constraintTop_toBottomOf="@id/tvPlanCount"
         app:trackColor="@color/progress_track"
         app:trackCornerRadius="3dp"
         app:trackThickness="6dp"
         tools:progress="56" />
+
+    <View
+        android:id="@+id/stepDivider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="10dp"
+        android:background="@color/divider_light"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/progressStep" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

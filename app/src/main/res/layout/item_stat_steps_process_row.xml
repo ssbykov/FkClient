@@ -4,27 +4,30 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingTop="8dp"
-    android:paddingBottom="12dp">
+    android:paddingTop="12dp"
+    android:paddingBottom="8dp">
 
-    <!-- Название процесса (вида продукции) -->
+    <!-- Заголовок процесса / типоразмера (например, УФ-3-20-ПС) -->
     <TextView
         android:id="@+id/tvProcessName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_size_type_header"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="7dp"
         android:textColor="@color/black"
-        android:textSize="15sp"
+        android:textSize="14sp"
         android:textStyle="bold"
         tools:text="УФ-3-20-ПС" />
 
-    <!-- Вложенный список этапов для этого процесса -->
+    <!-- Вложенный список этапов -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvSteps"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="6dp"
         android:nestedScrollingEnabled="false"
         tools:itemCount="3"
-        tools:listitem="@layout/item_stat_step_row" />
+        tools:listitem="@layout/item_stat_process_step" />
 
 </LinearLayout>

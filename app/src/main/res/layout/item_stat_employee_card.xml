@@ -19,7 +19,7 @@
         android:orientation="vertical"
         android:padding="12dp">
 
-        <!-- Имя сотрудника, рабочие дни и общий итог по всем этапам/типоразмерам -->
+        <!-- Имя сотрудника, рабочие дни и общая сумма выработки за период -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -45,28 +45,47 @@
                 android:textSize="12sp"
                 tools:text="13 раб. дн." />
 
+            <!-- Общая сумма выработки сотрудника в рублях за период -->
             <TextView
-                android:id="@+id/tvEmployeeTotal"
+                android:id="@+id/tvEmployeeEarned"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/brand_blue"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                tools:text="142 шт." />
+                tools:text="68 536,72 ₽" />
 
         </LinearLayout>
 
-        <!-- Сумма выработки сотрудника в рублях за период -->
-        <TextView
-            android:id="@+id/tvEmployeeEarned"
+        <!-- Аванс за 1-15 число месяца. Показывается только при периоде "Месяц". -->
+        <LinearLayout
+            android:id="@+id/firstHalfContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:gravity="end"
-            android:textColor="@color/brand_blue"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            tools:text="68 536,72 ₽" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/stat_first_half_label"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvEmployeeFirstHalfEarned"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/brand_blue"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                tools:text="32 100,00 ₽" />
+
+        </LinearLayout>
 
         <View
             android:layout_width="match_parent"

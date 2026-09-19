@@ -3,37 +3,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="6dp"
-    android:layout_marginBottom="6dp"
     android:orientation="vertical">
 
-    <!-- Заголовок типоразмера и общее количество по нему -->
-    <LinearLayout
+    <!-- Заголовок типоразмера - плашка с закруглёнными углами.
+         Единственный источник отступа между группами типоразмеров -
+         layout_marginTop здесь; внешний контейнер margin не задаёт,
+         чтобы отступы не задваивались. -->
+    <TextView
+        android:id="@+id/tvSizeTypeName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/tvProcessName"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textColor="@color/black"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            tools:text="Типоразмер 3м2" />
-
-        <TextView
-            android:id="@+id/tvProcessTotal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/brand_blue"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            tools:text="45 шт." />
-
-    </LinearLayout>
+        android:layout_marginTop="18dp"
+        android:background="@drawable/bg_size_type_header"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp"
+        android:textColor="@color/black"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        tools:text="Типоразмер 3м2" />
 
     <!-- Список этапов конкретного типоразмера -->
     <androidx.recyclerview.widget.RecyclerView
