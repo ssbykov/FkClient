@@ -33,14 +33,9 @@ class EmployeeStatAdapter(
 
         fun bind(item: EmployeeStatsUiItem) = with(binding) {
             tvEmployeeName.text = item.employeeName
-            tvWorkingDays.text = root.context.getString(R.string.stat_working_days_format, item.workingDays)
-            tvEmployeeTotal.text = root.context.getString(
-                R.string.grand_total_format, item.totalCompleted
-            )
-            tvEmployeeEarned.text = root.context.getString(
-                R.string.stat_earned_format,
-                formatCurrency(item.totalEarned)
-            )
+            tvWorkingDays.text =
+                root.context.getString(R.string.stat_working_days_format, item.workingDays)
+            tvEmployeeEarned.text = formatCurrency(item.totalEarned)
 
             // Аванс за 1-15 число показывается только при периоде "Месяц"
             // (флаг showFirstHalf выставляется во ViewModel).
@@ -62,7 +57,10 @@ class EmployeeStatAdapter(
                 minimumFractionDigits = 2
                 maximumFractionDigits = 2
             }
-            return format.format(amount)
+            return binding.root.context.getString(
+                R.string.stat_earned_format,
+                format.format(amount)
+            )
         }
     }
 

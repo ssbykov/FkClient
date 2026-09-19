@@ -12,34 +12,43 @@ import java.math.BigDecimal
 import java.text.NumberFormat
 import java.util.Locale
 
-/**
- * @param showProgress Показывать ли полосу прогресса выполнения плана.
- * Прогресс-бар нужен только на экране "По сотрудникам" - в режиме
- * "По процессам" полоса скрывается независимо от наличия плана.
- */
 class StatStepAdapter(
-    private val showProgress: Boolean = true
+    private val showProgress: Boolean = true,
+    private val showDivider: Boolean = true
 ) : ListAdapter<StepCountUiItem, StatStepAdapter.ViewHolder>(DiffCallback) {
 
     inner class ViewHolder(
         private val binding: ItemStatStepRowBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: StepCountUiItem) = with(binding) {
+        fun bind(item: StepCountUiItem, isLast: Boolean) = with(binding) {
             tvStepName.text = item.stepName
 
             val avgText = String.format(Locale.getDefault(), "%.1f", item.dailyAverage)
 
+            tvStepCount.text = root.context.getString(
+                R.string.stat_step_fact_only_format,
+                item.count
+            )
+            tvStepAvg.text = root.context.getString(
+                R.string.stat_step_avg_inline_format,
+                avgText
+            )
+
+            tvPercentage.isVisible = true
+
             if (item.planCount != null && item.completionPercentage != null) {
                 val percentageInt = item.completionPercentage.toInt()
-                tvPercentage.text =
-                    root.context.getString(R.string.stat_percentage_format, percentageInt)
-                tvStepDetails.text = root.context.getString(
-                    R.string.stat_step_details_with_plan_format,
-                    item.count,
-                    item.planCount,
-                    avgText
+
+                tvPlanCount.text = root.context.getString(
+                    R.string.stat_step_plan_only_format,
+                    item.planCount
                 )
+                tvPercentage.text = root.context.getString(
+                    R.string.stat_percentage_format,
+                    percentageInt
+                )
+
                 if (showProgress) {
                     progressStep.isVisible = true
                     progressStep.setProgressCompat(percentageInt.coerceIn(0, 100), true)
@@ -47,11 +56,14 @@ class StatStepAdapter(
                     progressStep.isVisible = false
                 }
             } else {
-                tvPercentage.text = root.context.getString(R.string.count_units_format, item.count)
-                tvStepDetails.text = root.context.getString(
-                    R.string.stat_step_details_avg_only_format,
-                    avgText
+                // Плана нет - явно показываем "Без плана", считаем
+                // выполнение 100% (план забыли указать).
+                tvPlanCount.text = root.context.getString(R.string.stat_step_no_plan_label)
+                tvPercentage.text = root.context.getString(
+                    R.string.stat_percentage_format,
+                    100
                 )
+
                 if (showProgress) {
                     progressStep.isVisible = true
                     progressStep.setProgressCompat(100, true)
@@ -59,15 +71,15 @@ class StatStepAdapter(
                     progressStep.isVisible = false
                 }
             }
+
             if (item.amount > BigDecimal.ZERO) {
                 tvStepAmount.isVisible = true
-                tvStepAmount.text = root.context.getString(
-                    R.string.stat_step_amount_format,
-                    formatCurrency(item.amount)
-                )
+                tvStepAmount.text = formatCurrency(item.amount)
             } else {
                 tvStepAmount.isVisible = false
             }
+
+            stepDivider.isVisible = showDivider && !isLast
         }
 
         private fun formatCurrency(amount: BigDecimal): String {
@@ -75,7 +87,10 @@ class StatStepAdapter(
                 minimumFractionDigits = 2
                 maximumFractionDigits = 2
             }
-            return format.format(amount)
+            return binding.root.context.getString(
+                R.string.stat_step_amount_format,
+                format.format(amount)
+            )
         }
     }
 
@@ -87,7 +102,7 @@ class StatStepAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) =
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), position == itemCount - 1)
 
     private object DiffCallback : DiffUtil.ItemCallback<StepCountUiItem>() {
         override fun areItemsTheSame(old: StepCountUiItem, new: StepCountUiItem) =

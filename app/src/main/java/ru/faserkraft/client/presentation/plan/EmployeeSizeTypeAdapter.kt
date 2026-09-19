@@ -16,7 +16,7 @@ class EmployeeSizeTypeAdapter :
         private val binding: ItemStatEmployeeProcessRowBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        private val stepsAdapter = StatStepAdapter()
+        private val stepsAdapter = StatStepAdapter(showProgress = true)
 
         init {
             binding.rvSteps.apply {
@@ -27,12 +27,9 @@ class EmployeeSizeTypeAdapter :
         }
 
         fun bind(item: EmployeeSizeTypeUiItem) = with(binding) {
-            tvProcessName.text = root.context.getString(
+            tvSizeTypeName.text = root.context.getString(
                 R.string.size_type_format,
                 item.sizeTypeName
-            )
-            tvProcessTotal.text = root.context.getString(
-                R.string.grand_total_format, item.totalCompleted
             )
             stepsAdapter.submitList(item.steps)
         }
