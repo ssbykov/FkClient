@@ -2,6 +2,7 @@ package ru.faserkraft.client.presentation.plan
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
@@ -40,6 +41,15 @@ class EmployeeStatAdapter(
                 R.string.stat_earned_format,
                 formatCurrency(item.totalEarned)
             )
+
+            // Аванс за 1-15 число показывается только при периоде "Месяц"
+            // (флаг showFirstHalf выставляется во ViewModel).
+            firstHalfContainer.isVisible = item.showFirstHalf
+
+            if (item.showFirstHalf) {
+                tvEmployeeFirstHalfEarned.text = formatCurrency(item.firstHalfEarned)
+            }
+
             sizeTypeAdapter.submitList(item.sizeTypes)
 
             root.setOnClickListener {
