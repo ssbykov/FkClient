@@ -20,6 +20,17 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 
+/**
+ * Составной ключ этапа: один stepDefinitionId может встречаться в разных
+ * процессах и типоразмерах, поэтому одного stepDefinitionId недостаточно
+ * для сопоставления сумм между employeeEarnings и firstHalfEarnings.
+ */
+private data class StepStatKey(
+    val processId: Int,
+    val sizeTypeId: Int?,
+    val stepDefinitionId: Int,
+)
+
 @HiltViewModel
 class StatisticsViewModel @Inject constructor(
     private val getProductsStatisticsUseCase: GetProductsStatisticsUseCase,
@@ -87,6 +98,9 @@ class StatisticsViewModel @Inject constructor(
         currentDateTo = dateTo.format(API_DATE_FORMAT)
         val periodLabel = formatPeriodLabel(dateFrom, currentPeriod)
 
+        // Аванс за 1-15 число имеет смысл показывать только в месячном режиме.
+        val isMonthPeriod = currentPeriod == StatPeriod.MONTH
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, periodLabel = periodLabel) }
 
@@ -94,11 +108,20 @@ class StatisticsViewModel @Inject constructor(
                 getProductsStatisticsUseCase(
                     dateFrom = currentDateFrom,
                     dateTo = currentDateTo,
+                    includeFirstHalf = isMonthPeriod,
                 )
             }
                 .onSuccess { statsData ->
                     val plansByEmployeeId = statsData.employeePlans.associateBy { it.employeeId }
-                    val earningsByEmployeeId = statsData.employeeEarnings.associateBy { it.employeeId }
+                    val earningsByEmployeeId =
+                        statsData.employeeEarnings.associateBy { it.employeeId }
+
+                    // Пусто для квартала/года — сервер не считает аванс без include_first_half.
+                    val firstHalfEarningsByEmployeeId = if (isMonthPeriod) {
+                        statsData.firstHalfEarnings.associateBy { it.employeeId }
+                    } else {
+                        emptyMap()
+                    }
 
                     val periodWorkingDays = statsData.totalWorkingDays.coerceAtLeast(1)
                     val allPlanSteps = statsData.employeePlans.flatMap { it.steps }
@@ -157,29 +180,43 @@ class StatisticsViewModel @Inject constructor(
                         .sortedByDescending { it.steps.sumOf { step -> step.count } }
                         .filter { it.steps.isNotEmpty() }
 
-                    // 3. Сотрудники -> Типоразмеры -> Этапы — С суммами в рублях
+                    // 3. Сотрудники -> Типоразмеры -> Этапы — С суммами в рублях (+ аванс за 1-15)
                     val employeeItems = statsData.totalSteps
                         .groupBy { it.employeeId to it.employeeName }
                         .map { (employeeKey, employeeSteps) ->
                             val employeeId = employeeKey.first
                             val employeePlan = plansByEmployeeId[employeeId]
                             val employeeEarnings = earningsByEmployeeId[employeeId]
+                            val firstHalfEarnings = firstHalfEarningsByEmployeeId[employeeId]
 
                             val employeeWorkingDays =
                                 employeePlan?.workingDays?.coerceAtLeast(1) ?: 1
 
-                            val amountByStepDefinitionId = employeeEarnings?.steps
-                                ?.groupBy { it.stepDefinitionId }
+                            // Ключ составной: processId + sizeTypeId + stepDefinitionId,
+                            // чтобы не перепутать суммы одинаковых этапов из разных процессов.
+                            val amountByStepKey = employeeEarnings?.steps
+                                ?.groupBy { step ->
+                                    StepStatKey(
+                                        processId = step.processId,
+                                        sizeTypeId = step.sizeTypeId,
+                                        stepDefinitionId = step.stepDefinitionId,
+                                    )
+                                }
                                 ?.mapValues { (_, steps) ->
                                     steps.fold(BigDecimal.ZERO) { acc, s -> acc + s.totalAmount }
                                 }
                                 ?: emptyMap()
 
+// Файл: StatisticsViewModel.kt
+// Финальная версия сопоставления - путь к templateId в domain-модели
+// плана: it.stepDefinition.templateId (плоское поле, не вложенный
+// template.id, так как StepDefinition уже расплющивает template).
+
                             val sizeTypes = employeeSteps
                                 .groupBy { it.sizeTypeId to it.sizeTypeName }
                                 .map { (sizeTypeKey, sizeTypeSteps) ->
                                     val groupedSteps = sizeTypeSteps
-                                        .groupBy { it.order to it.stepName }
+                                        .groupBy { it.templateId }
                                         .values
                                         .sortedBy { sameList -> sameList.first().order }
                                         .map { sameList ->
@@ -187,7 +224,7 @@ class StatisticsViewModel @Inject constructor(
                                             val factCount = sameList.sumOf { it.count }
 
                                             val planCount = employeePlan?.steps
-                                                ?.filter { it.stepDefinitionId == firstItem.stepDefinitionId }
+                                                ?.filter { it.stepDefinition.templateId == firstItem.templateId }
                                                 ?.sumOf { it.plannedQuantity }
                                                 ?.takeIf { it > 0 }
 
@@ -195,11 +232,20 @@ class StatisticsViewModel @Inject constructor(
                                                 (factCount.toDouble() / plan) * 100.0
                                             }
 
-                                            val dailyAvg =
-                                                factCount.toDouble() / employeeWorkingDays
+                                            val dailyAvg = factCount.toDouble() / employeeWorkingDays
 
-                                            val amount = amountByStepDefinitionId[firstItem.stepDefinitionId]
-                                                ?: BigDecimal.ZERO
+                                            val amount = sameList
+                                                .map { step ->
+                                                    StepStatKey(
+                                                        processId = step.processId,
+                                                        sizeTypeId = step.sizeTypeId,
+                                                        stepDefinitionId = step.stepDefinitionId,
+                                                    )
+                                                }
+                                                .distinct()
+                                                .fold(BigDecimal.ZERO) { acc, key ->
+                                                    acc + (amountByStepKey[key] ?: BigDecimal.ZERO)
+                                                }
 
                                             StepCountUiItem(
                                                 stepDefinitionId = firstItem.stepDefinitionId,
@@ -213,7 +259,7 @@ class StatisticsViewModel @Inject constructor(
                                         }
 
                                     EmployeeSizeTypeUiItem(
-                                        sizeTypeId = sizeTypeKey.first.takeIf { it != -1 },
+                                        sizeTypeId = sizeTypeKey.first,
                                         sizeTypeName = sizeTypeKey.second,
                                         totalCompleted = groupedSteps.sumOf { it.count },
                                         steps = groupedSteps
@@ -222,12 +268,15 @@ class StatisticsViewModel @Inject constructor(
                                 .sortedByDescending { it.totalCompleted }
                                 .filter { it.steps.isNotEmpty() }
 
+
                             EmployeeStatsUiItem(
                                 employeeId = employeeId,
                                 employeeName = employeeKey.second,
                                 workingDays = employeeWorkingDays,
                                 totalCompleted = sizeTypes.sumOf { it.totalCompleted },
                                 totalEarned = employeeEarnings?.totalEarned ?: BigDecimal.ZERO,
+                                firstHalfEarned = firstHalfEarnings?.totalEarned ?: BigDecimal.ZERO,
+                                showFirstHalf = isMonthPeriod,
                                 sizeTypes = sizeTypes
                             )
                         }
