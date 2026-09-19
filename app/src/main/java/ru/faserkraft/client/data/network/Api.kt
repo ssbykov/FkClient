@@ -61,9 +61,10 @@ interface Api {
     suspend fun getFinishedProduct(): Response<List<ProductShortDto>>
 
     @GET("products/statistics/period")
-    suspend fun getFinishedProductsByPeriod(
+    suspend fun getPeriodStatistics(
         @Query("date_from") dateFrom: String,
-        @Query("date_to") dateTo: String
+        @Query("date_to") dateTo: String,
+        @Query("include_first_half") includeFirstHalf: Boolean = false,
     ): Response<PeriodStatisticsDto>
 
     @POST(BASE_URL + "products")
