@@ -12,21 +12,21 @@ import ru.faserkraft.client.domain.model.ProcessCountStat
 import ru.faserkraft.client.domain.model.StepCountStat
 import java.math.BigDecimal
 
-fun StepCountStatDto.toDomain(): StepCountStat {
-    return StepCountStat(
-        processId = this.processId,
-        processName = this.processName,
-        sizeTypeId = this.sizeTypeId,
-        sizeTypeName = this.sizeTypeName,
-        stepDefinitionId = this.stepDefinitionId,
-        order = this.order,
-        stepName = this.stepName,
-        employeeId = this.employeeId,
-        employeeName = this.employeeName,
-        count = this.count,
-        totalAmount = BigDecimal(this.totalAmount)
-    )
-}
+fun StepCountStatDto.toDomain() = StepCountStat(
+    processId = processId,
+    processName = processName,
+    sizeTypeId = sizeTypeId,
+    sizeTypeName = sizeTypeName,
+    stepDefinitionId = stepDefinitionId,
+    order = order,
+    templateId = templateId,
+    stepName = stepName,
+    employeeId = employeeId,
+    employeeName = employeeName,
+    count = count,
+    totalAmount = BigDecimal(totalAmount)
+)
+
 
 fun ProcessCountStatDto.toDomain() = ProcessCountStat(
     processId = processId,
@@ -43,20 +43,21 @@ fun EmployeePlanStatDto.toDomain() = EmployeePlanStat(
 
 fun EmployeeEarningsDto.toDomain(): EmployeeEarningsStat {
     return EmployeeEarningsStat(
-        employeeId = this.employeeId,
-        employeeName = this.employeeName,
-        totalEarned = BigDecimal(this.totalEarned),
-        steps = this.steps.map { it.toDomain() }
+        employeeId = employeeId,
+        employeeName = employeeName,
+        totalEarned = BigDecimal(totalEarned),
+        steps = steps.map { it.toDomain() }
     )
 }
 
 fun PeriodStatisticsDto.toDomain(): PeriodStatistics {
     return PeriodStatistics(
-        totalWorkingDays = this.totalWorkingDays,
-        finishedProducts = this.finishedProducts.map { it.toDomain() },
-        totalSteps = this.totalSteps.map { it.toDomain() },
-        employeePlans = this.employeePlans.map { it.toDomain() },
-        employeeEarnings = this.employeeEarnings.map { it.toDomain() },
-        totalEarnedAll = BigDecimal(this.totalEarnedAll)
+        totalWorkingDays = totalWorkingDays,
+        finishedProducts = finishedProducts.map { it.toDomain() },
+        totalSteps = totalSteps.map { it.toDomain() },
+        employeePlans = employeePlans.map { it.toDomain() },
+        employeeEarnings = employeeEarnings.map { it.toDomain() },
+        firstHalfEarnings = firstHalfEarnings.map { it.toDomain() },
+        totalEarnedAll = totalEarnedAll.toBigDecimal(),
     )
 }

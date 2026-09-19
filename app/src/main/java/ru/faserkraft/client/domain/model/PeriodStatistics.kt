@@ -10,6 +10,7 @@ data class StepCountStat(
     val sizeTypeName: String,
     val stepDefinitionId: Int,
     val order: Int,
+    val templateId: Int,
     val stepName: String,
     val employeeId: Int,
     val employeeName: String,
@@ -36,6 +37,7 @@ data class PeriodStatistics(
     val totalSteps: List<StepCountStat>,
     val employeePlans: List<EmployeePlanStat>,
     val employeeEarnings: List<EmployeeEarningsStat>,
+    val firstHalfEarnings: List<EmployeeEarningsStat>,
     val totalEarnedAll: BigDecimal
 )
 

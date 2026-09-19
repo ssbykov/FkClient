@@ -47,8 +47,10 @@ data class EmployeeStatsUiItem(
     val employeeName: String,
     val workingDays: Int,
     val totalCompleted: Int,
-    val totalEarned: BigDecimal = BigDecimal.ZERO,
-    val sizeTypes: List<EmployeeSizeTypeUiItem>
+    val totalEarned: BigDecimal,
+    val firstHalfEarned: BigDecimal = BigDecimal.ZERO,
+    val showFirstHalf: Boolean = false,
+    val sizeTypes: List<EmployeeSizeTypeUiItem>,
 )
 
 data class StepCountUiItem(
@@ -58,5 +60,7 @@ data class StepCountUiItem(
     val planCount: Int? = null,
     val completionPercentage: Double? = null,
     val dailyAverage: Double = 0.0,
-    val amount: BigDecimal = BigDecimal.ZERO
+    val amount: BigDecimal = BigDecimal.ZERO,
+    val firstHalfCount: Int = 0,
+    val firstHalfAmount: BigDecimal = BigDecimal.ZERO,
 )

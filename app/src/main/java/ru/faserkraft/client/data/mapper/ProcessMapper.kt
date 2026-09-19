@@ -14,6 +14,7 @@ import ru.faserkraft.client.domain.model.StepDefinitionWithProcess
 fun StepDefinitionDto.toDomain(): StepDefinition = StepDefinition(
     id = id,
     order = order,
+    templateId = template.id,
     name = template.name,
     nameGenitive = template.nameGenitive,
 )
@@ -52,6 +53,7 @@ fun StepDefinitionWithProcessDto.toDomain(): StepDefinitionWithProcess {
     return StepDefinitionWithProcess(
         id = id,
         order = order,
+        templateId = template.id,
         name = template.name,
         nameGenitive = template.nameGenitive,
         process = process.toDomain(),

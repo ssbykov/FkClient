@@ -9,6 +9,7 @@ data class StepCountStatDto(
     @SerializedName("size_type_name") val sizeTypeName: String,
     @SerializedName("step_definition_id") val stepDefinitionId: Int,
     @SerializedName("order") val order: Int,
+    @SerializedName("template_id") val templateId: Int,
     @SerializedName("step_name") val stepName: String,
     @SerializedName("employee_id") val employeeId: Int,
     @SerializedName("employee_name") val employeeName: String,
@@ -42,5 +43,6 @@ data class PeriodStatisticsDto(
     @SerializedName("total_steps") val totalSteps: List<StepCountStatDto>,
     @SerializedName("employee_plans") val employeePlans: List<EmployeePlanStatDto>,
     @SerializedName("employee_earnings") val employeeEarnings: List<EmployeeEarningsDto>,
-    @SerializedName("total_earned_all") val totalEarnedAll: String,
+    @SerializedName("first_half_earnings") val firstHalfEarnings: List<EmployeeEarningsDto> = emptyList(),
+    @SerializedName("total_earned_all") val totalEarnedAll: String = "0",
 )
