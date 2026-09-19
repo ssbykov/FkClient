@@ -15,9 +15,10 @@ interface ProductRepository {
     suspend fun getProductsOverview(): List<ProductsOverview>
     suspend fun getFinishedProducts(): List<ProductShort>
 
-    suspend fun getFinishedProductsByPeriod(
+    suspend fun getPeriodStatistics(
         dateFrom: String,
         dateTo: String,
+        includeFirstHalf: Boolean = false,
     ): PeriodStatistics
 
     suspend fun getProductsByLastCompletedStep(
