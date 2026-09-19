@@ -58,15 +58,21 @@ class ProductRepositoryImpl @Inject constructor(
     override suspend fun getFinishedProducts(): List<ProductShort> =
         callApi { api.getFinishedProduct() }.orEmpty().map { it.toDomain() }
 
-    override suspend fun getFinishedProductsByPeriod(
+    override suspend fun getPeriodStatistics(
         dateFrom: String,
         dateTo: String,
+        includeFirstHalf: Boolean,
     ): PeriodStatistics =
         requireNotNull(
             callApi {
-                api.getFinishedProductsByPeriod(dateFrom, dateTo)
+                api.getPeriodStatistics(
+                    dateFrom = dateFrom,
+                    dateTo = dateTo,
+                    includeFirstHalf = includeFirstHalf,
+                )
             }
         ).toDomain()
+
 
     override suspend fun getProductsByLastCompletedStep(
         processId: Int,
