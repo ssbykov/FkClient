@@ -12,10 +12,16 @@ import java.math.BigDecimal
 import java.text.NumberFormat
 import java.util.Locale
 
+/**
+ * @param showProgress Показывать ли полосу прогресса выполнения плана.
+ * Прогресс-бар нужен только на экране "По сотрудникам" - в режиме
+ * "По процессам" полоса скрывается независимо от наличия плана.
+ */
+class StatStepAdapter(
+    private val showProgress: Boolean = true
+) : ListAdapter<StepCountUiItem, StatStepAdapter.ViewHolder>(DiffCallback) {
 
-class StatStepAdapter : ListAdapter<StepCountUiItem, StatStepAdapter.ViewHolder>(DiffCallback) {
-
-    class ViewHolder(
+    inner class ViewHolder(
         private val binding: ItemStatStepRowBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -34,19 +40,25 @@ class StatStepAdapter : ListAdapter<StepCountUiItem, StatStepAdapter.ViewHolder>
                     item.planCount,
                     avgText
                 )
-                progressStep.isVisible = true
-                progressStep.setProgressCompat(percentageInt.coerceIn(0, 100), true)
+                if (showProgress) {
+                    progressStep.isVisible = true
+                    progressStep.setProgressCompat(percentageInt.coerceIn(0, 100), true)
+                } else {
+                    progressStep.isVisible = false
+                }
             } else {
                 tvPercentage.text = root.context.getString(R.string.count_units_format, item.count)
                 tvStepDetails.text = root.context.getString(
                     R.string.stat_step_details_avg_only_format,
                     avgText
                 )
-                progressStep.isVisible = false
+                if (showProgress) {
+                    progressStep.isVisible = true
+                    progressStep.setProgressCompat(100, true)
+                } else {
+                    progressStep.isVisible = false
+                }
             }
-
-            // Сумма выработки показывается только если есть ненулевая сумма
-            // (заполняется только в режиме "по сотрудникам")
             if (item.amount > BigDecimal.ZERO) {
                 tvStepAmount.isVisible = true
                 tvStepAmount.text = root.context.getString(
