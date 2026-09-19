@@ -17,6 +17,8 @@ class EmployeeStatAdapter(
     private val onEmployeeClick: ((EmployeeStatsUiItem) -> Unit)? = null
 ) : ListAdapter<EmployeeStatsUiItem, EmployeeStatAdapter.ViewHolder>(DiffCallback) {
 
+    private val expandedEmployeeIds = mutableSetOf<Any>()
+
     inner class ViewHolder(
         private val binding: ItemStatEmployeeCardBinding
     ) : RecyclerView.ViewHolder(binding.root) {
@@ -32,24 +34,52 @@ class EmployeeStatAdapter(
         }
 
         fun bind(item: EmployeeStatsUiItem) = with(binding) {
-            tvEmployeeName.text = item.employeeName
-            tvWorkingDays.text =
-                root.context.getString(R.string.stat_working_days_format, item.workingDays)
+            // Разделяем Фамилию и Имя на две отдельные строки
+            val nameParts = item.employeeName.trim().split("\\s+".toRegex())
+            if (nameParts.size >= 2) {
+                tvEmployeeLastName.text = nameParts[0]
+                tvEmployeeFirstName.text = nameParts.drop(1).joinToString(" ")
+                tvEmployeeFirstName.isVisible = true
+            } else {
+                tvEmployeeLastName.text = item.employeeName
+                tvEmployeeFirstName.isVisible = false
+            }
+
+            tvWorkingDays.text = root.context.getString(
+                R.string.stat_working_days_format,
+                item.workingDays
+            )
             tvEmployeeEarned.text = formatCurrency(item.totalEarned)
 
-            // Аванс за 1-15 число показывается только при периоде "Месяц"
-            // (флаг showFirstHalf выставляется во ViewModel).
+            // Аванс за 1-15 число
             firstHalfContainer.isVisible = item.showFirstHalf
-
             if (item.showFirstHalf) {
                 tvEmployeeFirstHalfEarned.text = formatCurrency(item.firstHalfEarned)
             }
 
             sizeTypeAdapter.submitList(item.sizeTypes)
 
-            root.setOnClickListener {
+            val isExpanded = expandedEmployeeIds.contains(item.employeeId)
+            expandableContainer.isVisible = isExpanded
+            ivExpand.rotation = if (isExpanded) 180f else 0f
+
+            val toggleExpand: () -> Unit = {
+                val currentlyExpanded = expandedEmployeeIds.contains(item.employeeId)
+                if (currentlyExpanded) {
+                    expandedEmployeeIds.remove(item.employeeId)
+                } else {
+                    expandedEmployeeIds.add(item.employeeId)
+                }
+
+                val willBeExpanded = !currentlyExpanded
+                expandableContainer.isVisible = willBeExpanded
+                ivExpand.animate().rotation(if (willBeExpanded) 180f else 0f).setDuration(200).start()
+
                 onEmployeeClick?.invoke(item)
             }
+
+            headerEmployee.setOnClickListener { toggleExpand() }
+            root.setOnClickListener { toggleExpand() }
         }
 
         private fun formatCurrency(amount: BigDecimal): String {

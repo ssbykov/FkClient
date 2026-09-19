@@ -2,9 +2,10 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardEmployee"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="12dp"
+    android:layout_marginTop="8dp"
     android:backgroundTint="@android:color/transparent"
     app:cardCornerRadius="8dp"
     app:cardPreventCornerOverlap="true"
@@ -15,54 +16,95 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
         android:background="@drawable/bg_card"
         android:orientation="vertical"
         android:padding="12dp">
 
-        <!-- Имя сотрудника, рабочие дни и общая сумма выработки за период -->
-        <LinearLayout
+        <!-- Кликабельная шапка карточки: двухэтажная раскладка (Имя слева | Сумма и Дни справа) -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/headerEmployee"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content">
 
+            <!-- 1. Фамилия сотрудника (строка 1 слева) -->
             <TextView
-                android:id="@+id/tvEmployeeName"
+                android:id="@+id/tvEmployeeLastName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginEnd="12dp"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:textColor="@color/black"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                tools:text="Иванов Иван" />
+                app:layout_constraintEnd_toStartOf="@id/tvEmployeeEarned"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Логинов" />
 
-            <!-- Количество отработанных дней -->
+            <!-- 2. Имя сотрудника (строка 2 слева) -->
             <TextView
-                android:id="@+id/tvWorkingDays"
-                android:layout_width="wrap_content"
+                android:id="@+id/tvEmployeeFirstName"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
-                android:textSize="12sp"
-                tools:text="13 раб. дн." />
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="12dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/black"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toStartOf="@id/tvWorkingDays"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvEmployeeLastName"
+                tools:text="Артем" />
 
-            <!-- Общая сумма выработки сотрудника в рублях за период -->
+            <!-- 3. Общая сумма выработки (строка 1 справа, крупно и акцентно) -->
             <TextView
                 android:id="@+id/tvEmployeeEarned"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
                 android:textColor="@color/brand_blue"
-                android:textSize="15sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                tools:text="68 536,72 ₽" />
+                app:layout_constraintBaseline_toBaselineOf="@id/tvEmployeeLastName"
+                app:layout_constraintEnd_toStartOf="@id/ivExpand"
+                tools:text="162 899,11 ₽" />
 
-        </LinearLayout>
+            <!-- 4. Количество рабочих дней (строка 2 справа, строго под суммой, выровнено по правому краю) -->
+            <TextView
+                android:id="@+id/tvWorkingDays"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                app:layout_constraintBaseline_toBaselineOf="@id/tvEmployeeFirstName"
+                app:layout_constraintEnd_toEndOf="@id/tvEmployeeEarned"
+                tools:text="108 раб. дн." />
 
-        <!-- Аванс за 1-15 число месяца. Показывается только при периоде "Месяц". -->
+            <!-- 5. Стрелка индикатора раскрытия (по центру карточки по вертикали) -->
+            <ImageView
+                android:id="@+id/ivExpand"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_chevron_down"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@color/brand_blue" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Аванс за 1-15 число (только при периоде Месяц) -->
         <LinearLayout
             android:id="@+id/firstHalfContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="30dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:visibility="gone"
@@ -87,22 +129,33 @@
 
         </LinearLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="4dp"
-            android:alpha="0.25"
-            android:background="@color/brand_blue" />
-
-        <!-- Список типоразмеров сотрудника -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvEmployeeProcesses"
+        <!-- Раскрывающийся блок с типоразмерами и этапами -->
+        <LinearLayout
+            android:id="@+id/expandableContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false"
-            tools:itemCount="2"
-            tools:listitem="@layout/item_stat_employee_process_row" />
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="4dp"
+                android:alpha="0.25"
+                android:background="@color/brand_blue" />
+
+            <!-- Список типоразмеров сотрудника -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvEmployeeProcesses"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                tools:itemCount="2"
+                tools:listitem="@layout/item_stat_employee_process_row" />
+
+        </LinearLayout>
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
