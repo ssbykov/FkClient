@@ -15,7 +15,7 @@ class StatProcessStepsAdapter : ListAdapter<ProcessStepsUiItem, StatProcessSteps
     ) : RecyclerView.ViewHolder(binding.root) {
 
         // Создаём уникальный адаптер для каждого элемента списка (nested RecyclerView)
-        private val stepsAdapter = StatStepAdapter()
+        private val stepsAdapter = StatStepAdapter(showProgress = false)
 
         init {
             binding.rvSteps.apply {
