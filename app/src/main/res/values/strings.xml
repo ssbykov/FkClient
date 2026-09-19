@@ -234,7 +234,7 @@
     <string name="stat_working_days_format">%1$d раб. дн.</string>
     <string name="stat_earned_format">%1$s ₽</string>
     <string name="stat_step_amount_format">%1$s ₽</string>
-
+    <string name="stat_first_half_label">Аванс за 1–15</string>
 
     <!-- Переключатель режимов статистики -->
     <string name="stat_mode_processes">По процессам</string>
