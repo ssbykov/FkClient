@@ -228,13 +228,23 @@
     <string name="by_steps">По этапам</string>
     <string name="size_type_format">Типоразмер: %1$s</string>
     <string name="count_units_format">%1$d шт.</string>
-    <string name="stat_percentage_format">%1$d%%</string>
     <string name="stat_step_details_with_plan_format">%1$d из %2$d шт.  •  ~%3$s шт/день</string>
     <string name="stat_step_details_avg_only_format">~%1$s шт/день</string>
     <string name="stat_working_days_format">%1$d раб. дн.</string>
     <string name="stat_earned_format">%1$s ₽</string>
     <string name="stat_step_amount_format">%1$s ₽</string>
     <string name="stat_first_half_label">Аванс за 1–15</string>
+    <string name="stat_percentage_format">%1$d%%</string>
+    <string name="stat_step_fact_avg_format">%1$d шт.  •  ~%2$s шт/день</string>
+    <string name="stat_step_plan_only_format">из %1$d шт.</string>
+    <string name="stat_step_fact_only_format">%1$d шт.</string>
+    <string name="stat_step_avg_inline_format">  •  ~%1$s шт/день</string>
+    <string name="stat_step_no_plan_label">Без плана</string>
+
+    <!-- Новые форматы для компактного отображения по процессам: -->
+    <string name="stat_step_compact_with_plan_format">%1$d / %2$d шт. (~%3$s/д)</string>
+    <string name="stat_step_compact_no_plan_format">%1$d шт. (~%2$s/д)</string>
+
 
     <!-- Переключатель режимов статистики -->
     <string name="stat_mode_processes">По процессам</string>

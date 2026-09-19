@@ -33,4 +33,8 @@
 
     <!-- Совпадение этапа / успешный скан (зеленый) -->
     <color name="step_match">@color/status_success_text</color>
+
+    <color name="divider_light">#1F000000</color>
+
+    <color name="size_type_header_bg">#F0F6FC</color>
 </resources>
