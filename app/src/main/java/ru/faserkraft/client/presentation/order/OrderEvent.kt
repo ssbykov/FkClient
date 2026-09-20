@@ -46,6 +46,9 @@ sealed interface OrderEvent {
     /** Успешное добавление упаковок в заказ */
     data object PackagingAdded : OrderEvent
 
-    /** Ошибка при отвязке упаковки от заказа (для отката сдвинутого свайпом элемента) */
-    data object DetachPackagingFailed : OrderEvent
+    /**
+     * Ошибка при отвязке конкретной упаковки от заказа.
+     * Передает ID упаковки для точечного точечного обновления элемента (notifyItemChanged).
+     */
+    data class DetachPackagingFailed(val packagingId: Int) : OrderEvent
 }

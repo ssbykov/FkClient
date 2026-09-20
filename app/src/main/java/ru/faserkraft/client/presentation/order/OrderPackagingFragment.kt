@@ -163,9 +163,12 @@ class OrderPackagingFragment : Fragment() {
             when (event) {
                 is OrderEvent.ShowError -> showErrorSnackbar(event.message)
 
-                // При ошибке отвязки возвращаем сдвинутый элемент RecyclerView на место
-                OrderEvent.DetachPackagingFailed -> {
-                    adapter.notifyDataSetChanged()
+                // Точечный откат конкретного свайпнутого элемента через notifyItemChanged
+                is OrderEvent.DetachPackagingFailed -> {
+                    val position = adapter.currentList.indexOfFirst { it.id == event.packagingId }
+                    if (position != -1) {
+                        adapter.notifyItemChanged(position)
+                    }
                 }
 
                 else -> Unit

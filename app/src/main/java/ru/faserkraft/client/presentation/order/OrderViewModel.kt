@@ -50,7 +50,6 @@ class OrderViewModel @Inject constructor(
             runCatching { getOrdersUseCase() }
                 .onSuccess { orders ->
                     _uiState.update { state ->
-                        // Если уже был выбран currentOrder, обновляем его актуальными данными из полученного списка
                         val updatedCurrent = state.currentOrder?.let { cur ->
                             orders.find { it.id == cur.id } ?: cur
                         }
@@ -62,7 +61,7 @@ class OrderViewModel @Inject constructor(
         }
     }
 
-    // ---------- Выбор заказа из памяти (МГНОВЕННО, 0 сетевых запросов) ----------
+    // ---------- Выбор заказа из памяти ----------
 
     fun selectOrder(orderId: Int) {
         val order = _uiState.value.orders.find { it.id == orderId }
@@ -135,7 +134,6 @@ class OrderViewModel @Inject constructor(
                 return@launch
             }
 
-            // Ищем серийники упаковок, где есть хотя бы один продукт со статусом не NORMAL
             val invalidPackagingSerials = order.packaging
                 .filter { packaging ->
                     packaging.products.any { product ->
@@ -215,10 +213,11 @@ class OrderViewModel @Inject constructor(
                     loadOrders()
                 }
                 .onFailure { error ->
-                    // 1. Показываем сообщение об ошибке пользователю
                     emitError(error)
-                    // 2. Откатываем UI назад (перерисовываем элемент в RecyclerView, так как свайп его сдвинул)
-                    _events.send(OrderEvent.DetachPackagingFailed)
+                    // Точечно уведомляем UI о неудаче для каждой упаковки
+                    packagingIds.forEach { id ->
+                        _events.send(OrderEvent.DetachPackagingFailed(id))
+                    }
                 }
             _uiState.update { it.copy(isActionInProgress = false) }
         }
