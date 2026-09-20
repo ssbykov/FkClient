@@ -62,7 +62,17 @@ class PackagingViewModel @Inject constructor(
         _uiState.value = PackagingUiState()
     }
 
-    // ---------- Загрузка упаковки по серийному номеру (вход из QR) ----------
+    // ---------- Выбор упаковки из памяти (МГНОВЕННО, 0 сетевых запросов) ----------
+
+    /**
+     * Устанавливает готовую упаковку из памяти (например, из списка заказа)
+     * без необходимости делать сетевой запрос.
+     */
+    fun selectPackaging(packaging: Packaging) {
+        _uiState.update { it.copy(currentPackaging = packaging) }
+    }
+
+    // ---------- Загрузка упаковки по серийному номеру (вход из QR или глубоких ссылок) ----------
 
     fun loadPackaging(serialNumber: String) {
         viewModelScope.launch {

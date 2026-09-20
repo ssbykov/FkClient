@@ -16,10 +16,14 @@ import ru.faserkraft.client.presentation.common.adapter.PackagingListAdapter
 import ru.faserkraft.client.presentation.common.adapter.PackagingListUiItem
 import ru.faserkraft.client.presentation.order.ModuleTypeUi
 import ru.faserkraft.client.presentation.ui.collectFlow
-import ru.faserkraft.client.utils.converter.formatIsoToUi
+import ru.faserkraft.client.utils.converter.formatPackagingDate
 import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
+/**
+ * Фрагмент со списком упаковок по конкретному процессу на складе.
+ * Отображает упаковки из уже загруженного списка склада и мгновенно переходит в карточку упаковки без лишних сетевых запросов.
+ */
 class PackagingListFragment : Fragment() {
 
     private val viewModel: PackagingViewModel by activityViewModels()
@@ -55,7 +59,10 @@ class PackagingListFragment : Fragment() {
         observeState(process)
         observeEvents()
 
-        viewModel.loadPackagingInStorage()
+        // ОПТИМИЗАЦИЯ 1: загружаем из сети только если данных на складе ещё нет
+        if (viewModel.uiState.value.packagingInStorage.isEmpty()) {
+            viewModel.loadPackagingInStorage()
+        }
     }
 
     override fun onDestroyView() {
@@ -70,8 +77,23 @@ class PackagingListFragment : Fragment() {
         adapter = PackagingListAdapter(
             onItemClick = { item ->
                 if (_binding == null) return@PackagingListAdapter
-                // Загружаем упаковку во ViewModel перед переходом
-                viewModel.loadPackaging(item.serialNumber)
+
+                // ОПТИМИЗАЦИЯ 2: находим упаковку в памяти склада и переходим мгновенно за 0 мс!
+                val boxInMemory = viewModel.uiState.value.packagingInStorage.find {
+                    it.id == item.id || it.serialNumber == item.serialNumber
+                }
+
+                if (boxInMemory != null) {
+                    viewModel.selectPackaging(boxInMemory)
+                    val action =
+                        PackagingListFragmentDirections.actionPackagingListFragmentToPackagingFragment(
+                            null
+                        )
+                    findNavController().navigateSafely(action)
+                } else {
+                    // Резервный сетевой запрос, если вдруг не нашли в памяти
+                    viewModel.loadPackaging(item.serialNumber)
+                }
             }
         )
         binding.rvProducts.layoutManager = LinearLayoutManager(requireContext())
@@ -125,7 +147,7 @@ class PackagingListFragment : Fragment() {
                             ModuleTypeUi(name = name, count = list.size)
                         },
                         performedBy = box.performedBy?.name,
-                        performedAt = box.performedAt?.let { formatIsoToUi(it) }
+                        performedAt = box.performedAt?.let { formatPackagingDate(it) }
                     )
                 }
 
