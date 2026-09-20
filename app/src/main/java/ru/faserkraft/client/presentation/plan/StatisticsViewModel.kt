@@ -84,6 +84,10 @@ class StatisticsViewModel @Inject constructor(
     }
 
     fun shiftPeriod(direction: Int) {
+        // Защита: если пытаемся листать вперед, но текущий период уже содержит или позже сегодняшней даты — игнорируем
+        if (direction > 0 && !_uiState.value.canShiftForward) {
+            return
+        }
         currentOffset += direction
         loadStatistics()
     }
@@ -98,11 +102,20 @@ class StatisticsViewModel @Inject constructor(
         currentDateTo = dateTo.format(API_DATE_FORMAT)
         val periodLabel = formatPeriodLabel(dateFrom, currentPeriod)
 
+        val today = timeProvider.nowLocalDate()
+        val canShiftForward = dateTo.isBefore(today)
+
         // Аванс за 1-15 число имеет смысл показывать только в месячном режиме.
         val isMonthPeriod = currentPeriod == StatPeriod.MONTH
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, periodLabel = periodLabel) }
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    periodLabel = periodLabel,
+                    canShiftForward = canShiftForward
+                )
+            }
 
             runCatching {
                 getProductsStatisticsUseCase(
@@ -207,11 +220,6 @@ class StatisticsViewModel @Inject constructor(
                                 }
                                 ?: emptyMap()
 
-// Файл: StatisticsViewModel.kt
-// Финальная версия сопоставления - путь к templateId в domain-модели
-// плана: it.stepDefinition.templateId (плоское поле, не вложенный
-// template.id, так как StepDefinition уже расплющивает template).
-
                             val sizeTypes = employeeSteps
                                 .groupBy { it.sizeTypeId to it.sizeTypeName }
                                 .map { (sizeTypeKey, sizeTypeSteps) ->
@@ -267,7 +275,6 @@ class StatisticsViewModel @Inject constructor(
                                 }
                                 .sortedByDescending { it.totalCompleted }
                                 .filter { it.steps.isNotEmpty() }
-
 
                             EmployeeStatsUiItem(
                                 employeeId = employeeId,

@@ -18,6 +18,7 @@ data class StatisticsUiState(
     val mode: StatMode = StatMode.BY_PROCESS,
     val periodLabel: String = "",
     val periodWorkingDays: Int = 0,
+    val canShiftForward: Boolean = false,
     val totalByProcess: List<ProcessTotalUiItem> = emptyList(),
     val stepsByProcess: List<ProcessStepsUiItem> = emptyList(),
     val employees: List<EmployeeStatsUiItem> = emptyList(),

@@ -148,7 +148,11 @@ class StatisticsFragment : Fragment() {
 
             progressBar.isVisible = state.isLoading && !isSwipeRefreshing
             btnPrevPeriod.isEnabled = !state.isLoading
-            btnNextPeriod.isEnabled = !state.isLoading
+
+            // Кнопка перехода вперед активна ТОЛЬКО если период не включает текущую дату и находится в прошлом
+            btnNextPeriod.isEnabled = !state.isLoading && state.canShiftForward
+            btnNextPeriod.alpha = if (state.canShiftForward) 1.0f else 0.35f
+
             chipGroupPeriod.isEnabled = !state.isLoading
             chipMonth.isEnabled = !state.isLoading
             chipQuarter.isEnabled = !state.isLoading
