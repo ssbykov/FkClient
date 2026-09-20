@@ -114,7 +114,7 @@
     <string name="module_quantity_format">Количество: %1$d шт.</string>
     <string name="state_count">Количество: %1$d</string>
     <string name="chip_progress_format">%1$s: %2$d / %3$d шт.</string>
-    <string name="search_packaging_hint">Поиск по номеру упаковки...</string>
+    <string name="search_packaging_hint">Поиск по номеру упаковки…</string>
     <string name="empty_packaging_list">Упаковки не найдены</string>
 
     <!-- Empty states -->
@@ -135,7 +135,7 @@
     <string name="order_menu">Меню заказа</string>
     <string name="close_order">Закрыть заказ</string>
     <string name="order_details_format">Заказ ID: %1$s</string>
-    <string name="search_orders_hint">Поиск по договору или упаковке...</string>
+    <string name="search_orders_hint">Поиск по договору или упаковке…</string>
 
     <string name="order_params">Основные параметры</string>
     <string name="order_items">Состав заказа</string>
