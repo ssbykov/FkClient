@@ -110,9 +110,12 @@
     <string name="total_packaging_count">Всего: %1$d упаковок</string>
     <string name="items_count">Позиций: %1$d</string>
     <string name="items_in_box">%1$s × %2$d шт.</string>
+    <string name="packaging_performed_by">Упаковал: %1$s</string>
     <string name="module_quantity_format">Количество: %1$d шт.</string>
     <string name="state_count">Количество: %1$d</string>
     <string name="chip_progress_format">%1$s: %2$d / %3$d шт.</string>
+    <string name="search_packaging_hint">Поиск по номеру упаковки...</string>
+    <string name="empty_packaging_list">Упаковки не найдены</string>
 
     <!-- Empty states -->
     <string name="no_products_in_storage">Нет упакованных товаров для отгрузки!</string>

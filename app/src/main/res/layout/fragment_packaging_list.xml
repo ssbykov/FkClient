@@ -9,7 +9,7 @@
     android:paddingBottom="16dp"
     tools:context=".presentation.packaging.PackagingListFragment">
 
-    <!-- Заголовок -->
+    <!-- Заголовок экрана -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="0dp"
@@ -22,7 +22,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Процесс -->
+    <!-- Карточка с выбранным процессом / типом продукции -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardProcess"
         android:layout_width="0dp"
@@ -62,6 +62,39 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Поле поиска по номеру упаковки (встроено под карточку процесса) -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilSearch"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="8dp"
+        android:hint="@string/search_packaging_hint"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusTopStart="12dp"
+        app:endIconMode="clear_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardProcess"
+        android:background="@drawable/bg_search_view"
+        app:startIconDrawable="@drawable/ic_search"
+        app:startIconTint="?attr/colorOnSurfaceVariant">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionSearch"
+            android:inputType="textCapCharacters"
+            android:maxLines="1"
+            android:textSize="14sp" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
     <!-- Сообщение об отсутствии упаковок -->
     <TextView
         android:id="@+id/tvEmptyPackaging"
@@ -75,20 +108,23 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardProcess" />
+        app:layout_constraintTop_toBottomOf="@id/tilSearch" />
 
-    <!-- Список упаковок -->
+    <!-- Список упаковок (привязан сверху к полю поиска) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvProducts"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardProcess"
+        app:layout_constraintTop_toBottomOf="@id/tilSearch"
         tools:listitem="@layout/item_packaging" />
 
+    <!-- Индикатор загрузки -->
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleLarge"
@@ -99,7 +135,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardProcess"
+        app:layout_constraintTop_toBottomOf="@id/tilSearch"
         tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

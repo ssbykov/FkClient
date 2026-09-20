@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -15,6 +16,7 @@ import ru.faserkraft.client.presentation.common.adapter.PackagingListAdapter
 import ru.faserkraft.client.presentation.common.adapter.PackagingListUiItem
 import ru.faserkraft.client.presentation.order.ModuleTypeUi
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.converter.formatIsoToUi
 import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
@@ -27,6 +29,9 @@ class PackagingListFragment : Fragment() {
 
     private val args: PackagingListFragmentArgs by navArgs()
     private lateinit var adapter: PackagingListAdapter
+
+    // Полный список упаковок для текущего процесса (до фильтрации поиском)
+    private var allUiItems: List<PackagingListUiItem> = emptyList()
 
     // ---------- Lifecycle ----------
 
@@ -46,6 +51,7 @@ class PackagingListFragment : Fragment() {
         binding.tvProcess.text = process
 
         setupRecyclerView()
+        setupSearch()
         observeState(process)
         observeEvents()
 
@@ -72,13 +78,40 @@ class PackagingListFragment : Fragment() {
         binding.rvProducts.adapter = adapter
     }
 
+    private fun setupSearch() {
+        // Мгновенная фильтрация списка при вводе номера упаковки
+        binding.etSearch.doAfterTextChanged { text ->
+            filterList(text?.toString().orEmpty())
+        }
+    }
+
+    private fun filterList(query: String) {
+        val b = _binding ?: return
+        val trimmedQuery = query.trim()
+
+        val filteredItems = if (trimmedQuery.isEmpty()) {
+            allUiItems
+        } else {
+            allUiItems.filter { item ->
+                item.serialNumber.contains(trimmedQuery, ignoreCase = true)
+            }
+        }
+
+        adapter.submitList(filteredItems)
+
+        val isListEmpty = filteredItems.isEmpty() && !b.progressBar.isVisible
+        b.tvEmptyPackaging.isVisible = isListEmpty
+        b.rvProducts.isVisible = !isListEmpty
+    }
+
     private fun observeState(process: String) {
         collectFlow(viewModel.uiState) { state ->
             val b = _binding ?: return@collectFlow
 
             b.progressBar.isVisible = state.isLoading
 
-            val uiItems = state.packagingInStorage
+            // Формируем полный список упаковок по процессу
+            allUiItems = state.packagingInStorage
                 .filter { box ->
                     box.products.any { it.process.name == process }
                 }
@@ -90,15 +123,15 @@ class PackagingListFragment : Fragment() {
                         totalCount = box.products.size,
                         types = groups.map { (name, list) ->
                             ModuleTypeUi(name = name, count = list.size)
-                        }
+                        },
+                        performedBy = box.performedBy?.name,
+                        performedAt = box.performedAt?.let { formatIsoToUi(it) }
                     )
                 }
 
-            adapter.submitList(uiItems)
-
-            val isEmpty = uiItems.isEmpty() && !state.isLoading
-            b.tvEmptyPackaging.isVisible = isEmpty
-            b.rvProducts.isVisible = !isEmpty
+            // Применяем текущий поисковый запрос
+            val currentQuery = b.etSearch.text?.toString().orEmpty()
+            filterList(currentQuery)
         }
     }
 
