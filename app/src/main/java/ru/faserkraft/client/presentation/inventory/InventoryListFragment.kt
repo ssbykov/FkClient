@@ -51,7 +51,9 @@ class InventoryListFragment : Fragment() {
         observeEvents()
         setupListeners()
 
-        viewModel.loadInventories()
+        if (viewModel.uiState.value.inventories.isEmpty()) {
+            viewModel.loadInventories()
+        }
     }
 
     override fun onDestroyView() {
@@ -87,7 +89,6 @@ class InventoryListFragment : Fragment() {
             override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = updateEmptyView()
         }
         adapter.registerAdapterDataObserver(emptyObserver)
-        updateEmptyView()
     }
 
     private fun setupListeners() {
@@ -114,18 +115,18 @@ class InventoryListFragment : Fragment() {
             b.progressBar.isVisible = isBusy && !isSwipeRefreshing
             b.fabNewInventory.isEnabled = !state.isActionInProgress
 
-            adapter.submitList(
-                state.inventories
-                    .sortedBy { it.id }
-                    .map { inventory ->
-                        InventoryListItem(
-                            inventory = inventory,
-                            itemCount = inventory.itemCount,
-                        )
-                    }
-            )
+            val items = state.inventories
+                .sortedBy { it.id }
+                .map { inventory ->
+                    InventoryListItem(
+                        inventory = inventory,
+                        itemCount = inventory.itemCount,
+                    )
+                }
 
-            updateEmptyView()
+            adapter.submitList(items) {
+                updateEmptyView()
+            }
         }
     }
 

@@ -52,6 +52,8 @@ class PlanViewModel @Inject constructor(
     private val _events = Channel<PlanEvent>()
     val events = _events.receiveAsFlow()
 
+    private var lastLoadedProductsKey: Triple<Int, String, Int>? = null
+
     init {
         loadUserRole()
         observeSessionEvents()
@@ -68,6 +70,7 @@ class PlanViewModel @Inject constructor(
     }
 
     fun resetState() {
+        lastLoadedProductsKey = null
         _uiState.value = PlanUiState()
     }
 
@@ -162,6 +165,7 @@ class PlanViewModel @Inject constructor(
     // ---------- Сотрудники и процессы ----------
 
     fun loadEmployees() {
+        if (_uiState.value.employees.isNotEmpty()) return
         viewModelScope.launch {
             runCatching { getEmployeesUseCase() }
                 .onSuccess { employees ->
@@ -172,6 +176,7 @@ class PlanViewModel @Inject constructor(
     }
 
     fun loadProcesses() {
+        if (_uiState.value.processes.isNotEmpty()) return
         viewModelScope.launch {
             runCatching { getProcessesUseCase() }
                 .onSuccess { processes ->
@@ -181,13 +186,27 @@ class PlanViewModel @Inject constructor(
         }
     }
 
-    // ---------- Продукты ----------
+    // ---------- Продукты шага плана ----------
 
+    /**
+     * Загружает изделия конкретного шага плана сотрудника.
+     * Если данные именно для этой тройки (этап, день, сотрудник) УЖЕ загружены — повторный запрос к сети НЕ делается (защита при возврате назад).
+     * Если выбран ДРУГОЙ этап / сотрудник / день или вызван forceRefresh — выполняется сетевой запрос.
+     */
     fun loadProductsByStepEmployeeDay(
         stepDefinitionId: Int,
         day: String,
         employeeId: Int,
+        forceRefresh: Boolean = false,
     ) {
+        val targetKey = Triple(stepDefinitionId, day, employeeId)
+
+        if (!forceRefresh && lastLoadedProductsKey == targetKey && _uiState.value.filteredProducts.isNotEmpty()) {
+            return
+        }
+
+        lastLoadedProductsKey = targetKey
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, filteredProducts = emptyList()) }
             runCatching {
