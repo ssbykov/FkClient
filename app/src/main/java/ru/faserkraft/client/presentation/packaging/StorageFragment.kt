@@ -14,6 +14,10 @@ import ru.faserkraft.client.domain.model.Packaging
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.ext.navigateSafely
 
+/**
+ * Главный экран склада готовой продукции.
+ * Группирует все упаковки на складе по типам рабочих процессов.
+ */
 class StorageFragment : Fragment() {
 
     private val viewModel: PackagingViewModel by activityViewModels()
@@ -42,7 +46,10 @@ class StorageFragment : Fragment() {
         setupListeners()
         observeState()
 
-        viewModel.loadPackagingInStorage()
+        // Загружаем данные только если список склада в памяти пуст
+        if (viewModel.uiState.value.packagingInStorage.isEmpty()) {
+            viewModel.loadPackagingInStorage()
+        }
     }
 
     override fun onDestroyView() {
@@ -69,6 +76,7 @@ class StorageFragment : Fragment() {
     }
 
     private fun setupListeners() {
+        // Принудительное обновление по свайпу (Pull-to-refresh)
         binding.swipeRefreshStats.setOnRefreshListener {
             viewModel.loadPackagingInStorage()
         }
