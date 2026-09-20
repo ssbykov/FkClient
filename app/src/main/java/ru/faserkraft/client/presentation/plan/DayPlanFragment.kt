@@ -24,6 +24,11 @@ import ru.faserkraft.client.utils.converter.getToday
 import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
+/**
+ * Фрагмент дневного плана производства.
+ * Отображает назначенные планы на день по сотрудникам, поддерживает свайп-удаление,
+ * переходы в редактирование и просмотр изготовленных изделий.
+ */
 class DayPlanFragment : Fragment() {
 
     private val viewModel: PlanViewModel by activityViewModels()
@@ -63,10 +68,13 @@ class DayPlanFragment : Fragment() {
         observeState()
         observeEvents()
 
-        // Берём ранее выбранную дату из ViewModel или сегодняшнюю при первом старте
-        val currentDate = viewModel.uiState.value.date.ifEmpty { getToday() }
+        val currentState = viewModel.uiState.value
+        val currentDate = currentState.date.ifEmpty { getToday() }
         viewModel.recomputeCanEdit(currentDate)
-        viewModel.loadPlans(currentDate)
+
+        if (currentState.plans.isEmpty()) {
+            viewModel.loadPlans(currentDate)
+        }
         viewModel.loadEmployees()
         viewModel.loadProcesses()
     }

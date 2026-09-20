@@ -67,7 +67,10 @@ class EmployeePlanProductsFragment : Fragment() {
         observeEvents()
         observeProductEvents()
         setupRefresh()
-        loadData()
+
+        // Умная загрузка: если этап новый — подгрузит данные с бэкенда,
+        // если это возврат назад с ProductFullFragment — возьмет из памяти без сетевого запроса!
+        loadData(forceRefresh = false)
     }
 
     override fun onDestroyView() {
@@ -165,7 +168,7 @@ class EmployeePlanProductsFragment : Fragment() {
 
     // ---------- Load ----------
 
-    private fun loadData() {
+    private fun loadData(forceRefresh: Boolean = false) {
         val currentPlan = plan ?: return
         val currentStep = step ?: return
 
@@ -173,13 +176,14 @@ class EmployeePlanProductsFragment : Fragment() {
             stepDefinitionId = currentStep.stepDefinitionId,
             day = currentPlan.date,
             employeeId = currentPlan.employee.id,
+            forceRefresh = forceRefresh,
         )
     }
 
     // ---------- SwipeRefresh ----------
 
     private fun setupRefresh() {
-        binding.swipeRefreshDetail.setOnRefreshListener { loadData() }
+        binding.swipeRefreshDetail.setOnRefreshListener { loadData(forceRefresh = true) }
     }
 
     // ---------- Маппинг ----------
