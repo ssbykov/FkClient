@@ -62,7 +62,7 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Поле поиска по номеру упаковки (встроено под карточку процесса) -->
+    <!-- Поле поиска по номеру упаковки -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilSearch"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -76,11 +76,11 @@
         app:boxCornerRadiusBottomStart="12dp"
         app:boxCornerRadiusTopEnd="12dp"
         app:boxCornerRadiusTopStart="12dp"
+        app:boxBackgroundColor="@android:color/transparent"
         app:endIconMode="clear_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cardProcess"
-        android:background="@drawable/bg_search_view"
         app:startIconDrawable="@drawable/ic_search"
         app:startIconTint="?attr/colorOnSurfaceVariant">
 
