@@ -27,6 +27,7 @@ import ru.faserkraft.client.domain.model.StepDefinition
 import ru.faserkraft.client.domain.model.StepStatus
 import ru.faserkraft.client.domain.model.UserData
 import ru.faserkraft.client.domain.model.UserRole
+import ru.faserkraft.client.domain.qr.QrInputSource
 import ru.faserkraft.client.domain.usecase.employee.GetEmployeesUseCase
 import ru.faserkraft.client.domain.usecase.process.GetProcessesUseCase
 import ru.faserkraft.client.domain.usecase.product.ChangeProductProcessUseCase
@@ -77,10 +78,10 @@ class ProductViewModelTest {
     private val dummyEmployee = Employee(id = 1, name = "Иван", email = "ivan@test.com")
 
     private val dummyStepDefinition = StepDefinition(
-        id = 1, order = 1, name = "Шаг 1", nameGenitive = "Шага 1"
+        id = 1, templateId = 101, order = 1, name = "Шаг 1", nameGenitive = "Шага 1"
     )
     private val dummyStepDefinition2 = StepDefinition(
-        id = 2, order = 2, name = "Шаг 2", nameGenitive = "Шага 2"
+        id = 2, templateId = 102, order = 2, name = "Шаг 2", nameGenitive = "Шага 2"
     )
 
     private val dummyStepPending = Step(
@@ -186,16 +187,13 @@ class ProductViewModelTest {
     }
 
     @Test
-    fun `loadProduct - navigates to new product when 404 ApiError returned`() = runTest {
-        coEvery { getProductUseCase("SN-NEW") } throws AppError.ApiError(
-            status = 404,
-            uiCode = "error_api_404",
-            message = "Not found"
-        )
+    fun `loadProduct - navigates to new product when 404 ApiError returned and source is CAMERA`() = runTest {
+        val notFoundError = AppError.ApiError(status = 404, uiCode = "NOT_FOUND", message = "Not Found")
+        coEvery { getProductUseCase("SN-NEW") } throws notFoundError
         coEvery { getProcessesUseCase() } returns dummyProcessList
 
         viewModel.events.test {
-            viewModel.loadProduct("SN-NEW")
+            viewModel.loadProduct("SN-NEW", source = QrInputSource.CAMERA)
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
@@ -204,6 +202,22 @@ class ProductViewModelTest {
             assertEquals(dummyProcessList, state.processes)
             assertFalse(state.isLoading)
             assertEquals(ProductEvent.NavigateToNewProduct, awaitItem())
+        }
+    }
+
+    @Test
+    fun `loadProduct - shows error when 404 ApiError returned and source is MANUAL_INPUT`() = runTest {
+        val notFoundError = AppError.ApiError(status = 404, uiCode = "NOT_FOUND", message = "Not Found")
+        coEvery { getProductUseCase("SN-NEW") } throws notFoundError
+
+        viewModel.events.test {
+            viewModel.loadProduct("SN-NEW", source = QrInputSource.MANUAL_INPUT)
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertFalse(state.isLoading)
+            val event = awaitItem() as ProductEvent.ShowError
+            assertTrue(event.message.contains("Создание нового продукта доступно только при сканировании"))
         }
     }
 

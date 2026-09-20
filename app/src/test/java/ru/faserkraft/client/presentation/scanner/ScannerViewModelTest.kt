@@ -15,6 +15,7 @@ import org.junit.Rule
 import org.junit.Test
 import ru.faserkraft.client.domain.model.DeviceRequest
 import ru.faserkraft.client.domain.qr.QrClassifier
+import ru.faserkraft.client.domain.qr.QrInputSource
 import ru.faserkraft.client.domain.qr.QrParseResult
 import ru.faserkraft.client.util.MainDispatcherRule
 
@@ -45,14 +46,14 @@ class ScannerViewModelTest {
     // ── decodeQrCode - Product ─────────────────────────────────────────────────
 
     @Test
-    fun `decodeQrCode - emits OpenProduct on Product result`() = runTest {
+    fun `decodeQrCode - emits OpenProduct on Product result with source`() = runTest {
         every { qrClassifier.classify("product-qr") } returns QrParseResult.Product("P-001")
 
         viewModel.events.test {
-            viewModel.decodeQrCode("product-qr")
+            viewModel.decodeQrCode("product-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
 
-            assertEquals(ScannerEvent.OpenProduct("P-001"), awaitItem())
+            assertEquals(ScannerEvent.OpenProduct("P-001", QrInputSource.CAMERA), awaitItem())
         }
     }
 
@@ -61,7 +62,7 @@ class ScannerViewModelTest {
         every { qrClassifier.classify("product-qr") } returns QrParseResult.Product("P-001")
 
         viewModel.events.test {
-            viewModel.decodeQrCode("product-qr")
+            viewModel.decodeQrCode("product-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
 
             assertFalse(viewModel.uiState.value.isLoading)
@@ -76,7 +77,7 @@ class ScannerViewModelTest {
         every { qrClassifier.classify("pack-qr") } returns QrParseResult.Packaging("PKG-007")
 
         viewModel.events.test {
-            viewModel.decodeQrCode("pack-qr")
+            viewModel.decodeQrCode("pack-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
 
             assertEquals(ScannerEvent.OpenPackaging("PKG-007"), awaitItem())
@@ -86,7 +87,7 @@ class ScannerViewModelTest {
     // ── decodeQrCode - DeviceRegistration ─────────────────────────────────────
 
     @Test
-    fun `decodeQrCode - emits OpenDeviceRegistration on DeviceRegistration result`() = runTest {
+    fun `decodeQrCode - emits OpenDeviceRegistration on DeviceRegistration result from CAMERA`() = runTest {
         val fakeRequest = DeviceRequest(
             deviceId = "device-001",
             model = "Pixel 7",
@@ -100,10 +101,35 @@ class ScannerViewModelTest {
         )
 
         viewModel.events.test {
-            viewModel.decodeQrCode("device-qr")
+            viewModel.decodeQrCode("device-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
 
             assertEquals(ScannerEvent.OpenDeviceRegistration(fakeRequest), awaitItem())
+        }
+    }
+
+    @Test
+    fun `decodeQrCode - emits ShowError on DeviceRegistration result from MANUAL_INPUT`() = runTest {
+        val fakeRequest = DeviceRequest(
+            deviceId = "device-001",
+            model = "Pixel 7",
+            manufacturer = "Google",
+            token = "token-abc",
+            password = "pass123",
+            userId = 5
+        )
+        every { qrClassifier.classify("device-qr") } returns QrParseResult.DeviceRegistration(
+            fakeRequest
+        )
+
+        viewModel.events.test {
+            viewModel.decodeQrCode("device-qr", QrInputSource.MANUAL_INPUT)
+            advanceUntilIdle()
+
+            assertEquals(
+                ScannerEvent.ShowError("Регистрация устройства доступна только при сканировании QR-кода"),
+                awaitItem()
+            )
         }
     }
 
@@ -114,7 +140,7 @@ class ScannerViewModelTest {
         every { qrClassifier.classify("garbage") } returns QrParseResult.Unknown
 
         viewModel.events.test {
-            viewModel.decodeQrCode("garbage")
+            viewModel.decodeQrCode("garbage", QrInputSource.CAMERA)
             advanceUntilIdle()
 
             assertEquals(ScannerEvent.ShowError("Нераспознанный QR-код"), awaitItem())
@@ -126,7 +152,7 @@ class ScannerViewModelTest {
         every { qrClassifier.classify("garbage") } returns QrParseResult.Unknown
 
         viewModel.events.test {
-            viewModel.decodeQrCode("garbage")
+            viewModel.decodeQrCode("garbage", QrInputSource.CAMERA)
             advanceUntilIdle()
 
             assertFalse(viewModel.uiState.value.isLoading)
@@ -141,7 +167,7 @@ class ScannerViewModelTest {
         every { qrClassifier.classify(any()) } throws RuntimeException("parse failure")
 
         viewModel.events.test {
-            viewModel.decodeQrCode("bad-qr")
+            viewModel.decodeQrCode("bad-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
 
             assertEquals(ScannerEvent.ShowError("Ошибка при чтении QR-кода"), awaitItem())
@@ -153,7 +179,7 @@ class ScannerViewModelTest {
         every { qrClassifier.classify(any()) } throws RuntimeException("parse failure")
 
         viewModel.events.test {
-            viewModel.decodeQrCode("bad-qr")
+            viewModel.decodeQrCode("bad-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
 
             assertFalse(viewModel.uiState.value.isLoading)
@@ -168,7 +194,7 @@ class ScannerViewModelTest {
         every { qrClassifier.classify("raw-code") } returns QrParseResult.Product("P-001")
 
         viewModel.events.test {
-            viewModel.decodeQrCode("raw-code")
+            viewModel.decodeQrCode("raw-code", QrInputSource.CAMERA)
             advanceUntilIdle()
 
             assertEquals("raw-code", viewModel.uiState.value.lastScannedValue)
@@ -183,8 +209,8 @@ class ScannerViewModelTest {
         every { qrClassifier.classify("qr") } returns QrParseResult.Product("P-001")
 
         viewModel.events.test {
-            viewModel.decodeQrCode("qr")
-            viewModel.decodeQrCode("qr")  // должен быть проигнорирован
+            viewModel.decodeQrCode("qr", QrInputSource.CAMERA)
+            viewModel.decodeQrCode("qr", QrInputSource.CAMERA)  // должен быть проигнорирован
             advanceUntilIdle()
 
             awaitItem()
@@ -199,8 +225,8 @@ class ScannerViewModelTest {
         every { qrClassifier.classify("qr") } returns QrParseResult.Product("P-001")
 
         viewModel.events.test {
-            viewModel.decodeQrCode("qr")
-            viewModel.decodeQrCode("qr")
+            viewModel.decodeQrCode("qr", QrInputSource.CAMERA)
+            viewModel.decodeQrCode("qr", QrInputSource.CAMERA)
             advanceUntilIdle()
 
             verify(exactly = 1) { qrClassifier.classify("qr") }
@@ -214,15 +240,15 @@ class ScannerViewModelTest {
         every { qrClassifier.classify("product-qr") } returns QrParseResult.Product("P-001")
 
         viewModel.events.test {
-            viewModel.decodeQrCode("garbage")
+            viewModel.decodeQrCode("garbage", QrInputSource.CAMERA)
             advanceUntilIdle()
             awaitItem()  // ShowError("Нераспознанный QR-код")
 
             // isHandled был сброшен для Unknown → должен работать следующий скан
-            viewModel.decodeQrCode("product-qr")
+            viewModel.decodeQrCode("product-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
 
-            assertEquals(ScannerEvent.OpenProduct("P-001"), awaitItem())
+            assertEquals(ScannerEvent.OpenProduct("P-001", QrInputSource.CAMERA), awaitItem())
         }
     }
 
@@ -232,14 +258,14 @@ class ScannerViewModelTest {
         every { qrClassifier.classify("product-qr") } returns QrParseResult.Product("P-001")
 
         viewModel.events.test {
-            viewModel.decodeQrCode("bad-qr")
+            viewModel.decodeQrCode("bad-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
             awaitItem()  // ShowError("Ошибка при чтении QR-кода")
 
-            viewModel.decodeQrCode("product-qr")
+            viewModel.decodeQrCode("product-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
 
-            assertEquals(ScannerEvent.OpenProduct("P-001"), awaitItem())
+            assertEquals(ScannerEvent.OpenProduct("P-001", QrInputSource.CAMERA), awaitItem())
         }
     }
 
@@ -250,15 +276,15 @@ class ScannerViewModelTest {
         every { qrClassifier.classify("product-qr") } returns QrParseResult.Product("P-001")
 
         viewModel.events.test {
-            viewModel.decodeQrCode("product-qr")
+            viewModel.decodeQrCode("product-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
             awaitItem()
 
             viewModel.resetHandled()
-            viewModel.decodeQrCode("product-qr")
+            viewModel.decodeQrCode("product-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
 
-            assertEquals(ScannerEvent.OpenProduct("P-001"), awaitItem())
+            assertEquals(ScannerEvent.OpenProduct("P-001", QrInputSource.CAMERA), awaitItem())
         }
     }
 
@@ -269,7 +295,7 @@ class ScannerViewModelTest {
         every { qrClassifier.classify("product-qr") } returns QrParseResult.Product("P-001")
 
         viewModel.events.test {
-            viewModel.decodeQrCode("product-qr")
+            viewModel.decodeQrCode("product-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
             awaitItem()
 
@@ -287,15 +313,15 @@ class ScannerViewModelTest {
         every { qrClassifier.classify("product-qr") } returns QrParseResult.Product("P-001")
 
         viewModel.events.test {
-            viewModel.decodeQrCode("product-qr")
+            viewModel.decodeQrCode("product-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
             awaitItem()
 
             viewModel.clearState()
-            viewModel.decodeQrCode("product-qr")
+            viewModel.decodeQrCode("product-qr", QrInputSource.CAMERA)
             advanceUntilIdle()
 
-            assertEquals(ScannerEvent.OpenProduct("P-001"), awaitItem())
+            assertEquals(ScannerEvent.OpenProduct("P-001", QrInputSource.CAMERA), awaitItem())
         }
     }
 }

@@ -9,8 +9,8 @@ import ru.faserkraft.client.data.dto.FinishedProcessDto
 import ru.faserkraft.client.data.dto.PackagingShortDto
 import ru.faserkraft.client.data.dto.ProcessDto
 import ru.faserkraft.client.data.dto.ProductDto
-import ru.faserkraft.client.data.dto.ProductStatusDto
 import ru.faserkraft.client.data.dto.ProductShortDto
+import ru.faserkraft.client.data.dto.ProductStatusDto
 import ru.faserkraft.client.data.dto.ProductsOverviewDto
 import ru.faserkraft.client.data.dto.StepDefinitionDto
 import ru.faserkraft.client.data.dto.StepDto
@@ -30,7 +30,7 @@ class ProductMapperTest {
     private val stepDefinitionDto = StepDefinitionDto(
         id = 2,
         order = 1,
-        template = TemplateDto(name = "Сборка", nameGenitive = "Сборки")
+        template = TemplateDto(id = 1, name = "Сборка", nameGenitive = "Сборки")
     )
 
     private val processDto = ProcessDto(
@@ -141,7 +141,8 @@ class ProductMapperTest {
 
     @Test
     fun `ProductDto toDomain - steps list is mapped`() {
-        val result = makeProductDto(steps = listOf(makeStepDto("done"), makeStepDto("pending"))).toDomain()
+        val result =
+            makeProductDto(steps = listOf(makeStepDto("done"), makeStepDto("pending"))).toDomain()
         assertEquals(2, result.steps.size)
     }
 

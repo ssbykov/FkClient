@@ -70,6 +70,7 @@ class PlanViewModelTest {
 
     private val dummyStepDefinition = StepDefinition(
         id = 1,
+        templateId = 101, // Добавлен обязательный templateId
         order = 1,
         name = "Шаг 1",
         nameGenitive = "Шага 1",
@@ -102,7 +103,6 @@ class PlanViewModelTest {
     )
     private val dummyProcessList = listOf(dummyProcess)
 
-    // Product — замени на реальный конструктор когда покажешь структуру класса
     private val dummyProduct = mockk<Product>(relaxed = true)
     private val dummyProductList = listOf(dummyProduct)
 
@@ -333,12 +333,10 @@ class PlanViewModelTest {
     fun `loadProductsByStepEmployeeDay - resets filteredProducts to empty before loading`() = runTest {
         coEvery { getProductsByStepEmployeeDayUseCase(1, testDate, 2) } returns dummyProductList
 
-        // Проверяем, что filteredProducts очищается перед запросом
         viewModel.uiState.test {
             viewModel.loadProductsByStepEmployeeDay(1, testDate, 2)
             advanceUntilIdle()
 
-            // Пропускаем промежуточные стейты, проверяем финальный
             val final = cancelAndConsumeRemainingEvents()
                 .filterIsInstance<app.cash.turbine.Event.Item<PlanUiState>>()
                 .last().value
@@ -351,7 +349,6 @@ class PlanViewModelTest {
 
     @Test
     fun `shiftDate - shifts by positive days and calls loadPlans`() = runTest {
-        // Устанавливаем фиксированную дату в стейт через loadPlans
         coEvery { getDayPlansUseCase(testDate) } returns dummyPlanList
         viewModel.loadPlans(testDate)
         advanceUntilIdle()

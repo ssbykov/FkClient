@@ -23,7 +23,7 @@ class DailyPlanMapperTest {
     private val stepDefinitionDto = StepDefinitionDto(
         id = 2,
         order = 1,
-        template = TemplateDto(name = "Сборка", nameGenitive = "Сборки")
+        template = TemplateDto(id = 1, name = "Сборка", nameGenitive = "Сборки")
     )
 
     private val stepDto = DayPlanStepDto(

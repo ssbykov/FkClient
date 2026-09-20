@@ -163,8 +163,8 @@ class ProductRepositoryImplTest {
     }
 
     // ==========================================
-// getProductsByStatus
-// ==========================================
+    // getProductsByStatus
+    // ==========================================
 
     @Test
     fun `getProductsByStatus - calls getProductsNotNormal, not a status-specific endpoint`() = runTest {
@@ -370,7 +370,7 @@ class ProductRepositoryImplTest {
 
     @Test
     fun `getFinishedProducts returns mapped list`() = runTest {
-        val productShortDto = ProductShortDto(   // ← FinishedProductDto → ProductShortDto
+        val productShortDto = ProductShortDto(
             id = 7,
             serialNumber = "SN-FIN-001",
             process = FinishedProcessDto(
@@ -378,7 +378,7 @@ class ProductRepositoryImplTest {
                 name = "Process A",
                 type = null
             ),
-            status = ProductStatusDto.NORMAL     // ← добавлен обязательный статус
+            status = ProductStatusDto.NORMAL
         )
         coEvery { mockApi.getFinishedProduct() } returns Response.success(listOf(productShortDto))
 
@@ -481,21 +481,26 @@ class ProductRepositoryImplTest {
                     sizeTypeId = 15,
                     sizeTypeName = "100x200",
                     stepDefinitionId = 10,
+                    templateId = 101, // Добавлен templateId
                     order = 1,
                     stepName = "Step A",
                     employeeId = 100,
                     employeeName = "Emp A",
-                    count = 5
+                    count = 5,
+                    totalAmount = "500.00" // Добавлен totalAmount
                 )
             ),
-            employeePlans = emptyList() // ← добавлено недостающее поле
+            employeePlans = emptyList(),
+            employeeEarnings = emptyList(), // Добавлен employeeEarnings
+            firstHalfEarnings = emptyList(), // Добавлен firstHalfEarnings
+            totalWorkingDays = 5 // Добавлен totalWorkingDays
         )
         coEvery {
-            mockApi.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")
+            mockApi.getPeriodStatistics("2024-01-01", "2024-01-31")
         } returns Response.success(dto)
 
         // Act
-        val result = repository.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")
+        val result = repository.getPeriodStatistics("2024-01-01", "2024-01-31")
 
         // Assert
         assertEquals(1, result.finishedProducts.size)
@@ -510,7 +515,7 @@ class ProductRepositoryImplTest {
         assertTrue(result.employeePlans.isEmpty())
 
         coVerify(exactly = 1) {
-            mockApi.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")
+            mockApi.getPeriodStatistics("2024-01-01", "2024-01-31")
         }
     }
 
@@ -518,32 +523,32 @@ class ProductRepositoryImplTest {
     fun `getFinishedProductsByPeriod throws exception when api returns null body`() = runTest {
         // Arrange
         coEvery {
-            mockApi.getFinishedProductsByPeriod(any(), any())
+            mockApi.getPeriodStatistics(any(), any())
         } returns Response.success(null)
 
         // Act
-        repository.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")
+        repository.getPeriodStatistics("2024-01-01", "2024-01-31")
     }
 
     @Test(expected = AppError.ApiError::class)
     fun `getFinishedProductsByPeriod throws ApiError on http error`() = runTest {
         // Arrange
         coEvery {
-            mockApi.getFinishedProductsByPeriod(any(), any())
+            mockApi.getPeriodStatistics(any(), any())
         } returns Response.error(500, "".toResponseBody())
 
         // Act
-        repository.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")
+        repository.getPeriodStatistics("2024-01-01", "2024-01-31")
     }
 
     @Test(expected = AppError.NetworkError::class)
     fun `getFinishedProductsByPeriod throws NetworkError on network failure`() = runTest {
         // Arrange
         coEvery {
-            mockApi.getFinishedProductsByPeriod(any(), any())
+            mockApi.getPeriodStatistics(any(), any())
         } throws AppError.NetworkError()
 
         // Act
-        repository.getFinishedProductsByPeriod("2024-01-01", "2024-01-31")
+        repository.getPeriodStatistics("2024-01-01", "2024-01-31")
     }
 }

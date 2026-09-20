@@ -55,7 +55,7 @@ class ProductsOverviewViewModelTest {
     private val dummyEmployee = Employee(id = 1, name = "Иван", email = "ivan@test.com")
 
     private val dummyStepDefinition = StepDefinition(
-        id = 1, order = 1, name = "Шаг 1", nameGenitive = "Шага 1"
+        id = 1, templateId = 101, order = 1, name = "Шаг 1", nameGenitive = "Шага 1"
     )
 
     private val dummyProcess = Process(
@@ -254,7 +254,7 @@ class ProductsOverviewViewModelTest {
         assertEquals(ProductStatus.REWORK, selection?.status)
     }
 
-    // ── clearError ────────────────────────────────────────────────────────────
+    // ── clearError ────────────────────────────────────────────────────
 
     @Test
     fun `clearError - resets errorMessage to null`() = runTest {

@@ -15,6 +15,7 @@ class ProcessMapperTest {
     // ── фикстуры ──────────────────────────────────────────────────────────────
 
     private val templateDto = TemplateDto(
+        id = 1,
         name = "Сборка",
         nameGenitive = "Сборки"
     )

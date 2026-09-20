@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import ru.faserkraft.client.data.dto.DayPlanStepDto
+import ru.faserkraft.client.data.dto.EmployeeEarningsDto
 import ru.faserkraft.client.data.dto.EmployeePlanStatDto
 import ru.faserkraft.client.data.dto.PeriodStatisticsDto
 import ru.faserkraft.client.data.dto.ProcessCountStatDto
@@ -21,11 +22,13 @@ class StatisticsMapperTest {
             sizeTypeId = 15,
             sizeTypeName = "100x200",
             stepDefinitionId = 10,
+            templateId = 101,
             order = 2,
             stepName = "Установка детали",
             employeeId = 100,
             employeeName = "Иван Иванов",
             count = 15,
+            totalAmount = "1500.00",
         )
 
         val domain = dto.toDomain()
@@ -35,6 +38,7 @@ class StatisticsMapperTest {
         assertEquals(15, domain.sizeTypeId)
         assertEquals("100x200", domain.sizeTypeName)
         assertEquals(10, domain.stepDefinitionId)
+        assertEquals(101, domain.templateId)
         assertEquals(2, domain.order)
         assertEquals("Установка детали", domain.stepName)
         assertEquals(100, domain.employeeId)
@@ -105,11 +109,13 @@ class StatisticsMapperTest {
             sizeTypeId = 15,
             sizeTypeName = "100x200",
             stepDefinitionId = 10,
+            templateId = 101,
             order = 1,
             stepName = "Этап 1",
             employeeId = 100,
             employeeName = "Иван Иванов",
             count = 5,
+            totalAmount = "500.00",
         )
         val employeePlanDto = EmployeePlanStatDto(
             employeeId = 100,
@@ -126,10 +132,20 @@ class StatisticsMapperTest {
                 ),
             ),
         )
+        val employeeEarningsDto = EmployeeEarningsDto(
+            employeeId = 100,
+            employeeName = "Иван Иванов",
+            totalEarned = "5000.00",
+            steps = emptyList(),
+        )
+
         val dto = PeriodStatisticsDto(
             finishedProducts = listOf(processDto),
             totalSteps = listOf(stepDto),
             employeePlans = listOf(employeePlanDto),
+            employeeEarnings = listOf(employeeEarningsDto),
+            firstHalfEarnings = emptyList(),
+            totalWorkingDays = 5,
         )
 
         val domain = dto.toDomain()
@@ -143,6 +159,7 @@ class StatisticsMapperTest {
         assertEquals(15, domain.totalSteps.single().sizeTypeId)
         assertEquals("100x200", domain.totalSteps.single().sizeTypeName)
         assertEquals(10, domain.totalSteps.single().stepDefinitionId)
+        assertEquals(101, domain.totalSteps.single().templateId)
         assertEquals(5, domain.totalSteps.single().count)
 
         assertEquals(1, domain.employeePlans.size)
@@ -151,6 +168,9 @@ class StatisticsMapperTest {
         assertEquals(5, domain.employeePlans.single().workingDays)
         assertEquals(1, domain.employeePlans.single().steps.size)
         assertEquals(8, domain.employeePlans.single().steps.single().plannedQuantity)
+
+        assertEquals(1, domain.employeeEarnings.size)
+        assertEquals(100, domain.employeeEarnings.single().employeeId)
     }
 
     @Test
@@ -175,6 +195,9 @@ class StatisticsMapperTest {
             finishedProducts = emptyList(),
             totalSteps = emptyList(),
             employeePlans = emptyList(),
+            employeeEarnings = emptyList(),
+            firstHalfEarnings = emptyList(),
+            totalWorkingDays = 0,
         )
 
         val domain = dto.toDomain()
@@ -182,6 +205,9 @@ class StatisticsMapperTest {
         assertTrue(domain.finishedProducts.isEmpty())
         assertTrue(domain.totalSteps.isEmpty())
         assertTrue(domain.employeePlans.isEmpty())
+        assertTrue(domain.employeeEarnings.isEmpty())
+        assertTrue(domain.firstHalfEarnings.isEmpty())
+        assertEquals(0, domain.totalWorkingDays)
     }
 
     private fun createPlanStepDto(
@@ -203,6 +229,7 @@ class StatisticsMapperTest {
                 id = stepDefinitionId,
                 order = 1,
                 template = TemplateDto(
+                    id = stepDefinitionId,
                     name = "Этап $stepDefinitionId",
                     nameGenitive = "Этапа $stepDefinitionId",
                 ),

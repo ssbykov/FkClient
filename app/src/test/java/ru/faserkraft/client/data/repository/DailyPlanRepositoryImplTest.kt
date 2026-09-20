@@ -37,7 +37,7 @@ class DailyPlanRepositoryImplTest {
     private val stepDefinitionDto = StepDefinitionDto(
         id = 10,
         order = 1,
-        template = TemplateDto(name = "Cutting", nameGenitive = "Cutting (gen)"),
+        template = TemplateDto(id = 1, name = "Сборка", nameGenitive = "Сборки"),
     )
 
     private val stepDto = DayPlanStepDto(
