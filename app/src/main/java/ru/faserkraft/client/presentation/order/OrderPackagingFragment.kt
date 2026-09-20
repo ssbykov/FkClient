@@ -91,7 +91,7 @@ class OrderPackagingFragment : Fragment() {
                     .actionOrderPackagingFragmentToPackagingFragment(null)
                 findNavController().navigateSafely(action)
             } else {
-                // Резервный сетевой запрос, если по какой-то причине упаковка не найдена в памяти
+                // Резервный сетевой запрос, если вдруг не нашли в памяти
                 packagingViewModel.loadPackaging(item.serialNumber)
             }
         }
@@ -162,6 +162,12 @@ class OrderPackagingFragment : Fragment() {
             if (_binding == null || !isAdded) return@collectFlow
             when (event) {
                 is OrderEvent.ShowError -> showErrorSnackbar(event.message)
+
+                // При ошибке отвязки возвращаем сдвинутый элемент RecyclerView на место
+                OrderEvent.DetachPackagingFailed -> {
+                    adapter.notifyDataSetChanged()
+                }
+
                 else -> Unit
             }
         }
@@ -211,7 +217,7 @@ class OrderPackagingFragment : Fragment() {
     private fun updateSwipeHelper(order: Order) {
         val isClosed = order.shipmentDate != null
         if (!isClosed && itemTouchHelper == null) {
-            itemTouchHelper = ItemTouchHelper(buildSwipeCallback(order.id))
+            itemTouchHelper = ItemTouchHelper(buildSwipeCallback())
                 .also { it.attachToRecyclerView(binding.rvPackagingStats) }
         } else if (isClosed && itemTouchHelper != null) {
             itemTouchHelper?.attachToRecyclerView(null)
@@ -219,7 +225,7 @@ class OrderPackagingFragment : Fragment() {
         }
     }
 
-    private fun buildSwipeCallback(orderId: Int) =
+    private fun buildSwipeCallback() =
         object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
             override fun onMove(
                 recyclerView: RecyclerView,
@@ -236,7 +242,7 @@ class OrderPackagingFragment : Fragment() {
                     .setTitle("Отвязка упаковки")
                     .setMessage("Вы уверены, что хотите отвязать упаковку ${item.serialNumber} от этого заказа?")
                     .setPositiveButton("Да") { _, _ ->
-                        orderViewModel.detachPackagingFromOrder(orderId, listOf(item.id))
+                        orderViewModel.detachPackagingFromOrder(listOf(item.id))
                     }
                     .setNegativeButton("Нет") { _, _ ->
                         adapter.notifyItemChanged(position)

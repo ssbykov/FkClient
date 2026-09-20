@@ -16,7 +16,6 @@ import ru.faserkraft.client.domain.usecase.order.CloseOrderUseCase
 import ru.faserkraft.client.domain.usecase.order.CreateOrderUseCase
 import ru.faserkraft.client.domain.usecase.order.DeleteOrderUseCase
 import ru.faserkraft.client.domain.usecase.order.DetachPackagingFromOrderUseCase
-import ru.faserkraft.client.domain.usecase.order.GetOrderUseCase
 import ru.faserkraft.client.domain.usecase.order.GetOrdersUseCase
 import ru.faserkraft.client.domain.usecase.order.UpdateOrderItemsUseCase
 import ru.faserkraft.client.domain.usecase.order.UpdateOrderUseCase
@@ -27,7 +26,6 @@ import javax.inject.Inject
 @HiltViewModel
 class OrderViewModel @Inject constructor(
     private val getOrdersUseCase: GetOrdersUseCase,
-    private val getOrderUseCase: GetOrderUseCase,
     private val createOrderUseCase: CreateOrderUseCase,
     private val updateOrderUseCase: UpdateOrderUseCase,
     private val updateOrderItemsUseCase: UpdateOrderItemsUseCase,
@@ -69,17 +67,6 @@ class OrderViewModel @Inject constructor(
     fun selectOrder(orderId: Int) {
         val order = _uiState.value.orders.find { it.id == orderId }
         _uiState.update { it.copy(currentOrder = order) }
-    }
-
-    // Принудительная загрузка с сервера по ID (например, при deep link или отдельном обновлении)
-    fun loadOrder(orderId: Int) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            runCatching { getOrderUseCase(orderId) }
-                .onSuccess { order -> _uiState.update { state -> state.copy(currentOrder = order) } }
-                .onFailure { emitError(it) }
-            _uiState.update { it.copy(isLoading = false) }
-        }
     }
 
     // ---------- Создание ----------
@@ -220,14 +207,19 @@ class OrderViewModel @Inject constructor(
         }
     }
 
-    fun detachPackagingFromOrder(orderId: Int, packagingIds: List<Int>) {
+    fun detachPackagingFromOrder(packagingIds: List<Int>) {
         viewModelScope.launch {
             _uiState.update { it.copy(isActionInProgress = true) }
             runCatching { detachPackagingFromOrderUseCase(packagingIds) }
                 .onSuccess {
                     loadOrders()
                 }
-                .onFailure { emitError(it) }
+                .onFailure { error ->
+                    // 1. Показываем сообщение об ошибке пользователю
+                    emitError(error)
+                    // 2. Откатываем UI назад (перерисовываем элемент в RecyclerView, так как свайп его сдвинул)
+                    _events.send(OrderEvent.DetachPackagingFailed)
+                }
             _uiState.update { it.copy(isActionInProgress = false) }
         }
     }
