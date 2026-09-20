@@ -50,19 +50,33 @@ class OrderViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             runCatching { getOrdersUseCase() }
-                .onSuccess { _uiState.update { state -> state.copy(orders = it) } }
+                .onSuccess { orders ->
+                    _uiState.update { state ->
+                        // Если уже был выбран currentOrder, обновляем его актуальными данными из полученного списка
+                        val updatedCurrent = state.currentOrder?.let { cur ->
+                            orders.find { it.id == cur.id } ?: cur
+                        }
+                        state.copy(orders = orders, currentOrder = updatedCurrent)
+                    }
+                }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isLoading = false) }
         }
     }
 
-    // ---------- Конкретный заказ ----------
+    // ---------- Выбор заказа из памяти (МГНОВЕННО, 0 сетевых запросов) ----------
 
+    fun selectOrder(orderId: Int) {
+        val order = _uiState.value.orders.find { it.id == orderId }
+        _uiState.update { it.copy(currentOrder = order) }
+    }
+
+    // Принудительная загрузка с сервера по ID (например, при deep link или отдельном обновлении)
     fun loadOrder(orderId: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             runCatching { getOrderUseCase(orderId) }
-                .onSuccess { _uiState.update { state -> state.copy(currentOrder = it) } }
+                .onSuccess { order -> _uiState.update { state -> state.copy(currentOrder = order) } }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isLoading = false) }
         }
@@ -199,7 +213,6 @@ class OrderViewModel @Inject constructor(
             runCatching { addPackagingToOrderUseCase(orderId, packagingIds) }
                 .onSuccess {
                     loadOrders()
-                    loadOrder(orderId)
                     _events.send(OrderEvent.PackagingAdded)
                 }
                 .onFailure { emitError(it) }
@@ -213,7 +226,6 @@ class OrderViewModel @Inject constructor(
             runCatching { detachPackagingFromOrderUseCase(packagingIds) }
                 .onSuccess {
                     loadOrders()
-                    loadOrder(orderId)
                 }
                 .onFailure { emitError(it) }
             _uiState.update { it.copy(isActionInProgress = false) }

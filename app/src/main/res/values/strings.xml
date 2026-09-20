@@ -135,6 +135,7 @@
     <string name="order_menu">Меню заказа</string>
     <string name="close_order">Закрыть заказ</string>
     <string name="order_details_format">Заказ ID: %1$s</string>
+    <string name="search_orders_hint">Поиск по договору или упаковке...</string>
 
     <string name="order_params">Основные параметры</string>
     <string name="order_items">Состав заказа</string>
@@ -152,6 +153,7 @@
 
     <string name="order_header_active">В работе</string>
     <string name="order_header_completed">Завершенные</string>
+
 
     <string name="order_progress_format">%1$d / %2$d шт.</string>
     <string name="packaging_title_format">Упаковки: Договор № %1$s</string>

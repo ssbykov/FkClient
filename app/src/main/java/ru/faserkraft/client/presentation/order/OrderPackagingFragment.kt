@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -20,9 +21,14 @@ import ru.faserkraft.client.presentation.common.adapter.PackagingListUiItem
 import ru.faserkraft.client.presentation.packaging.PackagingEvent
 import ru.faserkraft.client.presentation.packaging.PackagingViewModel
 import ru.faserkraft.client.presentation.ui.collectFlow
+import ru.faserkraft.client.utils.converter.formatPackagingDate
 import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
+/**
+ * Фрагмент просмотра списка упаковок, привязанных к конкретному заказу.
+ * Поддерживает поиск упаковки по номеру, отвязку упаковки свайпом вправо и мгновенный переход в карточку упаковки из памяти.
+ */
 class OrderPackagingFragment : Fragment() {
 
     private val orderViewModel: OrderViewModel by activityViewModels()
@@ -33,6 +39,9 @@ class OrderPackagingFragment : Fragment() {
 
     private lateinit var adapter: PackagingListAdapter
     private var itemTouchHelper: ItemTouchHelper? = null
+
+    // Полный список упаковок текущего заказа для мгновенной локальной фильтрации
+    private var allPackagingUiItems: List<PackagingListUiItem> = emptyList()
 
     // ---------- Lifecycle ----------
 
@@ -50,6 +59,7 @@ class OrderPackagingFragment : Fragment() {
 
         setupAdapter()
         setupRecyclerView()
+        setupSearch()
         observeState()
         observePackagingState()
         observeOrderEvents()
@@ -69,13 +79,52 @@ class OrderPackagingFragment : Fragment() {
     private fun setupAdapter() {
         adapter = PackagingListAdapter { item ->
             if (_binding == null) return@PackagingListAdapter
-            packagingViewModel.loadPackaging(item.serialNumber)
+
+            // 1. Ищем готовую упаковку в памяти заказа текущего OrderViewModel
+            val currentOrder = orderViewModel.uiState.value.currentOrder
+            val boxInMemory = currentOrder?.packaging?.find { it.id == item.id || it.serialNumber == item.serialNumber }
+
+            if (boxInMemory != null) {
+                // МГНОВЕННО: передаем готовый объект в PackagingViewModel и переходим без похода в сеть!
+                packagingViewModel.selectPackaging(boxInMemory)
+                val action = OrderPackagingFragmentDirections
+                    .actionOrderPackagingFragmentToPackagingFragment(null)
+                findNavController().navigateSafely(action)
+            } else {
+                // Резервный сетевой запрос, если по какой-то причине упаковка не найдена в памяти
+                packagingViewModel.loadPackaging(item.serialNumber)
+            }
         }
     }
 
     private fun setupRecyclerView() {
         binding.rvPackagingStats.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPackagingStats.adapter = adapter
+    }
+
+    private fun setupSearch() {
+        binding.etSearch.doAfterTextChanged { text ->
+            filterPackaging(text?.toString().orEmpty())
+        }
+    }
+
+    private fun filterPackaging(query: String) {
+        val b = _binding ?: return
+        val trimmed = query.trim()
+
+        val filtered = if (trimmed.isEmpty()) {
+            allPackagingUiItems
+        } else {
+            allPackagingUiItems.filter { item ->
+                item.serialNumber.contains(trimmed, ignoreCase = true)
+            }
+        }
+
+        adapter.submitList(filtered) {
+            val isEmpty = filtered.isEmpty() && !b.progressBar.isVisible
+            b.tvEmptyStorage.isVisible = isEmpty
+            b.rvPackagingStats.isVisible = !isEmpty
+        }
     }
 
     private fun observeState() {
@@ -141,21 +190,20 @@ class OrderPackagingFragment : Fragment() {
 
         b.tvStatsTitle.text = getString(R.string.packaging_title_format, order.contractNumber)
 
-        val uiItems = order.packaging.map { box ->
+        allPackagingUiItems = order.packaging.map { box ->
             val groups = box.products.groupBy { it.process.name }
             PackagingListUiItem(
                 id = box.id,
                 serialNumber = box.serialNumber,
                 totalCount = box.products.size,
-                types = groups.map { (name, list) -> ModuleTypeUi(name = name, count = list.size) }
+                types = groups.map { (name, list) -> ModuleTypeUi(name = name, count = list.size) },
+                performedAt = box.performedAt?.let { formatPackagingDate(it) },
+                performedBy = box.performedBy?.name
             )
         }
 
-        adapter.submitList(uiItems)
-
-        val isEmpty = uiItems.isEmpty() && !b.progressBar.isVisible
-        b.tvEmptyStorage.isVisible = isEmpty
-        b.rvPackagingStats.isVisible = !isEmpty
+        val currentQuery = b.etSearch.text?.toString().orEmpty()
+        filterPackaging(currentQuery)
 
         updateSwipeHelper(order)
     }

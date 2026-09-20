@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -14,11 +15,17 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import ru.faserkraft.client.R
 import ru.faserkraft.client.databinding.FragmentOrdersBinding
 import ru.faserkraft.client.domain.model.ModuleType
+import ru.faserkraft.client.domain.model.Order
 import ru.faserkraft.client.presentation.ui.collectFlow
 import ru.faserkraft.client.utils.converter.convertDate
 import ru.faserkraft.client.utils.ext.navigateSafely
 import ru.faserkraft.client.utils.ext.showErrorSnackbar
 
+/**
+ * Главный экран управления заказами.
+ * Поддерживает сквозной поиск по номеру договора / серийному номеру упаковки,
+ * Pull-to-refresh и мгновенное открытие деталей без лишних сетевых запросов.
+ */
 class OrdersFragment : Fragment() {
 
     private val viewModel: OrderViewModel by activityViewModels()
@@ -28,6 +35,8 @@ class OrdersFragment : Fragment() {
 
     private lateinit var adapter: OrdersAdapter
     private lateinit var emptyObserver: RecyclerView.AdapterDataObserver
+
+    private var allOrders: List<Order> = emptyList()
 
     // ---------- Lifecycle ----------
 
@@ -46,10 +55,15 @@ class OrdersFragment : Fragment() {
         setupAdapter()
         setupRecyclerView()
         setupListeners()
+        setupSearch()
         observeState()
         observeEvents()
 
-        viewModel.loadOrders()
+        // Загружаем из сети только при первом открытии (когда список в ViewModel пуст).
+        // При возврате назад с вложенных фрагментов список уже есть в памяти, экран не мигает лоадером.
+        if (viewModel.uiState.value.orders.isEmpty()) {
+            viewModel.loadOrders()
+        }
     }
 
     override fun onDestroyView() {
@@ -68,7 +82,8 @@ class OrdersFragment : Fragment() {
 
             override fun onOrderClick(item: OrderUiItem) {
                 if (_binding == null) return
-                viewModel.loadOrder(item.orderId)
+                // Мгновенный выбор заказа из памяти UI State (без лишнего сетевого запроса)
+                viewModel.selectOrder(item.orderId)
                 findNavController().navigateSafely(
                     R.id.action_storageContainerFragment_to_orderPackagingFragment
                 )
@@ -76,13 +91,13 @@ class OrdersFragment : Fragment() {
 
             override fun onEditOrderClick(item: OrderUiItem) {
                 if (_binding == null) return
-                viewModel.loadOrder(item.orderId)
+                viewModel.selectOrder(item.orderId)
                 findNavController().navigateSafely(R.id.action_global_editOrderFragment)
             }
 
             override fun onAddPackagingClick(item: OrderUiItem) {
                 if (_binding == null) return
-                viewModel.loadOrder(item.orderId)
+                viewModel.selectOrder(item.orderId)
                 findNavController().navigateSafely(
                     R.id.action_storageContainerFragment_to_orderAddPackagingFragment
                 )
@@ -120,9 +135,35 @@ class OrdersFragment : Fragment() {
         binding.fabAddOrder.setOnClickListener {
             findNavController().navigateSafely(R.id.action_storageContainerFragment_to_newOrderFragment)
         }
+        // Ручное обновление только по свайпу вниз
         binding.swipeRefresh.setOnRefreshListener {
             viewModel.loadOrders()
         }
+    }
+
+    private fun setupSearch() {
+        binding.etSearch.doAfterTextChanged { text ->
+            filterOrders(text?.toString().orEmpty())
+        }
+    }
+
+    private fun filterOrders(query: String) {
+        val trimmed = query.trim()
+
+        val filteredOrders = if (trimmed.isEmpty()) {
+            allOrders
+        } else {
+            allOrders.filter { order ->
+                val matchContract = order.contractNumber.contains(trimmed, ignoreCase = true)
+                val matchPackaging = order.packaging.any { pkg ->
+                    pkg.serialNumber.contains(trimmed, ignoreCase = true)
+                }
+                matchContract || matchPackaging
+            }
+        }
+
+        val items = mapOrdersToUiItems(filteredOrders)
+        adapter.submitList(items) { checkEmpty() }
     }
 
     private fun observeState() {
@@ -136,8 +177,9 @@ class OrdersFragment : Fragment() {
 
             b.progressBar.isVisible = state.isLoading && !isSwipeRefreshing
 
-            val items = mapOrdersToUiItems(state.orders)
-            adapter.submitList(items) { checkEmpty() }
+            allOrders = state.orders
+            val currentQuery = b.etSearch.text?.toString().orEmpty()
+            filterOrders(currentQuery)
         }
     }
 
@@ -180,7 +222,7 @@ class OrdersFragment : Fragment() {
     // ---------- Helpers ----------
 
     private fun mapOrdersToUiItems(
-        orders: List<ru.faserkraft.client.domain.model.Order>
+        orders: List<Order>
     ): List<OrderListItem> {
         val allOrders = orders.map { order ->
             val packedByType = order.packaging
