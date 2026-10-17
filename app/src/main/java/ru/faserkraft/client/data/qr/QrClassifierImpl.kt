@@ -1,6 +1,5 @@
 package ru.faserkraft.client.data.qr
 
-import com.google.gson.Gson
 import com.google.gson.JsonParser
 import ru.faserkraft.client.data.dto.DeviceRegisterDto
 import ru.faserkraft.client.data.dto.deviceRegisterBuilder
@@ -12,9 +11,7 @@ import ru.faserkraft.client.utils.qrcode.isUfCode
 import ru.faserkraft.client.utils.qrcode.isUfPkgCode
 import javax.inject.Inject
 
-class QrClassifierImpl @Inject constructor(
-    private val gson: Gson,
-) : QrClassifier {
+class QrClassifierImpl @Inject constructor() : QrClassifier {
 
     override fun classify(raw: String): QrParseResult {
         return when {
