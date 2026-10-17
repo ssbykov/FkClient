@@ -1,58 +1,49 @@
 package ru.faserkraft.client.data.network
 
+import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
 import ru.faserkraft.client.auth.AppAuth
+import ru.faserkraft.client.presentation.app.AppSessionCoordinator
+import ru.faserkraft.client.presentation.app.AppSessionEvent
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class TokenAuthenticator @Inject constructor(
-    private val authApi: AuthApi,
-    private val appAuth: AppAuth
+    private val appAuth: AppAuth,
+    private val sessionCoordinator: AppSessionCoordinator,
 ) : Authenticator {
 
-    override fun authenticate(route: Route?, response: Response): Request? {
-        if (responseCount(response) >= 2) return null
+    override fun authenticate(route: Route?, response: Response): Request? =
+        synchronized(this) { authenticateLocked(response) }
 
-        val currentToken = appAuth.getToken()
+    private fun authenticateLocked(response: Response): Request? {
         val requestToken = response.request.header("Authorization")
             ?.removePrefix("Bearer ")
             ?.trim()
+        if (requestToken.isNullOrBlank()) return null
 
-        if (!currentToken.isNullOrBlank() && currentToken != requestToken) {
+        val currentToken = appAuth.getToken()
+        if (currentToken.isNullOrBlank()) return null
+
+        if (currentToken != requestToken) {
             return response.request.newBuilder()
                 .header("Authorization", "Bearer $currentToken")
                 .build()
         }
 
-        val loginData = appAuth.getLoginData() ?: return null
+        if (!isInvalidMobileSession(response)) return null
 
-        val loginResponse = try {
-            authApi.loginSync(loginData).execute()
-        } catch (_: Exception) {
-            return null
-        }
-
-        if (!loginResponse.isSuccessful) return null
-
-        val newToken = loginResponse.body()?.accessToken ?: return null
-        appAuth.saveToken(newToken)
-
-        return response.request.newBuilder()
-            .header("Authorization", "Bearer $newToken")
-            .build()
+        appAuth.clear()
+        runBlocking { sessionCoordinator.send(AppSessionEvent.Logout) }
+        return null
     }
 
-    private fun responseCount(response: Response): Int {
-        var result = 1
-        var prev = response.priorResponse
-        while (prev != null) {
-            result++
-            prev = prev.priorResponse
-        }
-        return result
-    }
+    private fun isInvalidMobileSession(response: Response): Boolean =
+        runCatching {
+            response.peekBody(2048).string().contains("INVALID_MOBILE_SESSION")
+        }.getOrDefault(false)
 }

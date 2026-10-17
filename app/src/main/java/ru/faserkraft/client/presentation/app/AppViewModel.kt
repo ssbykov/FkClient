@@ -12,10 +12,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.domain.model.DeviceRequest
-import ru.faserkraft.client.domain.model.LoginCredentials
 import ru.faserkraft.client.domain.model.UserData
 import ru.faserkraft.client.domain.model.UserRole
-import ru.faserkraft.client.domain.usecase.auth.LoginUseCase
 import ru.faserkraft.client.domain.usecase.device.RegisterDeviceUseCase
 import ru.faserkraft.client.presentation.base.toErrorMessage
 import ru.faserkraft.client.utils.logger.Logger
@@ -27,7 +25,6 @@ private const val DEVICE_ALREADY_REGISTERED = "Устройство уже за�
 @HiltViewModel
 class AppViewModel @Inject constructor(
     private val appAuth: AppAuth,
-    private val loginUseCase: LoginUseCase,
     private val registerDeviceUseCase: RegisterDeviceUseCase,
     private val sessionCoordinator: AppSessionCoordinator,
     private val logger: Logger,
@@ -56,26 +53,18 @@ class AppViewModel @Inject constructor(
             runCatching {
                 val registration = registerDeviceUseCase(request)
 
-                val userData = UserData(
-                    email = registration.userEmail,
-                    password = registration.password,
-                    name = registration.userName,
-                    role = UserRole.fromValue(registration.userRole) ?: UserRole.WORKER
+                appAuth.saveSession(
+                    token = registration.accessToken,
+                    expiresAt = registration.expiresAt,
+                    userData = UserData(
+                        email = registration.userEmail,
+                        name = registration.userName,
+                        role = UserRole.fromValue(registration.userRole) ?: UserRole.WORKER,
+                    ),
                 )
-
-                appAuth.saveUserData(userData)
-
-                val token = loginUseCase(
-                    LoginCredentials(
-                        username = registration.userEmail,
-                        password = registration.password
-                    )
-                )
-
-                appAuth.saveToken(token)
                 _userData.value = appAuth.getRegistrationData()
 
-                logger.i(TAG, "Device registration and auto-login completed")
+                logger.i(TAG, "Device registration completed")
                 _events.send(AppEvent.RegistrationCompleted)
             }.onFailure { error ->
                 logger.e(TAG, "registerDevice failed", error)

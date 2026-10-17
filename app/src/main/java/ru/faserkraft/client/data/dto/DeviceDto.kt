@@ -2,14 +2,20 @@ package ru.faserkraft.client.data.dto
 
 import android.os.Build
 import com.google.gson.annotations.SerializedName
-import kotlinx.serialization.Serializable
-import ru.faserkraft.client.utils.generatePassword
 import java.util.UUID
 
-@Serializable
-data class DeviceRegisterDto(val id: Int, val token: String)
+data class DeviceRegisterDto(
+    @SerializedName("employee_id")
+    val employeeId: Int,
+    @SerializedName("invitation_token")
+    val invitationToken: String,
+)
 
 data class DeviceResponseDto(
+    @SerializedName("access_token")
+    val accessToken: String,
+    @SerializedName("expires_at")
+    val expiresAt: String,
     @SerializedName("employee_name")
     val userName: String,
     @SerializedName("user_email")
@@ -22,30 +28,19 @@ data class DeviceResponseDto(
     val manufacturer: String,
 ) : ItemDto()
 
-
 data class DeviceRequestDto(
+    @SerializedName("invitation_token")
+    val invitationToken: String,
     @SerializedName("device_id")
     val deviceId: String,
     val model: String,
     val manufacturer: String,
-    val token: String,
-    val password: String,
-    @SerializedName("user_id")
-    val userId: Int,
 ) : ItemDto()
 
-
-fun deviceRegisterBuilder(dataIn: DeviceRegisterDto): DeviceRequestDto {
-    val deviceId = UUID.randomUUID().toString()
-    val model = Build.MODEL ?: ""
-    val manufacturer = Build.MANUFACTURER ?: ""
-    val password = generatePassword(length = 8)
-    return DeviceRequestDto(
-        userId = dataIn.id,
-        token = dataIn.token,
-        deviceId = deviceId,
-        model = model,
-        manufacturer = manufacturer,
-        password = password
+fun deviceRegisterBuilder(dataIn: DeviceRegisterDto): DeviceRequestDto =
+    DeviceRequestDto(
+        invitationToken = dataIn.invitationToken,
+        deviceId = UUID.randomUUID().toString(),
+        model = Build.MODEL.orEmpty().ifBlank { "unknown" },
+        manufacturer = Build.MANUFACTURER.orEmpty().ifBlank { "unknown" },
     )
-}

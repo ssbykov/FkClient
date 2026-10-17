@@ -13,37 +13,32 @@ import ru.faserkraft.client.domain.repository.DeviceRepository
 
 class RegisterDeviceUseCaseTest {
 
-    // ── фикстуры ──────────────────────────────────────────────────────────────
-
-    private val repository: DeviceRepository = mockk()
+    private val deviceRepository: DeviceRepository = mockk()
     private lateinit var useCase: RegisterDeviceUseCase
 
     private val request = DeviceRequest(
+        invitationToken = "invitation-token-xyz",
         deviceId = "device-001",
         model = "Samsung Galaxy A53",
         manufacturer = "Samsung",
-        token = "fcm-token-xyz",
-        password = "pass1234",
-        userId = 5
     )
 
     private val registration = UserRegistration(
+        accessToken = "mobile-session-token",
+        expiresAt = "2026-11-16T10:00:00Z",
         userEmail = "ivan@faserkraft.ru",
         userName = "Иван Петров",
         userRole = "worker",
-        password = "pass1234"
     )
 
     @Before
     fun setUp() {
-        useCase = RegisterDeviceUseCase(repository)
+        useCase = RegisterDeviceUseCase(deviceRepository)
     }
 
-    // ── invoke() ──────────────────────────────────────────────────────────────
-
     @Test
-    fun `invoke - returns UserRegistration from repository`() = runTest {
-        coEvery { repository.registerDevice(request) } returns registration
+    fun `invoke - returns registration from repository`() = runTest {
+        coEvery { deviceRepository.registerDevice(request) } returns registration
 
         val result = useCase(request)
 
@@ -51,59 +46,20 @@ class RegisterDeviceUseCaseTest {
     }
 
     @Test
-    fun `invoke - calls repository exactly once`() = runTest {
-        coEvery { repository.registerDevice(any()) } returns registration
+    fun `invoke - calls repository exactly once with unchanged request`() = runTest {
+        coEvery { deviceRepository.registerDevice(request) } returns registration
 
         useCase(request)
 
-        coVerify(exactly = 1) { repository.registerDevice(request) }
-    }
-
-    @Test
-    fun `invoke - passes request to repository unchanged`() = runTest {
-        coEvery { repository.registerDevice(any()) } returns registration
-
-        useCase(request)
-
-        coVerify { repository.registerDevice(request) }
-    }
-
-    @Test
-    fun `invoke - returned userEmail matches repository response`() = runTest {
-        coEvery { repository.registerDevice(request) } returns registration
-
-        val result = useCase(request)
-
-        assertEquals("ivan@faserkraft.ru", result.userEmail)
-    }
-
-    @Test
-    fun `invoke - returned userRole matches repository response`() = runTest {
-        coEvery { repository.registerDevice(request) } returns registration
-
-        val result = useCase(request)
-
-        assertEquals("worker", result.userRole)
+        coVerify(exactly = 1) { deviceRepository.registerDevice(request) }
     }
 
     @Test
     fun `invoke - propagates exception from repository`() = runTest {
-        coEvery { repository.registerDevice(any()) } throws RuntimeException("Device already registered")
+        coEvery { deviceRepository.registerDevice(request) } throws RuntimeException("DEVICE_ALREADY_REGISTERED")
 
         val exception = runCatching { useCase(request) }.exceptionOrNull()
 
-        assertEquals("Device already registered", exception?.message)
-    }
-
-    @Test
-    fun `invoke - different requests produce different registrations`() = runTest {
-        val request2 = request.copy(deviceId = "device-002", userId = 6)
-        val registration2 = registration.copy(userEmail = "anna@faserkraft.ru")
-
-        coEvery { repository.registerDevice(request) } returns registration
-        coEvery { repository.registerDevice(request2) } returns registration2
-
-        assertEquals("ivan@faserkraft.ru", useCase(request).userEmail)
-        assertEquals("anna@faserkraft.ru", useCase(request2).userEmail)
+        assertEquals("DEVICE_ALREADY_REGISTERED", exception?.message)
     }
 }

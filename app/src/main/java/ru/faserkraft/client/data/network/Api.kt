@@ -18,6 +18,7 @@ import ru.faserkraft.client.data.dto.EmployeeDto
 import ru.faserkraft.client.data.dto.InventoryDto
 import ru.faserkraft.client.data.dto.InventoryItemCreateDto
 import ru.faserkraft.client.data.dto.InventoryItemDto
+import ru.faserkraft.client.data.dto.InvitationRequestDto
 import ru.faserkraft.client.data.dto.OrderCreateDto
 import ru.faserkraft.client.data.dto.OrderDto
 import ru.faserkraft.client.data.dto.OrderItemCreateDto
@@ -242,9 +243,9 @@ interface Api {
     @GET(BASE_URL + "employees/")
     suspend fun getEmployees(): Response<List<EmployeeDto>>
 
-    @POST("users/get-qr-code")
+    @POST("mobile/invitations/by-mobile")
     suspend fun getQrCode(
-        @Query("employee_id") employeeId: Int
+        @Body request: InvitationRequestDto
     ): Response<QrDataResponseDto>
 
 

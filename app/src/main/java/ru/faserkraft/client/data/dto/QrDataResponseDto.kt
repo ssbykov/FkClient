@@ -1,20 +1,17 @@
 package ru.faserkraft.client.data.dto
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import com.google.gson.annotations.SerializedName
 
-@Serializable
-data class QrDataResponseDto(
-    val action: String,
-    val id: Int,
-    val token: String,
+data class InvitationRequestDto(
+    @SerializedName("employee_id")
+    val employeeId: Int,
 )
 
-private val json = Json {
-    encodeDefaults = true
-    ignoreUnknownKeys = true
-}
+data class QrDataResponseDto(
+    @SerializedName("qr_payload")
+    val qrPayload: String,
+    @SerializedName("expires_at")
+    val expiresAt: String,
+)
 
-
-fun QrDataResponseDto.toQrContent(): String =
-    json.encodeToString(this)
+fun QrDataResponseDto.toQrContent(): String = qrPayload

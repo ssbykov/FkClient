@@ -4,7 +4,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -14,6 +13,7 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
 import ru.faserkraft.client.data.dto.EmployeeDto
+import ru.faserkraft.client.data.dto.InvitationRequestDto
 import ru.faserkraft.client.data.dto.QrDataResponseDto
 import ru.faserkraft.client.data.dto.UserDto
 import ru.faserkraft.client.data.network.Api
@@ -35,18 +35,12 @@ class EmployeeRepositoryImplTest {
         user = UserDto(id = 10, email = "ivan@test.com"),
     )
 
-    private val qrDataDto = QrDataResponseDto(
-        action = "scan",
-        id = 1,
-        token = "qr-token-xyz",
-    )
+    private val qrPayload = """{"employee_id":1,"invitation_token":"qr-token-xyz"}"""
 
-    companion object {
-        private val testJson = Json {
-            encodeDefaults = true
-            ignoreUnknownKeys = true
-        }
-    }
+    private val qrDataDto = QrDataResponseDto(
+        qrPayload = qrPayload,
+        expiresAt = "2026-10-17T10:10:00Z",
+    )
 
     @Before
     fun setUp() {
@@ -113,14 +107,13 @@ class EmployeeRepositoryImplTest {
     // ─── getEmployeeQrContent ─────────────────────────────────────────────────
 
     @Test
-    fun `getEmployeeQrContent - returns serialized QR content on success`() = runTest {
+    fun `getEmployeeQrContent - returns qr payload from invitation on success`() = runTest {
         coEvery { api.getQrCode(any()) } returns Response.success(qrDataDto)
 
         val result = repository.getEmployeeQrContent(employeeId = 1)
 
-        val expected = testJson.encodeToString(qrDataDto)
-        assertEquals(expected, result)
-        coVerify(exactly = 1) { api.getQrCode(1) }
+        assertEquals(qrPayload, result)
+        coVerify(exactly = 1) { api.getQrCode(InvitationRequestDto(1)) }
     }
 
     @Test
@@ -142,6 +135,20 @@ class EmployeeRepositoryImplTest {
         assertNotNull(ex)
         assertEquals(404, ex!!.status)
         assertEquals("error_api_404", ex.uiCode)
+    }
+
+    @Test
+    fun `getEmployeeQrContent - throws AppError ApiError on HTTP 403 when forbidden`() = runTest {
+        coEvery { api.getQrCode(any()) } returns makeErrorResponse(
+            code = 403,
+            body = """{"detail":"INVITATION_FORBIDDEN"}"""
+        )
+
+        val ex = catchError<AppError.ApiError> { repository.getEmployeeQrContent(1) }
+
+        assertNotNull(ex)
+        assertEquals(403, ex!!.status)
+        assertEquals("INVITATION_FORBIDDEN", ex.message)
     }
 
     @Test

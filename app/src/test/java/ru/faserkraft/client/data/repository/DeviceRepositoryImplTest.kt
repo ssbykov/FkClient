@@ -4,7 +4,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -13,8 +12,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
-import ru.faserkraft.client.data.dto.DeviceRequestDto
 import ru.faserkraft.client.data.dto.DeviceResponseDto
+import ru.faserkraft.client.data.dto.InvitationRequestDto
 import ru.faserkraft.client.data.dto.QrDataResponseDto
 import ru.faserkraft.client.data.network.Api
 import ru.faserkraft.client.data.network.AuthApi
@@ -22,6 +21,7 @@ import ru.faserkraft.client.domain.model.DeviceRequest
 import ru.faserkraft.client.error.AppError
 import ru.faserkraft.client.util.FakeLogger
 import java.io.IOException
+import java.net.SocketTimeoutException
 
 class DeviceRepositoryImplTest {
 
@@ -30,37 +30,22 @@ class DeviceRepositoryImplTest {
     private lateinit var fakeLogger: FakeLogger
     private lateinit var repository: DeviceRepositoryImpl
 
-    companion object {
-        private val testJson = Json {
-            encodeDefaults = true
-            ignoreUnknownKeys = true
-        }
-    }
-
-    // ─── fixtures ─────────────────────────────────────────────────────────────
-
-    private val deviceRequest = DeviceRequest(
-        deviceId = "device-uuid-123",
-        model = "Pixel 7",
-        manufacturer = "Google",
-        token = "fcm-token-abc",
-        password = "pass1234",
-        userId = 42,
+    private val request = DeviceRequest(
+        invitationToken = "invitation-token-xyz",
+        deviceId = "device-001",
+        model = "Samsung Galaxy A53",
+        manufacturer = "Samsung",
     )
 
-    private val deviceResponseDto = DeviceResponseDto(
-        userName = "Ivan Petrov",
-        userEmail = "ivan@test.com",
+    private val responseDto = DeviceResponseDto(
+        accessToken = "mobile-session-token",
+        expiresAt = "2026-11-16T10:00:00Z",
+        userName = "Иван Петров",
+        userEmail = "ivan@faserkraft.ru",
         userRole = "worker",
-        deviceId = "device-uuid-123",
-        model = "Pixel 7",
-        manufacturer = "Google",
-    )
-
-    private val qrDataDto = QrDataResponseDto(
-        action = "scan",
-        id = 7,
-        token = "qr-token-xyz",
+        deviceId = "device-001",
+        model = "Samsung Galaxy A53",
+        manufacturer = "Samsung",
     )
 
     @Before
@@ -71,138 +56,195 @@ class DeviceRepositoryImplTest {
         repository = DeviceRepositoryImpl(api, authApi, fakeLogger)
     }
 
-    // ─── registerDevice ───────────────────────────────────────────────────────
+    // ─── registerDevice: success ──────────────────────────────────────────────
 
     @Test
-    fun `registerDevice - returns UserRegistration on success`() = runTest {
-        coEvery { authApi.registerDevice(any()) } returns Response.success(deviceResponseDto)
+    fun `registerDevice - returns session data on success`() = runTest {
+        coEvery { authApi.registerDevice(any()) } returns Response.success(responseDto)
 
-        val result = repository.registerDevice(deviceRequest)
+        val result = repository.registerDevice(request)
 
-        assertEquals("ivan@test.com", result.userEmail)
-        assertEquals("Ivan Petrov", result.userName)
+        assertEquals("mobile-session-token", result.accessToken)
+        assertEquals("2026-11-16T10:00:00Z", result.expiresAt)
+        assertEquals("ivan@faserkraft.ru", result.userEmail)
+        assertEquals("Иван Петров", result.userName)
         assertEquals("worker", result.userRole)
-        assertEquals("pass1234", result.password)
+        coVerify(exactly = 1) { authApi.registerDevice(any()) }
         assertTrue(fakeLogger.errors.isEmpty())
     }
 
     @Test
-    fun `registerDevice - passes correct dto to authApi`() = runTest {
-        coEvery { authApi.registerDevice(any()) } returns Response.success(deviceResponseDto)
+    fun `registerDevice - sends invitation token and device info to server`() = runTest {
+        coEvery { authApi.registerDevice(any()) } returns Response.success(responseDto)
 
-        repository.registerDevice(deviceRequest)
+        repository.registerDevice(request)
 
-        coVerify(exactly = 1) {
+        coVerify {
             authApi.registerDevice(
-                DeviceRequestDto(
-                    deviceId = "device-uuid-123",
-                    model = "Pixel 7",
-                    manufacturer = "Google",
-                    token = "fcm-token-abc",
-                    password = "pass1234",
-                    userId = 42,
-                )
+                match {
+                    it.invitationToken == "invitation-token-xyz" &&
+                            it.deviceId == "device-001" &&
+                            it.model == "Samsung Galaxy A53" &&
+                            it.manufacturer == "Samsung"
+                }
             )
         }
+    }
+
+    // ─── registerDevice: HTTP errors → AppError.ApiError ─────────────────────
+
+    @Test
+    fun `registerDevice - throws ApiError on HTTP 400 invalid invitation`() = runTest {
+        coEvery { authApi.registerDevice(any()) } returns makeErrorResponse(
+            code = 400,
+            body = """{"detail":"INVALID_DEVICE_INVITATION"}"""
+        )
+
+        val ex = catchError<AppError.ApiError> { repository.registerDevice(request) }
+
+        assertNotNull(ex)
+        assertEquals(400, ex!!.status)
+        assertEquals("INVALID_DEVICE_INVITATION", ex.message)
+        assertTrue(fakeLogger.errors.any { it.message.contains("400") })
+    }
+
+    @Test
+    fun `registerDevice - throws ApiError on HTTP 409 device already registered`() = runTest {
+        coEvery { authApi.registerDevice(any()) } returns makeErrorResponse(
+            code = 409,
+            body = """{"detail":"DEVICE_ALREADY_REGISTERED"}"""
+        )
+
+        val ex = catchError<AppError.ApiError> { repository.registerDevice(request) }
+
+        assertNotNull(ex)
+        assertEquals(409, ex!!.status)
+        assertEquals("DEVICE_ALREADY_REGISTERED", ex.message)
+    }
+
+    @Test
+    fun `registerDevice - throws ApiError on HTTP 403 user not allowed`() = runTest {
+        coEvery { authApi.registerDevice(any()) } returns makeErrorResponse(
+            code = 403,
+            body = """{"detail":"USER_NOT_ALLOWED"}"""
+        )
+
+        val ex = catchError<AppError.ApiError> { repository.registerDevice(request) }
+
+        assertNotNull(ex)
+        assertEquals(403, ex!!.status)
+        assertEquals("USER_NOT_ALLOWED", ex.message)
+    }
+
+    @Test
+    fun `registerDevice - throws ApiError on HTTP 422 with array detail`() = runTest {
+        coEvery { authApi.registerDevice(any()) } returns makeErrorResponse(
+            code = 422,
+            body = """{"detail":[{"msg":"field required"}]}"""
+        )
+
+        val ex = catchError<AppError.ApiError> { repository.registerDevice(request) }
+
+        assertNotNull(ex)
+        assertEquals(422, ex!!.status)
+        assertEquals("error_api_422", ex.uiCode)
+        assertEquals("field required", ex.message)
+    }
+
+    @Test
+    fun `registerDevice - throws ApiError on HTTP 500`() = runTest {
+        coEvery { authApi.registerDevice(any()) } returns makeErrorResponse(
+            code = 500,
+            body = """{"detail":"Internal Server Error"}"""
+        )
+
+        val ex = catchError<AppError.ApiError> { repository.registerDevice(request) }
+
+        assertNotNull(ex)
+        assertEquals(500, ex!!.status)
+        assertEquals("error_api_500", ex.uiCode)
+    }
+
+    @Test
+    fun `registerDevice - uses fallback uiCode when error body is empty`() = runTest {
+        coEvery { authApi.registerDevice(any()) } returns makeErrorResponse(code = 403, body = "")
+
+        val ex = catchError<AppError.ApiError> { repository.registerDevice(request) }
+
+        assertNotNull(ex)
+        assertEquals(403, ex!!.status)
+        assertEquals("error_api_403", ex.uiCode)
+    }
+
+    // ─── registerDevice: network / unknown ────────────────────────────────────
+
+    @Test
+    fun `registerDevice - throws NetworkError on IOException`() = runTest {
+        coEvery { authApi.registerDevice(any()) } throws IOException("Connection refused")
+
+        val ex = catchError<AppError.NetworkError> { repository.registerDevice(request) }
+
+        assertNotNull(ex)
+        assertTrue(ex!!.error is IOException)
+        assertEquals("Connection refused", ex.error?.message)
+        assertTrue(fakeLogger.errors.any { it.throwable is IOException })
+    }
+
+    @Test
+    fun `registerDevice - throws NetworkError on SocketTimeoutException`() = runTest {
+        coEvery { authApi.registerDevice(any()) } throws SocketTimeoutException("timeout")
+
+        val ex = catchError<AppError.NetworkError> { repository.registerDevice(request) }
+
+        assertNotNull(ex)
+        assertTrue(ex!!.error is SocketTimeoutException)
+    }
+
+    @Test
+    fun `registerDevice - throws UnknownError on unexpected exception`() = runTest {
+        coEvery { authApi.registerDevice(any()) } throws RuntimeException("Unexpected crash")
+
+        val ex = catchError<AppError.UnknownError> { repository.registerDevice(request) }
+
+        assertNotNull(ex)
+        assertTrue(ex!!.error is RuntimeException)
+        assertEquals("Unexpected crash", ex.error?.message)
     }
 
     @Test
     fun `registerDevice - throws IllegalArgumentException when response body is null`() = runTest {
         coEvery { authApi.registerDevice(any()) } returns Response.success(null)
 
-        val ex = catchError<IllegalArgumentException> { repository.registerDevice(deviceRequest) }
+        val ex = catchError<IllegalArgumentException> { repository.registerDevice(request) }
 
         assertNotNull(ex)
-    }
-
-    @Test
-    fun `registerDevice - throws AppError ApiError on HTTP 401`() = runTest {
-        coEvery { authApi.registerDevice(any()) } returns makeErrorResponse(401)
-
-        val ex = catchError<AppError.ApiError> { repository.registerDevice(deviceRequest) }
-
-        assertNotNull(ex)
-        assertEquals(401, ex!!.status)
-        assertTrue(fakeLogger.errors.any { it.message.contains("401") })
-    }
-
-    @Test
-    fun `registerDevice - throws AppError ApiError on HTTP 409 conflict`() = runTest {
-        coEvery { authApi.registerDevice(any()) } returns makeErrorResponse(
-            code = 409,
-            body = """{"code":"device_already_exists","detail":"Device already registered"}"""
-        )
-
-        val ex = catchError<AppError.ApiError> { repository.registerDevice(deviceRequest) }
-
-        assertNotNull(ex)
-        assertEquals(409, ex!!.status)
-        assertEquals("device_already_exists", ex.uiCode)
-        assertEquals("Device already registered", ex.message)
-    }
-
-    @Test
-    fun `registerDevice - throws AppError NetworkError on IOException`() = runTest {
-        coEvery { authApi.registerDevice(any()) } throws IOException("no network")
-
-        val ex = catchError<AppError.NetworkError> { repository.registerDevice(deviceRequest) }
-
-        assertNotNull(ex)
-        assertTrue(ex!!.error is IOException)
-        assertTrue(fakeLogger.errors.any { it.throwable is IOException })
     }
 
     // ─── getQrCode ────────────────────────────────────────────────────────────
 
     @Test
-    fun `getQrCode - returns serialized QR content on success`() = runTest {
-        coEvery { api.getQrCode(any()) } returns Response.success(qrDataDto)
+    fun `getQrCode - returns qr payload from invitation response`() = runTest {
+        coEvery { api.getQrCode(any()) } returns Response.success(
+            QrDataResponseDto(
+                qrPayload = """{"employee_id":5,"invitation_token":"abc"}""",
+                expiresAt = "2026-10-17T10:10:00Z",
+            )
+        )
 
-        val result = repository.getQrCode(employeeId = 7)
+        val result = repository.getQrCode(5)
 
-        val expected =testJson.encodeToString(qrDataDto)
-        assertEquals(expected, result)
-        coVerify(exactly = 1) { api.getQrCode(7) }
-        assertTrue(fakeLogger.errors.isEmpty())
-    }
-
-    @Test
-    fun `getQrCode - throws IllegalArgumentException when response body is null`() = runTest {
-        coEvery { api.getQrCode(any()) } returns Response.success(null)
-
-        val ex = catchError<IllegalArgumentException> { repository.getQrCode(7) }
-
-        assertNotNull(ex)
-    }
-
-    @Test
-    fun `getQrCode - throws AppError ApiError on HTTP 404`() = runTest {
-        coEvery { api.getQrCode(any()) } returns makeErrorResponse(404)
-
-        val ex = catchError<AppError.ApiError> { repository.getQrCode(7) }
-
-        assertNotNull(ex)
-        assertEquals(404, ex!!.status)
-        assertEquals("error_api_404", ex.uiCode)
-    }
-
-    @Test
-    fun `getQrCode - throws AppError NetworkError on IOException`() = runTest {
-        coEvery { api.getQrCode(any()) } throws IOException("timeout")
-
-        val ex = catchError<AppError.NetworkError> { repository.getQrCode(7) }
-
-        assertNotNull(ex)
-        assertTrue(ex!!.error is IOException)
+        assertEquals("""{"employee_id":5,"invitation_token":"abc"}""", result)
+        coVerify(exactly = 1) { api.getQrCode(InvitationRequestDto(5)) }
     }
 
     // ─── helpers ──────────────────────────────────────────────────────────────
 
-    private inline fun <reified T> makeErrorResponse(
+    private fun makeErrorResponse(
         code: Int,
-        body: String = "",
-    ): Response<T> =
-        Response.error(code, body.toResponseBody("application/json".toMediaType()))
+        body: String,
+        contentType: String = "application/json"
+    ): Response<DeviceResponseDto> =
+        Response.error(code, body.toResponseBody(contentType.toMediaType()))
 
     private suspend inline fun <reified T : Throwable> catchError(
         crossinline block: suspend () -> Unit

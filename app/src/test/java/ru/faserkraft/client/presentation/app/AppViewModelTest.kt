@@ -15,11 +15,9 @@ import org.junit.Rule
 import org.junit.Test
 import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.domain.model.DeviceRequest
-import ru.faserkraft.client.domain.model.LoginCredentials
 import ru.faserkraft.client.domain.model.UserData
 import ru.faserkraft.client.domain.model.UserRegistration
 import ru.faserkraft.client.domain.model.UserRole
-import ru.faserkraft.client.domain.usecase.auth.LoginUseCase
 import ru.faserkraft.client.domain.usecase.device.RegisterDeviceUseCase
 import ru.faserkraft.client.util.FakeLogger
 import ru.faserkraft.client.util.MainDispatcherRule
@@ -31,7 +29,6 @@ class AppViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val appAuth: AppAuth = mockk(relaxed = true)
-    private val loginUseCase: LoginUseCase = mockk()
     private val registerDeviceUseCase: RegisterDeviceUseCase = mockk()
     private val sessionCoordinator: AppSessionCoordinator = mockk(relaxed = true)
     private val logger = FakeLogger()
@@ -39,24 +36,22 @@ class AppViewModelTest {
     private lateinit var viewModel: AppViewModel
 
     private val request = DeviceRequest(
+        invitationToken = "invitation-token-xyz",
         deviceId = "device-123",
         model = "Pixel 8",
         manufacturer = "Google",
-        token = "fcm-token-123",
-        password = "123456",
-        userId = 42,
     )
 
     private val registration = UserRegistration(
+        accessToken = "mobile-session-token",
+        expiresAt = "2026-11-16T10:00:00Z",
         userEmail = "ivan@test.com",
         userName = "Иван",
         userRole = "worker",
-        password = "123456",
     )
 
     private val mappedUserData = UserData(
         email = "ivan@test.com",
-        password = "123456",
         name = "Иван",
         role = UserRole.WORKER,
     )
@@ -68,7 +63,6 @@ class AppViewModelTest {
 
         viewModel = AppViewModel(
             appAuth = appAuth,
-            loginUseCase = loginUseCase,
             registerDeviceUseCase = registerDeviceUseCase,
             sessionCoordinator = sessionCoordinator,
             logger = logger,
@@ -81,7 +75,6 @@ class AppViewModelTest {
     fun `init - loads userData from appAuth`() {
         val storedUser = UserData(
             email = "stored@test.com",
-            password = "pass",
             name = "Stored User",
             role = UserRole.WORKER,
         )
@@ -89,7 +82,6 @@ class AppViewModelTest {
 
         val vm = AppViewModel(
             appAuth = appAuth,
-            loginUseCase = loginUseCase,
             registerDeviceUseCase = registerDeviceUseCase,
             sessionCoordinator = sessionCoordinator,
             logger = logger,
@@ -103,7 +95,6 @@ class AppViewModelTest {
     @Test
     fun `registerDevice - emits RegistrationCompleted on success`() = runTest {
         coEvery { registerDeviceUseCase(request) } returns registration
-        coEvery { loginUseCase(any()) } returns "token-123"
 
         viewModel.events.test {
             viewModel.registerDevice(request)
@@ -116,7 +107,6 @@ class AppViewModelTest {
     @Test
     fun `registerDevice - calls registerDeviceUseCase with correct request`() = runTest {
         coEvery { registerDeviceUseCase(request) } returns registration
-        coEvery { loginUseCase(any()) } returns "token-123"
 
         viewModel.registerDevice(request)
         advanceUntilIdle()
@@ -125,49 +115,41 @@ class AppViewModelTest {
     }
 
     @Test
-    fun `registerDevice - saves mapped userData to appAuth`() = runTest {
+    fun `registerDevice - saves session with token expiry and mapped userData`() = runTest {
         coEvery { registerDeviceUseCase(request) } returns registration
-        coEvery { loginUseCase(any()) } returns "token-123"
-
-        viewModel.registerDevice(request)
-        advanceUntilIdle()
-
-        coVerify(exactly = 1) { appAuth.saveUserData(mappedUserData) }
-    }
-
-    @Test
-    fun `registerDevice - calls loginUseCase with credentials from registration`() = runTest {
-        coEvery { registerDeviceUseCase(request) } returns registration
-        coEvery { loginUseCase(any()) } returns "token-123"
 
         viewModel.registerDevice(request)
         advanceUntilIdle()
 
         coVerify(exactly = 1) {
-            loginUseCase(
-                LoginCredentials(
-                    username = "ivan@test.com",
-                    password = "123456",
-                )
+            appAuth.saveSession(
+                token = "mobile-session-token",
+                expiresAt = "2026-11-16T10:00:00Z",
+                userData = mappedUserData,
             )
         }
     }
 
     @Test
-    fun `registerDevice - saves token to appAuth`() = runTest {
-        coEvery { registerDeviceUseCase(request) } returns registration
-        coEvery { loginUseCase(any()) } returns "token-123"
+    fun `registerDevice - falls back to WORKER role for unknown role`() = runTest {
+        coEvery { registerDeviceUseCase(request) } returns
+                registration.copy(userRole = "unknown_role")
 
         viewModel.registerDevice(request)
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { appAuth.saveToken("token-123") }
+        coVerify(exactly = 1) {
+            appAuth.saveSession(
+                token = "mobile-session-token",
+                expiresAt = "2026-11-16T10:00:00Z",
+                userData = mappedUserData,
+            )
+        }
     }
 
     @Test
     fun `registerDevice - updates userData state after success`() = runTest {
         coEvery { registerDeviceUseCase(request) } returns registration
-        coEvery { loginUseCase(any()) } returns "token-123"
         every { appAuth.getRegistrationData() } returns mappedUserData
 
         viewModel.registerDevice(request)
@@ -179,20 +161,16 @@ class AppViewModelTest {
     @Test
     fun `registerDevice - logs info on success`() = runTest {
         coEvery { registerDeviceUseCase(request) } returns registration
-        coEvery { loginUseCase(any()) } returns "token-123"
-        // На всякий случай задаем возврат для getRegistrationData(), так как он читается во ViewModel
         every { appAuth.getRegistrationData() } returns mappedUserData
 
         viewModel.registerDevice(request)
         advanceUntilIdle()
 
-        // Сначала проверяем, не упала ли корутина в блок catch (например, из-за моков)
         assertEquals("Ожидалось, что ошибок не будет", 0, logger.errors.size)
 
-        // Проверяем инфо логи
         assertEquals(1, logger.infos.size)
         assertEquals("AppViewModel", logger.infos.first().tag)
-        assertEquals("Device registration and auto-login completed", logger.infos.first().message)
+        assertEquals("Device registration completed", logger.infos.first().message)
     }
 
     // ── Failure path ─────────────────────────────────────────────────────────
@@ -227,37 +205,43 @@ class AppViewModelTest {
             viewModel.registerDevice(request)
             advanceUntilIdle()
 
-            // Ожидаем результат работы toErrorMessage()
             assertEquals("Неизвестная ошибка", awaitItem())
         }
     }
 
     @Test
-    fun `registerDevice - emits mapped error when loginUseCase throws`() = runTest {
+    fun `registerDevice - emits mapped error when saving session fails`() = runTest {
         coEvery { registerDeviceUseCase(request) } returns registration
-        coEvery { loginUseCase(any()) } throws RuntimeException("Login failed")
+        every { appAuth.saveSession(any(), any(), any()) } throws RuntimeException("disk full")
 
         viewModel.errorState.test {
             viewModel.registerDevice(request)
             advanceUntilIdle()
 
-            // Ожидаем результат работы toErrorMessage()
             assertEquals("Неизвестная ошибка", awaitItem())
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `registerDevice - does not emit RegistrationCompleted on failure`() = runTest {
         coEvery { registerDeviceUseCase(request) } throws RuntimeException("boom")
 
-        viewModel.errorState.test {
+        viewModel.events.test {
             viewModel.registerDevice(request)
             advanceUntilIdle()
 
-            // Ожидаем результат работы toErrorMessage()
-            assertEquals("Неизвестная ошибка", awaitItem())
+            expectNoEvents()
         }
+    }
+
+    @Test
+    fun `registerDevice - does not save session on failure`() = runTest {
+        coEvery { registerDeviceUseCase(request) } throws RuntimeException("boom")
+
+        viewModel.registerDevice(request)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { appAuth.saveSession(any(), any(), any()) }
     }
 
     @Test

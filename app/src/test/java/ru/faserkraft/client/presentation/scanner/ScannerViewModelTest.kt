@@ -86,52 +86,64 @@ class ScannerViewModelTest {
 
     // ── decodeQrCode - DeviceRegistration ─────────────────────────────────────
 
-    @Test
-    fun `decodeQrCode - emits OpenDeviceRegistration on DeviceRegistration result from CAMERA`() = runTest {
-        val fakeRequest = DeviceRequest(
-            deviceId = "device-001",
-            model = "Pixel 7",
-            manufacturer = "Google",
-            token = "token-abc",
-            password = "pass123",
-            userId = 5
-        )
-        every { qrClassifier.classify("device-qr") } returns QrParseResult.DeviceRegistration(
-            fakeRequest
-        )
-
-        viewModel.events.test {
-            viewModel.decodeQrCode("device-qr", QrInputSource.CAMERA)
-            advanceUntilIdle()
-
-            assertEquals(ScannerEvent.OpenDeviceRegistration(fakeRequest), awaitItem())
-        }
-    }
+    private val fakeRequest = DeviceRequest(
+        invitationToken = "invitation-token-abc",
+        deviceId = "device-001",
+        model = "Pixel 7",
+        manufacturer = "Google",
+    )
 
     @Test
-    fun `decodeQrCode - emits ShowError on DeviceRegistration result from MANUAL_INPUT`() = runTest {
-        val fakeRequest = DeviceRequest(
-            deviceId = "device-001",
-            model = "Pixel 7",
-            manufacturer = "Google",
-            token = "token-abc",
-            password = "pass123",
-            userId = 5
-        )
-        every { qrClassifier.classify("device-qr") } returns QrParseResult.DeviceRegistration(
-            fakeRequest
-        )
-
-        viewModel.events.test {
-            viewModel.decodeQrCode("device-qr", QrInputSource.MANUAL_INPUT)
-            advanceUntilIdle()
-
-            assertEquals(
-                ScannerEvent.ShowError("Регистрация устройства доступна только при сканировании QR-кода"),
-                awaitItem()
+    fun `decodeQrCode - emits OpenDeviceRegistration on DeviceRegistration result from CAMERA`() =
+        runTest {
+            every { qrClassifier.classify("device-qr") } returns QrParseResult.DeviceRegistration(
+                fakeRequest
             )
+
+            viewModel.events.test {
+                viewModel.decodeQrCode("device-qr", QrInputSource.CAMERA)
+                advanceUntilIdle()
+
+                assertEquals(ScannerEvent.OpenDeviceRegistration(fakeRequest), awaitItem())
+            }
         }
-    }
+
+    @Test
+    fun `decodeQrCode - emits ShowError on DeviceRegistration result from MANUAL_INPUT`() =
+        runTest {
+            every { qrClassifier.classify("device-qr") } returns QrParseResult.DeviceRegistration(
+                fakeRequest
+            )
+
+            viewModel.events.test {
+                viewModel.decodeQrCode("device-qr", QrInputSource.MANUAL_INPUT)
+                advanceUntilIdle()
+
+                assertEquals(
+                    ScannerEvent.ShowError("Регистрация устройства доступна только при сканировании QR-кода"),
+                    awaitItem()
+                )
+            }
+        }
+
+    @Test
+    fun `decodeQrCode - allows new scan after DeviceRegistration from MANUAL_INPUT is rejected`() =
+        runTest {
+            every { qrClassifier.classify("device-qr") } returns QrParseResult.DeviceRegistration(
+                fakeRequest
+            )
+
+            viewModel.events.test {
+                viewModel.decodeQrCode("device-qr", QrInputSource.MANUAL_INPUT)
+                advanceUntilIdle()
+                awaitItem()
+
+                viewModel.decodeQrCode("device-qr", QrInputSource.CAMERA)
+                advanceUntilIdle()
+
+                assertEquals(ScannerEvent.OpenDeviceRegistration(fakeRequest), awaitItem())
+            }
+        }
 
     // ── decodeQrCode - Unknown ────────────────────────────────────────────────
 

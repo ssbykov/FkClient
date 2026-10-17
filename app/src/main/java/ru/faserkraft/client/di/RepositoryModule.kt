@@ -5,7 +5,6 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import ru.faserkraft.client.data.qr.QrClassifierImpl
-import ru.faserkraft.client.data.repository.AuthRepositoryImpl
 import ru.faserkraft.client.data.repository.DailyPlanRepositoryImpl
 import ru.faserkraft.client.data.repository.DeviceRepositoryImpl
 import ru.faserkraft.client.data.repository.EmployeeRepositoryImpl
@@ -17,7 +16,6 @@ import ru.faserkraft.client.data.repository.ProductRepositoryImpl
 import ru.faserkraft.client.data.repository.StepRepositoryImpl
 import ru.faserkraft.client.data.repository.UpdateRepositoryImpl
 import ru.faserkraft.client.domain.qr.QrClassifier
-import ru.faserkraft.client.domain.repository.AuthRepository
 import ru.faserkraft.client.domain.repository.DailyPlanRepository
 import ru.faserkraft.client.domain.repository.DeviceRepository
 import ru.faserkraft.client.domain.repository.EmployeeRepository
@@ -34,9 +32,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
 
-    @Binds
-    @Singleton
-    abstract fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
 
     @Binds
     @Singleton

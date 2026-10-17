@@ -5,27 +5,24 @@ import ru.faserkraft.client.domain.model.UserRegistration
 import ru.faserkraft.client.data.dto.DeviceRequestDto
 import ru.faserkraft.client.data.dto.DeviceResponseDto
 
-fun DeviceResponseDto.toDomain(password: String): UserRegistration = UserRegistration(
+fun DeviceResponseDto.toDomain(): UserRegistration = UserRegistration(
+    accessToken = accessToken,
+    expiresAt = expiresAt,
     userEmail = userEmail,
     userName = userName,
     userRole = userRole,
-    password = password,
 )
 
 fun DeviceRequest.toDto() = DeviceRequestDto(
+    invitationToken = invitationToken,
     deviceId = deviceId,
     model = model,
     manufacturer = manufacturer,
-    token = token,
-    password = password,
-    userId = userId,
 )
 
 fun DeviceRequestDto.toDomain() = DeviceRequest(
+    invitationToken = invitationToken,
     deviceId = deviceId,
     model = model,
     manufacturer = manufacturer,
-    token = token,
-    password = password,
-    userId = userId,
 )

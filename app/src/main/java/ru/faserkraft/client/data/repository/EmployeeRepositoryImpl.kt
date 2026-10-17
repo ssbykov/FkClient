@@ -1,5 +1,6 @@
 package ru.faserkraft.client.data.repository
 
+import ru.faserkraft.client.data.dto.InvitationRequestDto
 import ru.faserkraft.client.data.dto.toQrContent
 import ru.faserkraft.client.data.mapper.toDomain
 import ru.faserkraft.client.data.network.Api
@@ -17,7 +18,7 @@ class EmployeeRepositoryImpl @Inject constructor(
         callApi { api.getEmployees() }.orEmpty().map { it.toDomain() }
 
     override suspend fun getEmployeeQrContent(employeeId: Int): String {
-        val response = callApi { api.getQrCode(employeeId) }
+        val response = callApi { api.getQrCode(InvitationRequestDto(employeeId)) }
             ?: error("Пустой ответ от сервера")
 
         return response.toQrContent()

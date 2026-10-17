@@ -11,6 +11,8 @@ class DeviceMapperTest {
     // ── фикстуры ──────────────────────────────────────────────────────────────
 
     private val responseDto = DeviceResponseDto(
+        accessToken = "mobile-session-token",
+        expiresAt = "2026-11-16T10:00:00Z",
         userName = "Иван Петров",
         userEmail = "ivan@faserkraft.ru",
         userRole = "worker",
@@ -20,58 +22,52 @@ class DeviceMapperTest {
     )
 
     private val requestDto = DeviceRequestDto(
+        invitationToken = "invitation-token-xyz",
         deviceId = "device-001",
         model = "Samsung Galaxy A53",
-        manufacturer = "Samsung",
-        token = "fcm-token-xyz",
-        password = "pass1234",
-        userId = 5
+        manufacturer = "Samsung"
     )
 
     private val domainRequest = DeviceRequest(
+        invitationToken = "invitation-token-xyz",
         deviceId = "device-001",
         model = "Samsung Galaxy A53",
-        manufacturer = "Samsung",
-        token = "fcm-token-xyz",
-        password = "pass1234",
-        userId = 5
+        manufacturer = "Samsung"
     )
 
-    // ── DeviceResponseDto.toDomain(password) ──────────────────────────────────
+    // ── DeviceResponseDto.toDomain() ──────────────────────────────────────────
+
+    @Test
+    fun `DeviceResponseDto toDomain - maps accessToken`() {
+        assertEquals("mobile-session-token", responseDto.toDomain().accessToken)
+    }
+
+    @Test
+    fun `DeviceResponseDto toDomain - maps expiresAt`() {
+        assertEquals("2026-11-16T10:00:00Z", responseDto.toDomain().expiresAt)
+    }
 
     @Test
     fun `DeviceResponseDto toDomain - maps userEmail`() {
-        val result = responseDto.toDomain(password = "generated")
-        assertEquals("ivan@faserkraft.ru", result.userEmail)
+        assertEquals("ivan@faserkraft.ru", responseDto.toDomain().userEmail)
     }
 
     @Test
     fun `DeviceResponseDto toDomain - maps userName`() {
-        val result = responseDto.toDomain(password = "generated")
-        assertEquals("Иван Петров", result.userName)
+        assertEquals("Иван Петров", responseDto.toDomain().userName)
     }
 
     @Test
     fun `DeviceResponseDto toDomain - maps userRole`() {
-        val result = responseDto.toDomain(password = "generated")
-        assertEquals("worker", result.userRole)
-    }
-
-    @Test
-    fun `DeviceResponseDto toDomain - password comes from parameter not dto`() {
-        val result = responseDto.toDomain(password = "generated_pass")
-        assertEquals("generated_pass", result.password)
-    }
-
-    @Test
-    fun `DeviceResponseDto toDomain - different passwords produce different results`() {
-        val result1 = responseDto.toDomain(password = "pass_A")
-        val result2 = responseDto.toDomain(password = "pass_B")
-        assertEquals("pass_A", result1.password)
-        assertEquals("pass_B", result2.password)
+        assertEquals("worker", responseDto.toDomain().userRole)
     }
 
     // ── DeviceRequest.toDto() ─────────────────────────────────────────────────
+
+    @Test
+    fun `DeviceRequest toDto - maps invitationToken`() {
+        assertEquals("invitation-token-xyz", domainRequest.toDto().invitationToken)
+    }
 
     @Test
     fun `DeviceRequest toDto - maps deviceId`() {
@@ -88,22 +84,12 @@ class DeviceMapperTest {
         assertEquals("Samsung", domainRequest.toDto().manufacturer)
     }
 
-    @Test
-    fun `DeviceRequest toDto - maps token`() {
-        assertEquals("fcm-token-xyz", domainRequest.toDto().token)
-    }
-
-    @Test
-    fun `DeviceRequest toDto - maps password`() {
-        assertEquals("pass1234", domainRequest.toDto().password)
-    }
-
-    @Test
-    fun `DeviceRequest toDto - maps userId`() {
-        assertEquals(5, domainRequest.toDto().userId)
-    }
-
     // ── DeviceRequestDto.toDomain() ───────────────────────────────────────────
+
+    @Test
+    fun `DeviceRequestDto toDomain - maps invitationToken`() {
+        assertEquals("invitation-token-xyz", requestDto.toDomain().invitationToken)
+    }
 
     @Test
     fun `DeviceRequestDto toDomain - maps deviceId`() {
@@ -118,21 +104,6 @@ class DeviceMapperTest {
     @Test
     fun `DeviceRequestDto toDomain - maps manufacturer`() {
         assertEquals("Samsung", requestDto.toDomain().manufacturer)
-    }
-
-    @Test
-    fun `DeviceRequestDto toDomain - maps token`() {
-        assertEquals("fcm-token-xyz", requestDto.toDomain().token)
-    }
-
-    @Test
-    fun `DeviceRequestDto toDomain - maps password`() {
-        assertEquals("pass1234", requestDto.toDomain().password)
-    }
-
-    @Test
-    fun `DeviceRequestDto toDomain - maps userId`() {
-        assertEquals(5, requestDto.toDomain().userId)
     }
 
     // ── roundtrip ─────────────────────────────────────────────────────────────
