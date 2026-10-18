@@ -12,6 +12,7 @@ class DeviceMapperTest {
 
     private val responseDto = DeviceResponseDto(
         accessToken = "mobile-session-token",
+        refreshToken = "mobile-refresh-token",
         expiresAt = "2026-11-16T10:00:00Z",
         userName = "Иван Петров",
         userEmail = "ivan@faserkraft.ru",

@@ -25,6 +25,7 @@ class RegisterDeviceUseCaseTest {
 
     private val registration = UserRegistration(
         accessToken = "mobile-session-token",
+        refreshToken = "mobile-refresh-token",
         expiresAt = "2026-11-16T10:00:00Z",
         userEmail = "ivan@faserkraft.ru",
         userName = "Иван Петров",

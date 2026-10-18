@@ -1,9 +1,11 @@
 package ru.faserkraft.client.presentation.app
 
 import app.cash.turbine.test
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -18,6 +20,7 @@ import ru.faserkraft.client.domain.model.DeviceRequest
 import ru.faserkraft.client.domain.model.UserData
 import ru.faserkraft.client.domain.model.UserRegistration
 import ru.faserkraft.client.domain.model.UserRole
+import ru.faserkraft.client.domain.usecase.device.LogoutDeviceUseCase
 import ru.faserkraft.client.domain.usecase.device.RegisterDeviceUseCase
 import ru.faserkraft.client.util.FakeLogger
 import ru.faserkraft.client.util.MainDispatcherRule
@@ -30,7 +33,8 @@ class AppViewModelTest {
 
     private val appAuth: AppAuth = mockk(relaxed = true)
     private val registerDeviceUseCase: RegisterDeviceUseCase = mockk()
-    private val sessionCoordinator: AppSessionCoordinator = mockk(relaxed = true)
+    private val logoutDeviceUseCase: LogoutDeviceUseCase = mockk()
+    private val sessionCoordinator = AppSessionCoordinator()
     private val logger = FakeLogger()
 
     private lateinit var viewModel: AppViewModel
@@ -44,6 +48,7 @@ class AppViewModelTest {
 
     private val registration = UserRegistration(
         accessToken = "mobile-session-token",
+        refreshToken = "mobile-refresh-token",
         expiresAt = "2026-11-16T10:00:00Z",
         userEmail = "ivan@test.com",
         userName = "Иван",
@@ -56,17 +61,21 @@ class AppViewModelTest {
         role = UserRole.WORKER,
     )
 
+    private fun createViewModel() = AppViewModel(
+        appAuth = appAuth,
+        logoutDeviceUseCase = logoutDeviceUseCase,
+        registerDeviceUseCase = registerDeviceUseCase,
+        sessionCoordinator = sessionCoordinator,
+        logger = logger,
+    )
+
     @Before
     fun setUp() {
         every { appAuth.getRegistrationData() } returns null
         every { appAuth.checkRegistration() } returns null
+        coEvery { logoutDeviceUseCase() } just Runs
 
-        viewModel = AppViewModel(
-            appAuth = appAuth,
-            registerDeviceUseCase = registerDeviceUseCase,
-            sessionCoordinator = sessionCoordinator,
-            logger = logger,
-        )
+        viewModel = createViewModel()
     }
 
     // ── Init ─────────────────────────────────────────────────────────────────
@@ -80,12 +89,7 @@ class AppViewModelTest {
         )
         every { appAuth.getRegistrationData() } returns storedUser
 
-        val vm = AppViewModel(
-            appAuth = appAuth,
-            registerDeviceUseCase = registerDeviceUseCase,
-            sessionCoordinator = sessionCoordinator,
-            logger = logger,
-        )
+        val vm = createViewModel()
 
         assertEquals(storedUser, vm.userData.value)
     }
@@ -115,7 +119,7 @@ class AppViewModelTest {
     }
 
     @Test
-    fun `registerDevice - saves session with token expiry and mapped userData`() = runTest {
+    fun `registerDevice - saves session with tokens expiry and mapped userData`() = runTest {
         coEvery { registerDeviceUseCase(request) } returns registration
 
         viewModel.registerDevice(request)
@@ -124,6 +128,7 @@ class AppViewModelTest {
         coVerify(exactly = 1) {
             appAuth.saveSession(
                 token = "mobile-session-token",
+                refreshToken = "mobile-refresh-token",
                 expiresAt = "2026-11-16T10:00:00Z",
                 userData = mappedUserData,
             )
@@ -141,6 +146,7 @@ class AppViewModelTest {
         coVerify(exactly = 1) {
             appAuth.saveSession(
                 token = "mobile-session-token",
+                refreshToken = "mobile-refresh-token",
                 expiresAt = "2026-11-16T10:00:00Z",
                 userData = mappedUserData,
             )
@@ -212,7 +218,9 @@ class AppViewModelTest {
     @Test
     fun `registerDevice - emits mapped error when saving session fails`() = runTest {
         coEvery { registerDeviceUseCase(request) } returns registration
-        every { appAuth.saveSession(any(), any(), any()) } throws RuntimeException("disk full")
+        every {
+            appAuth.saveSession(any(), any(), any(), any())
+        } throws RuntimeException("disk full")
 
         viewModel.errorState.test {
             viewModel.registerDevice(request)
@@ -241,7 +249,7 @@ class AppViewModelTest {
         viewModel.registerDevice(request)
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { appAuth.saveSession(any(), any(), any()) }
+        coVerify(exactly = 0) { appAuth.saveSession(any(), any(), any(), any()) }
     }
 
     @Test
@@ -260,6 +268,17 @@ class AppViewModelTest {
     // ── Logout ───────────────────────────────────────────────────────────────
 
     @Test
+    fun `logout - calls server logout before clearing appAuth`() = runTest {
+        viewModel.logout()
+        advanceUntilIdle()
+
+        io.mockk.coVerifyOrder {
+            logoutDeviceUseCase()
+            appAuth.clear()
+        }
+    }
+
+    @Test
     fun `logout - clears appAuth`() = runTest {
         viewModel.logout()
         advanceUntilIdle()
@@ -269,18 +288,23 @@ class AppViewModelTest {
 
     @Test
     fun `logout - resets userData to null`() = runTest {
-        viewModel.logout()
+        every { appAuth.getRegistrationData() } returns mappedUserData
+        val vm = createViewModel()
+
+        vm.logout()
         advanceUntilIdle()
 
-        assertNull(viewModel.userData.value)
+        assertNull(vm.userData.value)
     }
 
     @Test
     fun `logout - notifies sessionCoordinator`() = runTest {
-        viewModel.logout()
-        advanceUntilIdle()
+        sessionCoordinator.events.test {
+            viewModel.logout()
+            advanceUntilIdle()
 
-        coVerify(exactly = 1) { sessionCoordinator.send(AppSessionEvent.Logout) }
+            assertEquals(AppSessionEvent.Logout, awaitItem())
+        }
     }
 
     @Test
@@ -291,5 +315,42 @@ class AppViewModelTest {
 
             assertEquals(AppEvent.LogoutCompleted, awaitItem())
         }
+    }
+
+    @Test
+    fun `logout - keeps session and emits error when server logout fails`() = runTest {
+        every { appAuth.getToken() } returns "active-token"
+        coEvery { logoutDeviceUseCase() } throws RuntimeException("boom")
+
+        viewModel.errorState.test {
+            viewModel.logout()
+            advanceUntilIdle()
+
+            assertEquals("Неизвестная ошибка", awaitItem())
+        }
+
+        coVerify(exactly = 0) { appAuth.clear() }
+    }
+
+    @Test
+    fun `logout - does not emit error when session is already cleared`() = runTest {
+        every { appAuth.getToken() } returns null
+        coEvery { logoutDeviceUseCase() } throws RuntimeException("401")
+
+        viewModel.errorState.test {
+            viewModel.logout()
+            advanceUntilIdle()
+
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `logout - ignores repeated call while logout is in progress`() = runTest {
+        viewModel.logout()
+        viewModel.logout()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { logoutDeviceUseCase() }
     }
 }
