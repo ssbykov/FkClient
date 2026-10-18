@@ -55,6 +55,7 @@ class AppViewModel @Inject constructor(
 
                 appAuth.saveSession(
                     token = registration.accessToken,
+                    refreshToken = registration.refreshToken,
                     expiresAt = registration.expiresAt,
                     userData = UserData(
                         email = registration.userEmail,

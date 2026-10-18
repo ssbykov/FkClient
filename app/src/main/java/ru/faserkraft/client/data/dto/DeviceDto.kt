@@ -14,6 +14,8 @@ data class DeviceRegisterDto(
 data class DeviceResponseDto(
     @SerializedName("access_token")
     val accessToken: String,
+    @SerializedName("refresh_token")
+    val refreshToken: String,
     @SerializedName("expires_at")
     val expiresAt: String,
     @SerializedName("employee_name")
@@ -36,6 +38,20 @@ data class DeviceRequestDto(
     val model: String,
     val manufacturer: String,
 ) : ItemDto()
+
+data class RefreshRequestDto(
+    @SerializedName("refresh_token")
+    val refreshToken: String,
+)
+
+data class RefreshResponseDto(
+    @SerializedName("access_token")
+    val accessToken: String,
+    @SerializedName("refresh_token")
+    val refreshToken: String,
+    @SerializedName("expires_at")
+    val expiresAt: String,
+)
 
 fun deviceRegisterBuilder(dataIn: DeviceRegisterDto): DeviceRequestDto =
     DeviceRequestDto(

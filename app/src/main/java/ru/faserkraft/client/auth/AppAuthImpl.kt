@@ -16,14 +16,28 @@ class AppAuthImpl @Inject constructor(
 
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
 
-    override fun saveSession(token: String, expiresAt: String, userData: UserData) {
+    override fun saveSession(
+        token: String,
+        refreshToken: String,
+        expiresAt: String,
+        userData: UserData,
+    ) {
         prefs.edit {
             clear()
             putString(MOBILE_TOKEN, token)
+            putString(REFRESH_TOKEN, refreshToken)
             putString(EXPIRES_AT, expiresAt)
             putString(EMAIL, userData.email)
             putString(USERNAME, userData.name)
             userData.role?.value?.let { putString(ROLE, it) }
+        }
+    }
+
+    override fun updateTokens(token: String, refreshToken: String, expiresAt: String) {
+        prefs.edit {
+            putString(MOBILE_TOKEN, token)
+            putString(REFRESH_TOKEN, refreshToken)
+            putString(EXPIRES_AT, expiresAt)
         }
     }
 
@@ -37,6 +51,8 @@ class AppAuthImpl @Inject constructor(
 
     override fun getToken(): String? = prefs.getString(MOBILE_TOKEN, null)
 
+    override fun getRefreshToken(): String? = prefs.getString(REFRESH_TOKEN, null)
+
     override fun checkRegistration(): String? =
         if (getToken().isNullOrBlank()) null else prefs.getString(EMAIL, null)
 
@@ -46,6 +62,7 @@ class AppAuthImpl @Inject constructor(
 
     private companion object {
         const val MOBILE_TOKEN = "MOBILE_TOKEN"
+        const val REFRESH_TOKEN = "REFRESH_TOKEN"
         const val EXPIRES_AT = "EXPIRES_AT"
         const val EMAIL = "EMAIL"
         const val USERNAME = "USERNAME"

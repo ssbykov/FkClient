@@ -5,6 +5,8 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 import ru.faserkraft.client.data.dto.DeviceRequestDto
 import ru.faserkraft.client.data.dto.DeviceResponseDto
+import ru.faserkraft.client.data.dto.RefreshRequestDto
+import ru.faserkraft.client.data.dto.RefreshResponseDto
 
 interface AuthApi {
 
@@ -12,4 +14,9 @@ interface AuthApi {
     suspend fun registerDevice(
         @Body request: DeviceRequestDto,
     ): Response<DeviceResponseDto>
+
+    @POST(BASE_URL + "mobile/refresh")
+    suspend fun refresh(
+        @Body request: RefreshRequestDto,
+    ): Response<RefreshResponseDto>
 }
