@@ -60,3 +60,5 @@ fun deviceRegisterBuilder(dataIn: DeviceRegisterDto): DeviceRequestDto =
         model = Build.MODEL.orEmpty().ifBlank { "unknown" },
         manufacturer = Build.MANUFACTURER.orEmpty().ifBlank { "unknown" },
     )
+
+data class LogoutResponseDto(val ok: Boolean)

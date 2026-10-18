@@ -26,4 +26,8 @@ class DeviceRepositoryImpl @Inject constructor(
     override suspend fun getQrCode(employeeId: Int): String =
         requireNotNull(callApi { api.getQrCode(InvitationRequestDto(employeeId)) })
             .toQrContent()
+
+    override suspend fun logoutDevice() {
+        requireNotNull(callApi { api.logoutDevice() })
+    }
 }

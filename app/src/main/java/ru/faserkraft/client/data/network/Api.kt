@@ -19,6 +19,7 @@ import ru.faserkraft.client.data.dto.InventoryDto
 import ru.faserkraft.client.data.dto.InventoryItemCreateDto
 import ru.faserkraft.client.data.dto.InventoryItemDto
 import ru.faserkraft.client.data.dto.InvitationRequestDto
+import ru.faserkraft.client.data.dto.LogoutResponseDto
 import ru.faserkraft.client.data.dto.OrderCreateDto
 import ru.faserkraft.client.data.dto.OrderDto
 import ru.faserkraft.client.data.dto.OrderItemCreateDto
@@ -247,6 +248,9 @@ interface Api {
     suspend fun getQrCode(
         @Body request: InvitationRequestDto
     ): Response<QrDataResponseDto>
+
+    @POST(BASE_URL + "mobile/logout")
+    suspend fun logoutDevice(): Response<LogoutResponseDto>
 
 
     // ================== СПРАВОЧНИКИ (REFERENCE DATA) ==================

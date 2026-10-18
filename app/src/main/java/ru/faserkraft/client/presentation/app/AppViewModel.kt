@@ -14,6 +14,7 @@ import ru.faserkraft.client.auth.AppAuth
 import ru.faserkraft.client.domain.model.DeviceRequest
 import ru.faserkraft.client.domain.model.UserData
 import ru.faserkraft.client.domain.model.UserRole
+import ru.faserkraft.client.domain.usecase.device.LogoutDeviceUseCase
 import ru.faserkraft.client.domain.usecase.device.RegisterDeviceUseCase
 import ru.faserkraft.client.presentation.base.toErrorMessage
 import ru.faserkraft.client.utils.logger.Logger
@@ -25,6 +26,7 @@ private const val DEVICE_ALREADY_REGISTERED = "Устройство уже за�
 @HiltViewModel
 class AppViewModel @Inject constructor(
     private val appAuth: AppAuth,
+    private val logoutDeviceUseCase: LogoutDeviceUseCase,
     private val registerDeviceUseCase: RegisterDeviceUseCase,
     private val sessionCoordinator: AppSessionCoordinator,
     private val logger: Logger,
@@ -39,8 +41,48 @@ class AppViewModel @Inject constructor(
     private val _errorState = Channel<String>(Channel.BUFFERED)
     val errorState: Flow<String> = _errorState.receiveAsFlow()
 
+    private var isLoggingOut = false
+
     init {
         _userData.value = appAuth.getRegistrationData()
+        observeSessionEvents()
+    }
+
+    private fun observeSessionEvents() {
+        viewModelScope.launch {
+            sessionCoordinator.events.collect { event ->
+                when (event) {
+                    AppSessionEvent.Logout -> {
+                        _userData.value = null
+                        _events.send(AppEvent.LogoutCompleted)
+                    }
+                }
+            }
+        }
+    }
+
+    fun logout() {
+        if (isLoggingOut) return
+        isLoggingOut = true
+
+        viewModelScope.launch {
+            try {
+                runCatching { logoutDeviceUseCase() }
+                    .onFailure { error ->
+                        // Сессия уже недействительна: выход выполнил TokenAuthenticator.
+                        if (appAuth.getToken().isNullOrBlank()) return@launch
+
+                        logger.e(TAG, "logout failed", error)
+                        _errorState.send(error.toErrorMessage())
+                        return@launch
+                    }
+
+                appAuth.clear()
+                sessionCoordinator.send(AppSessionEvent.Logout)
+            } finally {
+                isLoggingOut = false
+            }
+        }
     }
 
     fun registerDevice(request: DeviceRequest) {
@@ -71,15 +113,6 @@ class AppViewModel @Inject constructor(
                 logger.e(TAG, "registerDevice failed", error)
                 _errorState.send(error.toErrorMessage())
             }
-        }
-    }
-
-    fun logout() {
-        viewModelScope.launch {
-            appAuth.clear()
-            _userData.value = null
-            sessionCoordinator.send(AppSessionEvent.Logout)
-            _events.send(AppEvent.LogoutCompleted)
         }
     }
 }
